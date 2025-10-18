@@ -14,15 +14,15 @@ export async function GET() {
   const emails: Record<string, string> = {};
   let page = 1;
   for (let i = 0; i < 10; i++) { // hard cap 1000 users per request
-    const resp: any = await supabase.auth.admin.listUsers({ page, perPage: 100 });
-    const users = resp?.data?.users ?? [];
+    const resp = await supabase.auth.admin.listUsers({ page, perPage: 100 });
+    const users = (resp as { data: { users: Array<{ id: string; email: string | null }> } | null })?.data?.users ?? [];
     for (const u of users) emails[u.id] = u.email ?? "";
     if (users.length < 100) break;
     page++;
   }
   // profiles
   const { data: profiles } = await supabase.from("profiles").select("id, full_name, role");
-  const list = (profiles ?? []).map((p: any) => ({ id: p.id, full_name: p.full_name, role: p.role, email: emails[p.id] ?? "" }));
+  const list = (profiles ?? []).map((p: { id: string; full_name: string | null; role: string | null }) => ({ id: p.id, full_name: p.full_name, role: p.role, email: emails[p.id] ?? "" }));
   return NextResponse.json({ users: list });
 }
 
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   const { email, name, role } = await req.json();
   const supabase = getAdminClient();
   // send invite email from Supabase
-  const invite: any = await supabase.auth.admin.inviteUserByEmail(email, { data: { full_name: name, role } });
+  const invite = await supabase.auth.admin.inviteUserByEmail(email, { data: { full_name: name, role } });
   if (invite.error) return NextResponse.json({ error: invite.error.message }, { status: 400 });
   const user = invite.data.user;
   if (user?.id) {
@@ -47,7 +47,7 @@ export async function PATCH(req: NextRequest) {
   await supabase.from("profiles").update({ full_name: full_name ?? null, role: role ?? null, is_admin: role === "admin" }).eq("id", id);
   // update auth user metadata name (optional)
   try {
-    await (supabase as any).auth.admin.updateUserById(id, { user_metadata: { full_name } });
+    await supabase.auth.admin.updateUserById(id, { user_metadata: { full_name } } as { user_metadata: { full_name: string } });
   } catch {}
   return NextResponse.json({ ok: true });
 }

@@ -218,7 +218,7 @@ function RowMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => voi
 
   return (
     <>
-      <button ref={btnRef as any} onClick={toggle} className="h-8 w-8 rounded-lg hover:bg-[var(--hover)] grid place-items-center" aria-haspopup="menu" aria-expanded={open}>
+      <button ref={btnRef} onClick={toggle} className="h-8 w-8 rounded-lg hover:bg-[var(--hover)] grid place-items-center" aria-haspopup="menu" aria-expanded={open}>
         <MoreVertical size={14} />
       </button>
       {open && coords && createPortal(
