@@ -1,3 +1,4 @@
+
 export default function MarketingPage() {
   return (
     <main className="min-h-[60vh] flex items-center justify-center text-center p-8">
