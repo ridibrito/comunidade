@@ -184,7 +184,7 @@ export default function AcervoDigitalPage() {
               {/* Carrossel de recursos da coleção */}
               <Carousel cardWidth={300} gap={24}>
                 {collection.resources
-                  .sort((a, b) => (a.seriesOrder || 0) - (b.seriesOrder || 0))
+                  .sort((a, b) => ((a as any).seriesOrder || 0) - ((b as any).seriesOrder || 0))
                   .map((resource, resourceIndex) => (
                   <ModernCard key={resourceIndex} variant="elevated" className="h-full space-y-4">
                     <div className="relative">
@@ -198,14 +198,14 @@ export default function AcervoDigitalPage() {
                           {getTypeIcon(resource.type)}
                           {resource.type}
                         </Badge>
-                        {resource.isNew && (
+                        {(resource as any).isNew && (
                           <Badge variant="warning" size="sm">Novo</Badge>
                         )}
-                        {resource.isFeatured && (
+                        {(resource as any).isFeatured && (
                           <Badge variant="brand" size="sm">Destaque</Badge>
                         )}
-                        {resource.series && (
-                          <Badge variant="info" size="sm">Vol. {resource.seriesOrder}</Badge>
+                        {(resource as any).series && (
+                          <Badge variant="info" size="sm">Vol. {(resource as any).seriesOrder}</Badge>
                         )}
                       </div>
                       
@@ -221,8 +221,8 @@ export default function AcervoDigitalPage() {
                       <div>
                         <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1">{resource.title}</h3>
                         <p className="text-sm text-gray-600 dark:text-dark-muted">{resource.description}</p>
-                        {resource.series && (
-                          <p className="text-xs text-brand-accent mt-1 font-medium">{resource.series}</p>
+                        {(resource as any).series && (
+                          <p className="text-xs text-brand-accent mt-1 font-medium">{(resource as any).series}</p>
                         )}
                       </div>
                       

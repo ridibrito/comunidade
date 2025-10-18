@@ -26,11 +26,11 @@ export default {
         soft: "0 8px 24px rgba(0,0,0,.08)",
         subtle: "0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1)",
         "subtle-dark": "0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2)",
-        // Sombras suaves com blur (sem borda forte)
-        g4: "0px 2px 8px rgba(0, 0, 0, 0.04), 0px 1px 3px rgba(0, 0, 0, 0.08)",
-        "g4-hover": "0px 4px 12px rgba(0, 0, 0, 0.06), 0px 2px 6px rgba(0, 0, 0, 0.12)",
-        "g4-dark": "0px 2px 8px rgba(0, 0, 0, 0.15), 0px 1px 3px rgba(0, 0, 0, 0.25)",
-        "g4-dark-hover": "0px 4px 12px rgba(0, 0, 0, 0.2), 0px 2px 6px rgba(0, 0, 0, 0.3)",
+        // Sombras elegantes inspiradas no Shadcn-ui
+        g4: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+        "g4-hover": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+        "g4-dark": "0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 2px 0 rgba(0, 0, 0, 0.1)",
+        "g4-dark-hover": "0 4px 6px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -1px rgba(0, 0, 0, 0.15)",
       },
       spacing: {
         xs: "8px",
@@ -48,18 +48,18 @@ export default {
           subtle: "#F5F7FA",
         },
         light: {
-          bg: "#FAFAFA", // Cor clean para light mode
-          surface: "#FFFFFF",
-          border: "rgba(0, 0, 0, 0.05)", // Borda sutil
-          text: "#111827",
-          muted: "#6B7280",
+          bg: "#F5F5F5", // Fundo principal com contraste
+          surface: "#FFFFFF", // Cards brancos para contraste
+          border: "rgba(15, 23, 42, 0.04)", // Borda muito sutil
+          text: "#0F172A", // Texto mais escuro e legível
+          muted: "#64748B", // Cinza mais elegante
         },
         dark: {
-          bg: "#0A000A", // Cor personalizada para dark mode
-          surface: "#1F2937",
-          border: "rgba(255, 255, 255, 0.08)", // Borda sutil
-          text: "#F9FAFB",
-          muted: "#9CA3AF",
+          bg: "#0A0A0A", // Fundo mais neutro
+          surface: "#1A1A1A", // Surface mais refinada
+          border: "rgba(255, 255, 255, 0.05)", // Borda muito sutil no dark
+          text: "#FAFAFA", // Texto mais claro
+          muted: "#A1A1AA", // Cinza mais claro
         },
       },
       screens: {

@@ -13,7 +13,7 @@ interface MetricCardProps {
   };
   icon?: ReactNode;
   className?: string;
-  variant?: "default" | "success" | "warning" | "info";
+  variant?: "default" | "success" | "warning" | "info" | "brand";
 }
 
 export default function MetricCard({
@@ -29,7 +29,8 @@ export default function MetricCard({
     default: "",
     success: "",
     warning: "", 
-    info: ""
+    info: "",
+    brand: ""
   };
 
   const trendClasses = {

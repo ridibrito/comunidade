@@ -16,7 +16,7 @@ export default function ModernCard({
   size = "md",
   hover = true
 }: ModernCardProps) {
-  const baseClasses = "rounded-xl transition-all duration-200";
+  const baseClasses = "rounded-xl transition-all duration-200 border border-light-border dark:border-dark-border";
   
   const variantClasses = {
     default: "bg-light-surface dark:bg-dark-surface shadow-g4 dark:shadow-g4-dark",

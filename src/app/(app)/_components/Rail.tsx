@@ -50,12 +50,25 @@ export function Rail() {
           href="/ai"
           className={cn(
             "relative flex h-10 w-10 items-center justify-center rounded-xl transition-all",
-            "bg-[#43085E] hover:brightness-110 text-white shadow-sm",
-            isActive("/ai") ? "ring-2 ring-white/30" : "ring-0"
+            "bg-gradient-to-br from-purple-600 via-purple-700 to-purple-800 hover:from-purple-500 hover:via-purple-600 hover:to-purple-700 text-white shadow-lg",
+            isActive("/ai") ? "ring-2 ring-white/30 scale-105" : "ring-0"
           )}
-          style={{ boxShadow: "0 8px 20px rgba(67,8,94,0.32)" }}
+          style={{ 
+            boxShadow: "0 8px 25px rgba(147, 51, 234, 0.4), 0 4px 12px rgba(147, 51, 234, 0.2)",
+            background: "linear-gradient(135deg, #8B5CF6 0%, #7C3AED 50%, #6D28D9 100%)"
+          }}
         >
-          <img src="/coruja.svg" alt="Corujinha" width={18} height={18} style={{ width: 18, height: 'auto', filter: 'brightness(0) invert(1)' }} />
+          <img 
+            src="/coruja.svg" 
+            alt="Corujinha" 
+            width={20} 
+            height={20} 
+            style={{ 
+              width: 20, 
+              height: 'auto', 
+              filter: 'brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0,0,0,0.3))' 
+            }} 
+          />
         </Link>
       </Tooltip>
       <div className="flex-1" />

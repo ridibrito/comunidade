@@ -2,19 +2,19 @@
 
 /* Cores personalizadas para light e dark mode */
 :root {
-  /* Light mode colors */
-  --light-bg: #FAFAFA;
+  /* Light mode colors - inspiradas no Shadcn-ui */
+  --light-bg: #F5F5F5;
   --light-surface: #FFFFFF;
-  --light-border: rgba(0, 0, 0, 0.05);
-  --light-text: #111827;
-  --light-muted: #6B7280;
+  --light-border: rgba(15, 23, 42, 0.04);
+  --light-text: #0F172A;
+  --light-muted: #64748B;
   
-  /* Dark mode colors */
-  --dark-bg: #0A000A;
-  --dark-surface: #1F2937;
-  --dark-border: rgba(255, 255, 255, 0.08);
-  --dark-text: #F9FAFB;
-  --dark-muted: #9CA3AF;
+  /* Dark mode colors - inspiradas no Shadcn-ui */
+  --dark-bg: #0A0A0A;
+  --dark-surface: #1A1A1A;
+  --dark-border: rgba(255, 255, 255, 0.05);
+  --dark-text: #FAFAFA;
+  --dark-muted: #A1A1AA;
   
   /* Brand colors */
   --brand-accent: #43085E;
@@ -73,22 +73,24 @@ html {
   background-color: var(--light-surface);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.04), 0px 1px 3px rgba(0, 0, 0, 0.08);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  border: 1px solid var(--light-border);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
 }
 
 .card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.06), 0px 2px 6px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .dark .card {
   background-color: var(--dark-surface);
-  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15), 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--dark-border);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 2px 0 rgba(0, 0, 0, 0.1);
 }
 
 .dark .card:hover {
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2), 0px 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
 }
 
 .hover-raise:hover {

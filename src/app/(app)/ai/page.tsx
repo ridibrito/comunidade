@@ -2,14 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { askCorujinha } from "./actions";
-import Container from "@/components/ui/Container";
-import Section from "@/components/ui/Section";
-import PageHeader from "@/components/ui/PageHeader";
-import ModernCard from "@/components/ui/ModernCard";
 import Badge from "@/components/ui/Badge";
 import { 
   Bot, 
-  Send, 
   Plus, 
   Mic, 
   Paperclip, 
@@ -18,7 +13,6 @@ import {
   Copy, 
   MoreVertical,
   MessageSquare,
-  Clock,
   User
 } from "lucide-react";
 
@@ -58,11 +52,11 @@ export default function AIPage() {
   useEffect(() => {
     const raw = localStorage.getItem("ai-conversations");
     if (raw) {
-      const parsed: Conversation[] = JSON.parse(raw).map((c: any) => ({
+      const parsed: Conversation[] = JSON.parse(raw).map((c: Conversation) => ({
         ...c,
         createdAt: new Date(c.createdAt),
         updatedAt: new Date(c.updatedAt),
-        messages: c.messages.map((m: any) => ({
+        messages: c.messages.map((m: Message) => ({
           ...m,
           timestamp: new Date(m.timestamp)
         }))
@@ -174,10 +168,10 @@ export default function AIPage() {
 
   function deleteConversation(id: string) {
     setConversations((cs) => cs.filter((c) => c.id !== id));
-    if (activeId === id) setActiveId((prev) => {
+    if (activeId === id) {
       const remaining = conversations.filter((c) => c.id !== id);
-      return remaining[0]?.id ?? null;
-    });
+      setActiveId(remaining[0]?.id ?? null);
+    }
   }
 
   function rateMessage(messageId: string, rating: "positive" | "negative") {
