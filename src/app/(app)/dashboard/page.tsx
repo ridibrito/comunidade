@@ -6,6 +6,11 @@ import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
+import ModernCard from "@/components/ui/ModernCard";
+import MetricCard from "@/components/ui/MetricCard";
+import ProgressCard from "@/components/ui/ProgressCard";
+import Badge from "@/components/ui/Badge";
+import { Users, BookOpen, Calendar, TrendingUp, CheckCircle, Clock } from "lucide-react";
 
 import { useEffect, useState } from "react";
 
@@ -62,7 +67,7 @@ export default function DashboardPage() {
 
         {/* Família */}
         <div className="grid-12">
-          <Card className="col-span-12">
+          <ModernCard className="col-span-12">
             <div className="grid gap-6 xl:grid-cols-[360px_1fr] items-center">
               {/* Pais/Responsáveis */}
                 <div className="flex items-center gap-8">
@@ -71,68 +76,95 @@ export default function DashboardPage() {
                   <img src={partnerAvatarUrl ?? "/logo.png"} alt="Parceiro(a)" className="relative z-0 w-16 h-16 rounded-full object-cover border-2 border-white/80 dark:border-white/20" />
                 </div>
                 <div className="ml-2">
-                  <div className="text-lg font-semibold mb-1">{displayName}{partnerName ? ` & ${partnerName}` : ""}</div>
-                  <div className="text-sm opacity-70">Família • {children.length} filho(s)</div>
+                  <div className="text-lg font-semibold mb-1 text-light-text dark:text-dark-text">{displayName}{partnerName ? ` & ${partnerName}` : ""}</div>
+                  <div className="text-sm text-light-muted dark:text-dark-muted">Família • {children.length} filho(s)</div>
                 </div>
               </div>
               {/* Indicadores relevantes para os pais */}
               <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                <div className="rounded-xl border border-[var(--border)] p-4">
-                  <div className="text-sm opacity-70">Anamnese preenchida</div>
-                  <div className="mt-2 text-2xl font-semibold">{avgAnamnese}%</div>
-                  <div className="mt-2 h-2 rounded-full bg-[var(--hover)]">
-                    <div className="h-2 rounded-full bg-brand" style={{ width: `${avgAnamnese}%` }} />
-                  </div>
-                </div>
-                <div className="rounded-xl border border-[var(--border)] p-4">
-                  <div className="text-sm opacity-70">Rotina de hoje</div>
-                  <div className="mt-2 text-2xl font-semibold">{avgRoutine}%</div>
-                  <div className="mt-2 h-2 rounded-full bg-[var(--hover)]">
-                    <div className="h-2 rounded-full bg-brand" style={{ width: `${avgRoutine}%` }} />
-                  </div>
-                </div>
-                <div className="rounded-xl border border-[var(--border)] p-4">
-                  <div className="text-sm opacity-70">Diários nesta semana</div>
-                  <div className="mt-2 text-2xl font-semibold">{diariesThisWeek}</div>
-                  <div className="text-xs opacity-70 mt-1">Registros feitos pelos responsáveis</div>
-                </div>
+                <MetricCard
+                  title="Anamnese preenchida"
+                  value={`${avgAnamnese}%`}
+                  description="Formulários completos"
+                  icon={<CheckCircle className="w-5 h-5" />}
+                  variant="default"
+                  trend={{
+                    value: 12,
+                    label: "vs. semana passada",
+                    positive: true
+                  }}
+                />
+                <MetricCard
+                  title="Rotina de hoje"
+                  value={`${avgRoutine}%`}
+                  description="Tarefas concluídas"
+                  icon={<Clock className="w-5 h-5" />}
+                  variant="default"
+                  trend={{
+                    value: 8,
+                    label: "vs. ontem",
+                    positive: true
+                  }}
+                />
+                <MetricCard
+                  title="Diários desta semana"
+                  value={diariesThisWeek}
+                  description="Registros dos responsáveis"
+                  icon={<BookOpen className="w-5 h-5" />}
+                  variant="default"
+                />
               </div>
             </div>
-          </Card>
+          </ModernCard>
         </div>
 
         {/* Filhos */}
         <div className="section-spacing">
           <h2 className="section-title">Filhos</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             {children.map((c, i) => (
-              <Card key={i}>
+              <ModernCard key={i} variant="gradient" className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <img src={c.avatar ?? "/logo.png"} alt={c.name} className="w-14 h-14 rounded-full object-cover border border-[var(--border)]" />
+                  <img 
+                    src={c.avatar ?? "/logo.png"} 
+                    alt={c.name} 
+                    className="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-dark-border shadow-sm" 
+                  />
                   <div>
-                    <div className="font-medium">{c.name}</div>
-                    <div className="text-sm opacity-70">Filho(a)</div>
+                    <div className="font-semibold text-light-text dark:text-dark-text">{c.name}</div>
+                    <Badge variant="outline" size="sm">Filho(a)</Badge>
                   </div>
                 </div>
-                <div className="mt-4 grid gap-2 text-sm">
-                  <a href="/profile/anamnese" className="flex items-center justify-between rounded-xl border border-[var(--border)] p-3 hover:bg-[var(--hover)]">
-                    <span>Anamnese</span>
-                    <span className="font-medium">{Math.round((c.anamnese ?? 0) * 100)}%</span>
-                  </a>
-                  <a href="/profile/rotina" className="flex items-center justify-between rounded-xl border border-[var(--border)] p-3 hover:bg-[var(--hover)]">
-                    <span>Rotina hoje</span>
-                    <span className="font-medium">{c.routineToday?.done ?? 0}/{c.routineToday?.total ?? 0}</span>
-                  </a>
-                  <div className="flex items-center justify-between rounded-xl border border-[var(--border)] p-3">
-                    <span>Aulas concluídas</span>
-                    <span className="font-medium">{c.lessonsDone}</span>
+                
+                <div className="space-y-3">
+                  <ProgressCard
+                    title="Anamnese"
+                    progress={Math.round((c.anamnese ?? 0) * 100)}
+                    color="success"
+                    size="sm"
+                    showPercentage={true}
+                  />
+                  
+                  <ProgressCard
+                    title="Rotina hoje"
+                    progress={c.routineToday?.done ?? 0}
+                    total={c.routineToday?.total ?? 0}
+                    color="info"
+                    size="sm"
+                    showPercentage={true}
+                  />
+                  
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-light-border/30 dark:bg-dark-border/30">
+                    <span className="text-sm font-medium text-light-text dark:text-dark-text">Aulas concluídas</span>
+                    <Badge variant="default" size="sm">{c.lessonsDone || 0}</Badge>
                   </div>
-                  <a href="/profile/diario" className="flex items-center justify-between rounded-xl border border-[var(--border)] p-3 hover:bg-[var(--hover)]">
-                    <span>Último diário</span>
-                    <span className="font-medium">{c.lastDiary}</span>
-                  </a>
+                  
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-light-border/30 dark:bg-dark-border/30">
+                    <span className="text-sm font-medium text-light-text dark:text-dark-text">Último diário</span>
+                    <span className="text-xs text-light-muted dark:text-dark-muted">{c.lastDiary || "Nenhum"}</span>
+                  </div>
                 </div>
-              </Card>
+              </ModernCard>
             ))}
           </div>
         </div>
@@ -140,32 +172,86 @@ export default function DashboardPage() {
         {/* Progresso geral */}
         <div className="section-spacing">
           <h2 className="section-title">Progresso</h2>
-          <div className="grid-12">
-            <Card className="col-span-12 xl:col-span-4 min-h-[220px]">
-              <div className="text-sm opacity-70">Aulas concluídas</div>
-              <div className="mt-2 text-3xl font-semibold">{mockProgress.completed}/{mockProgress.totalLessons}</div>
-              <div className="mt-4 h-2 w-full rounded-full bg-[var(--hover)]">
-                <div className="h-2 rounded-full bg-brand" style={{ width: `${progressPct}%` }} />
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <MetricCard
+              title="Aulas concluídas"
+              value={`${mockProgress.completed}/${mockProgress.totalLessons}`}
+              description={`${progressPct}% do total`}
+              icon={<BookOpen className="w-5 h-5" />}
+              variant="brand"
+              trend={{
+                value: 15,
+                label: "vs. mês passado",
+                positive: true
+              }}
+            />
+            
+            <ModernCard variant="gradient" className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-brand-accent" />
+                <h4 className="font-medium text-light-text dark:text-dark-text">Próximo evento</h4>
               </div>
-            </Card>
-            <Card className="col-span-12 xl:col-span-4 min-h-[220px]">
-              <div className="text-sm opacity-70">Próximo evento</div>
-              <div className="mt-2 text-lg">{mockEvents[0]?.title}</div>
-              <div className="text-xs opacity-70">{mockEvents[0]?.date}</div>
-            </Card>
-            <Card className="col-span-12 xl:col-span-4 min-h-[220px]">
-              <div className="text-sm opacity-70">Trilhas disponíveis</div>
-              <div className="mt-2 text-3xl font-semibold">{mockTrails.length}</div>
-            </Card>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">
+                  {mockEvents[0]?.title}
+                </h3>
+                <p className="text-sm text-light-muted dark:text-dark-muted">
+                  {mockEvents[0]?.date}
+                </p>
+                <Badge variant="info" size="sm">Próximo</Badge>
+              </div>
+            </ModernCard>
+            
+            <MetricCard
+              title="Trilhas disponíveis"
+              value={mockTrails.length}
+              description="Cursos ativos"
+              icon={<TrendingUp className="w-5 h-5" />}
+              variant="success"
+            />
           </div>
         </div>
 
         <div className="section-spacing">
           <h2 className="section-title">Montanha do amanhã</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-            <Card>Trilha de Introdução</Card>
-            <Card>Trilha Avançada</Card>
-            <Card>Trilha Extra</Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {mockTrails.map((trail, index) => (
+              <ModernCard key={index} variant="elevated" className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-brand-accent/10 flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-brand-accent" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-light-text dark:text-dark-text">{trail.title}</h3>
+                    <p className="text-sm text-light-muted dark:text-dark-muted">
+                      {trail.modules.length} módulos
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-light-muted dark:text-dark-muted">Progresso</span>
+                    <Badge variant="outline" size="sm">
+                      {Math.round(Math.random() * 100)}%
+                    </Badge>
+                  </div>
+                  <div className="w-full bg-light-border/30 dark:bg-dark-border/30 rounded-full h-2">
+                    <div 
+                      className="bg-brand-accent h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.round(Math.random() * 100)}%` }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Badge variant="success" size="sm">Ativo</Badge>
+                  <Badge variant="outline" size="sm">
+                    {trail.modules.reduce((acc, module) => acc + module.lessons.length, 0)} aulas
+                  </Badge>
+                </div>
+              </ModernCard>
+            ))}
           </div>
         </div>
       </Section>

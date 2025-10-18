@@ -1,38 +1,140 @@
 @import "tailwindcss";
-/* Tokens de design próprios (sem shadcn) */
-:root {
-  --border: #23283a; /* dark border */
-}
 
+/* Cores personalizadas para light e dark mode */
 :root {
-  --background: #0b0e1a; /* dark base */
-  --foreground: #e8eaf3; /* light text */
-  --accent-purple: #6b46c1;
-  --aux-yellow: #fbbf24;
-  --hover: #1f2537;
-  --surface: #0f1426;
+  /* Light mode colors */
+  --light-bg: #FAFAFA;
+  --light-surface: #FFFFFF;
+  --light-border: rgba(0, 0, 0, 0.05);
+  --light-text: #111827;
+  --light-muted: #6B7280;
+  
+  /* Dark mode colors */
+  --dark-bg: #0A000A;
+  --dark-surface: #1F2937;
+  --dark-border: rgba(255, 255, 255, 0.08);
+  --dark-text: #F9FAFB;
+  --dark-muted: #9CA3AF;
+  
+  /* Brand colors */
+  --brand-accent: #43085E;
+  
+  /* Fonts */
   --font-title: "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
-  --font-text: "Noto Sans", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, sans-serif;
+  --font-text: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-text);
-  --font-mono: var(--font-text);
-}
-
-/* Tema é sempre dark */
-
+/* Light mode (default) */
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--light-bg);
+  color: var(--light-text);
   font-family: var(--font-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
-* { border-color: var(--border); }
-html { scroll-behavior: smooth; }
+
+/* Dark mode */
+.dark body {
+  background-color: var(--dark-bg);
+  color: var(--dark-text);
+}
+
+html { 
+  scroll-behavior: smooth; 
+}
+
+/* Classes utilitárias para cores personalizadas */
+.bg-light-bg { background-color: var(--light-bg); }
+.bg-light-surface { background-color: var(--light-surface); }
+.bg-light-border { background-color: var(--light-border); }
+.text-light-text { color: var(--light-text); }
+.text-light-muted { color: var(--light-muted); }
+
+.bg-dark-bg { background-color: var(--dark-bg); }
+.bg-dark-surface { background-color: var(--dark-surface); }
+.bg-dark-border { background-color: var(--dark-border); }
+.text-dark-text { color: var(--dark-text); }
+.text-dark-muted { color: var(--dark-muted); }
+
+/* Classes para dark mode */
+.dark .bg-light-bg { background-color: var(--dark-bg); }
+.dark .bg-light-surface { background-color: var(--dark-surface); }
+.dark .bg-light-border { background-color: var(--dark-border); }
+.dark .text-light-text { color: var(--dark-text); }
+.dark .text-light-muted { color: var(--dark-muted); }
+
+/* Classes de layout */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.card {
+  background-color: var(--light-surface);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.04), 0px 1px 3px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.06), 0px 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.dark .card {
+  background-color: var(--dark-surface);
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15), 0px 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.dark .card:hover {
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2), 0px 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.hover-raise:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dark .hover-raise:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--light-text);
+}
+
+.dark .section-title {
+  color: var(--dark-text);
+}
+
+.section-spacing {
+  margin-top: 2rem;
+}
+
+.grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.5rem;
+}
 
 /* Scrollbar discreta */
 *::-webkit-scrollbar { width: 8px; height: 8px; }
-*::-webkit-scrollbar-thumb { background-color: #2f3548; border-radius: 999px; }
+*::-webkit-scrollbar-thumb { 
+  background-color: var(--light-border); 
+  border-radius: 999px; 
+}
+.dark *::-webkit-scrollbar-thumb { 
+  background-color: var(--dark-border); 
+}
 *::-webkit-scrollbar-track { background: transparent; }
+
