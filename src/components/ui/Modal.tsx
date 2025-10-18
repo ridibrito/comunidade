@@ -11,7 +11,7 @@ export default function Modal({ open, onClose, children }: { open: boolean; onCl
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
-      <div role="dialog" aria-modal="true" className="relative card w-full max-w-lg">
+      <div role="dialog" aria-modal="true" className="relative w-full max-w-lg rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 shadow-soft">
         {children}
       </div>
     </div>

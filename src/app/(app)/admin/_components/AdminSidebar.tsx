@@ -36,7 +36,7 @@ export function AdminSidebar() {
         {item("/admin/acervo", "Acervo digital", pathname.startsWith("/admin/acervo"), BookOpen)}
         {item("/admin/rodas", "Rodas de conversa", pathname.startsWith("/admin/rodas"), Users)}
         {item("/admin/plantao", "Plantão de dúvidas", pathname.startsWith("/admin/plantao"), HelpCircle)}
-        {item("/admin/usuarios", "Usuários", pathname.startsWith("/admin/usuarios"), Users)}
+        {item("/admin/users", "Usuários", pathname.startsWith("/admin/users"), Users)}
       </ul>
     </aside>
   );

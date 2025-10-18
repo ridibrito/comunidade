@@ -18,6 +18,7 @@ create table if not exists public.profiles (
   district text,
   city text,
   state text,
+  role text,
   cpf text,
   birth_date date,
   occupation text,
@@ -36,6 +37,7 @@ alter table public.profiles add column if not exists complement text;
 alter table public.profiles add column if not exists district text;
 alter table public.profiles add column if not exists city text;
 alter table public.profiles add column if not exists state text;
+alter table public.profiles add column if not exists role text;
 alter table public.profiles add column if not exists cpf text;
 alter table public.profiles add column if not exists birth_date date;
 alter table public.profiles add column if not exists occupation text;
