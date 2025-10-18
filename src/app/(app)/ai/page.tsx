@@ -63,7 +63,7 @@ export default function AIPage() {
   function handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      onSend(e as any);
+      onSend(e as unknown as React.FormEvent);
     }
   }
 

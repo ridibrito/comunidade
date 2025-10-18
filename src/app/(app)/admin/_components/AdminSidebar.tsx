@@ -11,7 +11,7 @@ export function AdminSidebar() {
     href: string,
     label: string,
     active: boolean,
-    Icon: React.ComponentType<{ size?: number }>
+    Icon: React.ComponentType<{ size?: number; className?: string }>
   ) => (
     <li>
       <Link

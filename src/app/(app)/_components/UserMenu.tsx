@@ -83,7 +83,7 @@ export function UserMenu() {
             <UserCircle size={16} />
             <span className="text-sm">Perfil</span>
           </Link>
-          <button onClick={userEmail ? handleSignOut : (handleSignIn as any)} className="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-[var(--hover)] transition-colors text-red-500">
+          <button onClick={userEmail ? handleSignOut : (handleSignIn as unknown as (e: React.FormEvent) => void)} className="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-[var(--hover)] transition-colors text-red-500">
             <LogOut size={16} />
             <span className="text-sm">{userEmail ? "Sair" : "Entrar"}</span>
           </button>

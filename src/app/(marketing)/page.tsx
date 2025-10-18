@@ -11,4 +11,6 @@ export default function MarketingPage() {
   );
 }
 
+export const dynamic = "force-dynamic";
+
 

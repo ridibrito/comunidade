@@ -2,13 +2,12 @@ import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import LessonsOfModule from "../LessonsOfModule";
 
-interface PageProps { params: { slug: string } }
-
-export default function ModuloPage({ params }: PageProps) {
+export default async function ModuloPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   return (
     <Container>
       <Section>
-        <LessonsOfModule slug={params.slug} />
+        <LessonsOfModule slug={slug} />
       </Section>
     </Container>
   );

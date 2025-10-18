@@ -74,7 +74,7 @@ export function MountainBuilder() {
     setTrails((prev) => [...prev, data!]);
     setNewTrailTitle("");
     setActiveTrailId(data!.id);
-    push({ title: "Trilha criada" });
+    push({ title: "Trilha criada", message: "A trilha foi adicionada." });
   }
 
   async function addModule() {
@@ -91,7 +91,7 @@ export function MountainBuilder() {
     setModules((prev) => [...prev, data!]);
     setNewModuleTitle("");
     setActiveModuleId(data!.id);
-    push({ title: "Módulo criado" });
+    push({ title: "Módulo criado", message: "O módulo foi adicionado." });
   }
 
   async function addLesson() {
@@ -108,7 +108,7 @@ export function MountainBuilder() {
     setLessons((prev) => [...prev, data!]);
     setNewLessonTitle("");
     setNewLessonVideo("");
-    push({ title: "Aula criada" });
+    push({ title: "Aula criada", message: "A aula foi adicionada." });
   }
 
   const modulesOfTrail = modules.filter((m) => m.trail_id === activeTrailId);

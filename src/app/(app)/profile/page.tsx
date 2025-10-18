@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useToast } from "@/components/ui/ToastProvider";
 import { formatPhoneBR, formatCEP, formatUF } from "@/lib/masks";
@@ -12,7 +13,7 @@ import Card from "@/components/ui/Card";
 import { UserCircle, UsersRound, ClipboardList, CalendarDays, BookOpen, Camera, Plus } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 
-export default function ProfilePage() {
+function ProfileContent() {
   const [fullName, setFullName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
@@ -90,8 +91,9 @@ export default function ProfilePage() {
         setDistrict(data.district ?? "");
         setCity(data.city ?? "");
         setStateUF(data.state ?? "");
-      } catch (err: any) {
-        console.warn("Falha ao carregar perfil:", err?.message ?? err);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn("Falha ao carregar perfil:", msg);
       }
     }
     load();
@@ -228,8 +230,9 @@ export default function ProfilePage() {
         setPwd(""); setPwdConfirm("");
       }
       push({ title: "Perfil salvo", message: "Dados do responsável atualizados." });
-    } catch (err: any) {
-      push({ title: "Erro ao salvar", message: err?.message ?? String(err), variant: "error" });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      push({ title: "Erro ao salvar", message: msg, variant: "error" });
     }
   }
 
@@ -566,7 +569,7 @@ export default function ProfilePage() {
               <button onClick={() => setShowEditMember(false)} className="h-10 px-4 rounded-lg border border-[var(--border)] hover:bg-[var(--hover)]">Cancelar</button>
               <button onClick={async () => {
                 const supabase = getBrowserSupabaseClient(); if (!supabase || !editMemberId) return;
-                const payload: any = { name: editMemberName.trim(), relationship: editMemberRel.trim() };
+                const payload: { name: string; relationship: string; avatar_url?: string } = { name: editMemberName.trim(), relationship: editMemberRel.trim() };
                 if (editMemberAvatarUrl) payload.avatar_url = editMemberAvatarUrl;
                 const { error } = await supabase.from("family_members").update(payload).eq("id", editMemberId);
                 if (error) return push({ title: "Erro", message: error.message, variant: "error" });
@@ -621,7 +624,7 @@ export default function ProfilePage() {
               <button onClick={() => setShowEditChild(false)} className="h-10 px-4 rounded-lg border border-[var(--border)] hover:bg-[var(--hover)]">Cancelar</button>
               <button onClick={async () => {
                 const supabase = getBrowserSupabaseClient(); if (!supabase || !editChildId) return;
-                const payload: any = { name: editChildName.trim(), birth_date: editChildBirth || null };
+                const payload: { name: string; birth_date: string | null; avatar_url?: string } = { name: editChildName.trim(), birth_date: editChildBirth || null };
                 if (editChildAvatarUrl) payload.avatar_url = editChildAvatarUrl;
                 const { error } = await supabase.from("children").update(payload).eq("id", editChildId);
                 if (error) return push({ title: "Erro", message: error.message, variant: "error" });
@@ -634,6 +637,14 @@ export default function ProfilePage() {
         </Modal>
       </div>
     </main>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<main className="p-8">Carregando…</main>}>
+      <ProfileContent />
+    </Suspense>
   );
 }
 

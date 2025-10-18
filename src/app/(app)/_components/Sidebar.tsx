@@ -15,7 +15,7 @@ export function Sidebar() {
   const inEvents = pathname.startsWith("/events");
   const show = (inCatalog || inCommunity || inEvents);
 
-  const item = (href: string, label: string, active: boolean, Icon: React.ComponentType<{size?: number}>) => (
+  const item = (href: string, label: string, active: boolean, Icon: React.ComponentType<{size?: number; className?: string}>) => (
     <li>
       <Link
         href={href}
