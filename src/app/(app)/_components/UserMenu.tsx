@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { LogOut, UserCircle } from "lucide-react";
@@ -13,6 +14,7 @@ export function UserMenu() {
   const [fullName, setFullName] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const supabase = getBrowserSupabaseClient();
@@ -56,6 +58,7 @@ export function UserMenu() {
     await supabase.auth.signOut();
     setUserEmail(null);
     setOpen(false);
+    router.push("/auth/login");
   }
 
   const displayName = fullName || mockUser.name || userEmail || "Usuário";

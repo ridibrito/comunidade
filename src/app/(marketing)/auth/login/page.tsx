@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import Image from "next/image";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const router = useRouter();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -18,25 +21,22 @@ export default function LoginPage() {
     }
     setLoading(true);
     setMessage(null);
-    const redirectTo = typeof window !== "undefined" ? `${location.origin}/dashboard` : undefined;
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: redirectTo },
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) setMessage(error.message);
-    else setMessage("Enviamos um link de acesso para o seu e‑mail.");
+    else router.push("/dashboard");
   }
 
   return (
-    <main className="min-h-[60vh] flex items-center justify-center p-6">
-      <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
-        <div className="mb-4 flex justify-center">
-          <Image src="/logo_full.png" alt="Singulari" width={200} height={40} />
+    <main className="min-h-screen flex">
+      {/* Coluna esquerda: formulário */}
+      <section className="w-full md:w-[30%] max-w-[400px] border-r border-[var(--border)] bg-[var(--surface)] p-6 flex flex-col justify-center">
+        <div className="mb-6 flex justify-center">
+          <Image src="/logo_full.png" alt="Aldeia Singular" width={240} height={48} />
         </div>
         <h1 className="text-2xl font-semibold">Entrar</h1>
-        <p className="text-[var(--foreground)]/70 mt-1 text-sm">Acesso via link mágico no e‑mail cadastrado.</p>
-        <form onSubmit={onSubmit} className="mt-4 space-y-3">
+        <p className="text-[var(--foreground)]/70 mt-1 text-sm">Acesse com e‑mail e senha. No primeiro acesso, use o link de definição de senha.</p>
+        <form onSubmit={onSubmit} className="mt-5 space-y-3">
           <div>
             <label className="text-sm">E‑mail</label>
             <input
@@ -48,18 +48,39 @@ export default function LoginPage() {
               placeholder="voce@exemplo.com"
             />
           </div>
-          <button disabled={loading} className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--accent-purple)] text-white hover:brightness-110 disabled:opacity-50">
-            {loading ? "Enviando..." : "Enviar link de acesso"}
+          <div>
+            <label className="text-sm">Senha</label>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e)=>setPassword(e.target.value)}
+              className="mt-1 w-full h-11 rounded-xl bg-transparent border px-3"
+              placeholder="Sua senha"
+            />
+          </div>
+          <button disabled={loading} className="h-11 w-full rounded-lg bg-[var(--accent-purple)] text-white hover:brightness-110 disabled:opacity-50">
+            {loading ? "Entrando..." : "Entrar"}
           </button>
         </form>
         {message && <div className="mt-3 text-sm text-[var(--foreground)]/80">{message}</div>}
         <div className="mt-4 text-xs text-[var(--foreground)]/60">
-          Precisa redefinir a senha? <a href="/auth/recover" className="text-[var(--accent-purple)]">Recuperar acesso</a>
+          Esqueceu a senha? <a href="/auth/recover" className="text-[var(--accent-purple)]">Recuperar acesso</a>
         </div>
-        <div className="mt-3 text-xs text-[var(--foreground)]/60">
-          Cadastro é feito internamente ou via Hotmart após compra aprovada.
-        </div>
-      </div>
+        <div className="mt-8 text-center text-[var(--foreground)]/50 text-xs">© {new Date().getFullYear()} Aldeia Singular</div>
+      </section>
+
+      {/* Coluna direita: imagem/placeholder */}
+      <section className="hidden md:block flex-1 relative">
+        <Image
+          src="/hero.webp"
+          alt="Aldeia Singular"
+          fill
+          priority
+          className="object-cover"
+          sizes="100vw"
+        />
+      </section>
     </main>
   );
 }

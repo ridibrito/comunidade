@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import Image from "next/image";
 
@@ -8,6 +9,7 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     // Página aberta via link de recuperação do Supabase
@@ -21,7 +23,7 @@ export default function ResetPasswordPage() {
     if (!supabase) return setMessage("Supabase não configurado.");
     const { error } = await supabase.auth.updateUser({ password });
     if (error) setMessage(error.message);
-    else setMessage("Senha alterada com sucesso. Você já pode acessar a plataforma.");
+    else router.push("/onboarding/sucesso");
   }
 
   return (
