@@ -1,0 +1,57 @@
+:root{
+  --gap-col: 32px;
+  --gap-row: 40px;
+  --radius: 16px;
+}
+
+/* evita rolagem horizontal global */
+html, body, main { overflow-x: hidden; }
+
+/* oculta scrollbar horizontal do carrossel em navegadores comuns */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* espaçamentos macro */
+.page-padding {
+  padding-left: clamp(24px, 3vw, 64px);
+  padding-right: clamp(24px, 3vw, 64px);
+}
+
+.section-spacing {
+  margin-top: clamp(24px, 3vh, 56px);
+  margin-bottom: clamp(40px, 5vh, 80px);
+}
+
+/* grids */
+.grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gap-col);
+}
+@media (max-width: 1440px){
+  .grid-12 { gap: 24px; }
+}
+
+/* card base */
+.card {
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  padding: clamp(20px, 1.8vw, 32px);
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+
+/* tipografia base */
+h1.page-title { font-family: var(--font-display, Montserrat); font-size: 1.5rem; line-height: 1.2; margin-bottom: 24px; }
+h2.section-title { font-size: 1.5rem; line-height: 1.3; margin-bottom: 24px; }
+
+/* motion safe */
+@media (prefers-reduced-motion: no-preference){
+  .hover-raise { transition: transform .25s ease, box-shadow .25s ease; }
+  .hover-raise:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,.12); }
+}
+
+/* dark mode é o padrão */
+
+
