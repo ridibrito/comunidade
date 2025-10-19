@@ -16,13 +16,13 @@ export default function ModernCard({
   size = "md",
   hover = true
 }: ModernCardProps) {
-  const baseClasses = "rounded-xl transition-all duration-200 border border-light-border dark:border-dark-border";
+  const baseClasses = "rounded-xl transition-all duration-200";
   
   const variantClasses = {
-    default: "bg-light-surface dark:bg-dark-surface shadow-g4 dark:shadow-g4-dark",
-    gradient: "bg-gradient-to-br from-light-surface to-light-bg dark:from-dark-surface dark:to-dark-bg shadow-g4 dark:shadow-g4-dark",
+    default: "bg-light-surface dark:bg-dark-surface shadow-lg dark:shadow-xl",
+    gradient: "bg-light-surface dark:bg-dark-surface shadow-lg dark:shadow-xl",
     outline: "bg-transparent",
-    elevated: "bg-light-surface dark:bg-dark-surface shadow-g4-hover dark:shadow-g4-dark-hover"
+    elevated: "bg-light-surface dark:bg-dark-surface shadow-xl dark:shadow-2xl"
   };
   
   const sizeClasses = {
@@ -31,7 +31,7 @@ export default function ModernCard({
     lg: "p-8"
   };
   
-  const hoverClasses = hover ? "hover:shadow-g4-hover dark:hover:shadow-g4-dark-hover hover:-translate-y-0.5" : "";
+  const hoverClasses = ""; // Removido efeito hover cansativo
 
   return (
     <div className={cn(

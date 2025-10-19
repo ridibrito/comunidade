@@ -7,10 +7,10 @@ import { Calendar, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 export function Navbar() {
   return (
-    <header className="sticky top-0 z-40 w-full bg-light-bg/95 dark:bg-dark-bg/95 backdrop-blur shadow-sm">
+    <header className="sticky top-0 z-40 w-full bg-light-surface dark:bg-dark-bg/95 backdrop-blur shadow-sm">
       <div className="px-3 sm:px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center pl-1">
+          <Link href="/" className="flex items-center pl-1 cursor-pointer">
             <img src="/logo.png" alt="Singulari" width={200} height={28} style={{ width: 200, height: "auto" }} />
           </Link>
         </div>
@@ -18,7 +18,7 @@ export function Navbar() {
           {/* Ícone de Calendário com Notificações */}
           <Link 
             href="/calendar" 
-            className="relative inline-flex items-center justify-center w-10 h-10 rounded-lg hover:bg-light-surface dark:hover:bg-dark-border/50 transition-colors group"
+            className="relative inline-flex items-center justify-center w-10 h-10 rounded-lg hover:bg-light-surface dark:hover:bg-dark-border/50 transition-colors group cursor-pointer"
             title="Calendário de Eventos"
           >
             <Calendar className="w-5 h-5 text-light-text dark:text-dark-text" />

@@ -42,7 +42,7 @@ export default function ProgressCard({
   };
 
   return (
-    <ModernCard className={cn("space-y-3", className)} variant="outline">
+    <ModernCard className={cn("space-y-3", className)} variant="default">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {icon && (
@@ -63,7 +63,7 @@ export default function ProgressCard({
       
       <div className="space-y-2">
         <div className={cn(
-          "w-full rounded-full bg-light-border/30 dark:bg-dark-border/30",
+          "w-full rounded-full bg-light-border/20 dark:bg-dark-border/20",
           sizeClasses[size]
         )}>
           <div

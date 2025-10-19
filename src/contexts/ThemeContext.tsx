@@ -13,14 +13,14 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>('dark');
   const [mounted, setMounted] = useState(false);
 
   // Carrega o tema do localStorage na inicialização
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as Theme;
     const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    const initialTheme = savedTheme || systemTheme;
+    const initialTheme = savedTheme || 'dark'; // Dark como padrão
     
     setThemeState(initialTheme);
     setMounted(true);
@@ -71,7 +71,7 @@ export function useTheme() {
   if (context === undefined) {
     // Retorna um fallback em vez de quebrar
     return {
-      theme: 'light' as Theme,
+      theme: 'dark' as Theme,
       toggleTheme: () => {
         if (typeof window !== 'undefined') {
           const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';

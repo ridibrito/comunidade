@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, BookOpen, Library, UsersRound, PlayCircle, Mountain, HelpCircle } from "lucide-react";
+import { CalendarDays, BookOpen, Library, UsersRound, PlayCircle, Mountain, HelpCircle, ShieldCheck, Settings, BarChart3 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -12,20 +12,21 @@ export function Sidebar() {
   // Determine current section for dynamic internal menu
   const inCatalog = pathname.startsWith("/catalog");
   const inEvents = pathname.startsWith("/events");
-  const show = (inCatalog || inEvents);
+  const inAdmin = pathname.startsWith("/admin");
+  const show = (inCatalog || inEvents || inAdmin);
 
   const item = (href: string, label: string, active: boolean, Icon: React.ComponentType<{size?: number; className?: string}>) => (
     <li>
       <Link
         href={href}
         className={cn(
-          "flex items-center gap-3 rounded-xl transition-colors px-4 py-3",
-          "hover:bg-light-surface dark:hover:bg-dark-border/50",
-          active && "bg-light-surface dark:bg-dark-border/50 text-brand-accent"
+          "flex items-center gap-3 rounded-xl transition-colors px-4 py-3 cursor-pointer",
+          "hover:bg-purple-50 dark:hover:bg-purple-900/20",
+          active && "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"
         )}
       >
-        <Icon size={18} className={cn(active ? "text-brand-accent" : "text-light-muted dark:text-dark-muted")} />
-        <span className="text-light-text dark:text-dark-text">{label}</span>
+        <Icon size={18} className={cn(active ? "text-purple-600 dark:text-purple-400" : "text-light-muted dark:text-dark-muted")} />
+        <span className={cn(active ? "text-purple-600 dark:text-purple-400" : "text-light-text dark:text-dark-text")}>{label}</span>
       </Link>
     </li>
   );
@@ -33,7 +34,7 @@ export function Sidebar() {
   return (
     <aside className={cn(
       "hidden md:block shrink-0 h-full bg-light-surface dark:bg-dark-surface transition-all duration-300 shadow-sm",
-      show ? "w-[280px] xl:w-[340px] p-4" : "w-0 p-0 overflow-hidden"
+      show ? "w-[240px] xl:w-[280px] p-4" : "w-0 p-0 overflow-hidden"
     )}>
       {show && (
         <>
@@ -51,6 +52,14 @@ export function Sidebar() {
               <>
                 {item("/events/history", "Lives realizadas", pathname.startsWith("/events/history"), PlayCircle)}
                 {item("/events/calendar", "Calendário", pathname.startsWith("/events/calendar"), CalendarDays)}
+              </>
+            )}
+            {inAdmin && (
+              <>
+                {item("/admin", "Dashboard", pathname === "/admin", BarChart3)}
+                {item("/admin/users", "Usuários", pathname.startsWith("/admin/users"), UsersRound)}
+                {item("/admin/mountains", "Montanhas", pathname.startsWith("/admin/mountains"), Mountain)}
+                {item("/admin/settings", "Configurações", pathname.startsWith("/admin/settings"), Settings)}
               </>
             )}
           </ul>

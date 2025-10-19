@@ -19,23 +19,45 @@
   /* Brand colors */
   --brand-accent: #43085E;
   
+  /* Shadcn-ui border colors */
+  --border: 15 23 42 / 0.04;
+  --border-input: 15 23 42 / 0.04;
+  --border-ring: 67 8 94;
+  
   /* Fonts */
   --font-title: "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
   --font-text: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, sans-serif;
 }
 
+/* Dark mode por padrão */
+html {
+  color-scheme: dark;
+}
+
 /* Light mode (default) */
 body {
-  background-color: var(--light-bg);
-  color: var(--light-text);
+  background-color: var(--dark-bg);
+  color: var(--dark-text);
   font-family: var(--font-text);
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Light mode */
+.light body {
+  background-color: var(--light-bg);
+  color: var(--light-text);
 }
 
 /* Dark mode */
 .dark body {
   background-color: var(--dark-bg);
   color: var(--dark-text);
+}
+
+/* Dark mode border overrides */
+.dark {
+  --border: 255 255 255 / 0.05;
+  --border-input: 255 255 255 / 0.05;
 }
 
 html { 
@@ -73,24 +95,13 @@ html {
   background-color: var(--light-surface);
   border-radius: 12px;
   padding: 1.5rem;
-  border: 1px solid var(--light-border);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
-}
-
-.card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .dark .card {
   background-color: var(--dark-surface);
-  border: 1px solid var(--dark-border);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 2px 0 rgba(0, 0, 0, 0.1);
-}
-
-.dark .card:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 .hover-raise:hover {

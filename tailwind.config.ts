@@ -61,6 +61,10 @@ export default {
           text: "#FAFAFA", // Texto mais claro
           muted: "#A1A1AA", // Cinza mais claro
         },
+        // Shadcn-ui border colors
+        border: "hsl(var(--border))",
+        input: "hsl(var(--border-input))",
+        ring: "hsl(var(--border-ring))",
       },
       screens: {
         "ultra": "2560px", // opcional: regras específicas p/ ultrawide

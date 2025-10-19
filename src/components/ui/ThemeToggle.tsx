@@ -24,7 +24,7 @@ export default function ThemeToggle() {
           transition-all duration-200 ease-in-out
           focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2
           dark:focus:ring-offset-dark-bg
-          group
+          group cursor-pointer
         "
         aria-label="Alternar tema"
       >
@@ -50,7 +50,7 @@ export default function ThemeToggle() {
         transition-all duration-200 ease-in-out
         focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2
         dark:focus:ring-offset-dark-bg
-        group
+        group cursor-pointer
       "
       aria-label={`Alternar para modo ${theme === 'light' ? 'escuro' : 'claro'}`}
     >

@@ -154,12 +154,12 @@ export default function DashboardPage() {
                     showPercentage={true}
                   />
                   
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-light-border/30 dark:bg-dark-border/30">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-light-border/20 dark:bg-dark-border/20 shadow-sm">
                     <span className="text-sm font-medium text-light-text dark:text-dark-text">Aulas concluídas</span>
                     <Badge variant="default" size="sm">{c.lessonsDone || 0}</Badge>
                   </div>
                   
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-light-border/30 dark:bg-dark-border/30">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-light-border/20 dark:bg-dark-border/20 shadow-sm">
                     <span className="text-sm font-medium text-light-text dark:text-dark-text">Último diário</span>
                     <span className="text-xs text-light-muted dark:text-dark-muted">{c.lastDiary || "Nenhum"}</span>
                   </div>
@@ -236,7 +236,7 @@ export default function DashboardPage() {
                       {Math.round(Math.random() * 100)}%
                     </Badge>
                   </div>
-                  <div className="w-full bg-light-border/30 dark:bg-dark-border/30 rounded-full h-2">
+                  <div className="w-full bg-light-border/20 dark:bg-dark-border/20 rounded-full h-2 shadow-sm">
                     <div 
                       className="bg-brand-accent h-2 rounded-full transition-all duration-500"
                       style={{ width: `${Math.round(Math.random() * 100)}%` }}

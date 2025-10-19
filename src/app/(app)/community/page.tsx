@@ -232,25 +232,25 @@ export default function CommunityPage() {
             
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <button className="flex items-center gap-2 text-sm text-gray-600 dark:text-dark-muted hover:text-brand-accent transition-colors">
+                <button className="flex items-center gap-2 text-sm text-gray-600 dark:text-dark-muted hover:text-brand-accent transition-colors cursor-pointer">
                   <Image className="w-4 h-4" />
                   Foto
                 </button>
-                <button className="flex items-center gap-2 text-sm text-gray-600 dark:text-dark-muted hover:text-brand-accent transition-colors">
+                <button className="flex items-center gap-2 text-sm text-gray-600 dark:text-dark-muted hover:text-brand-accent transition-colors cursor-pointer">
                   <Video className="w-4 h-4" />
                   Vídeo
                 </button>
-                <button className="flex items-center gap-2 text-sm text-gray-600 dark:text-dark-muted hover:text-brand-accent transition-colors">
+                <button className="flex items-center gap-2 text-sm text-gray-600 dark:text-dark-muted hover:text-brand-accent transition-colors cursor-pointer">
                   <FileText className="w-4 h-4" />
                   PDF
                 </button>
-                <button className="flex items-center gap-2 text-sm text-gray-600 dark:text-dark-muted hover:text-brand-accent transition-colors">
+                <button className="flex items-center gap-2 text-sm text-gray-600 dark:text-dark-muted hover:text-brand-accent transition-colors cursor-pointer">
                   <Paperclip className="w-4 h-4" />
                   Anexo
                 </button>
               </div>
               <button 
-                className="px-6 py-2 bg-brand-accent text-white rounded-lg hover:bg-brand-accent/90 transition-colors disabled:opacity-50"
+                className="px-6 py-2 bg-brand-accent text-white rounded-lg hover:bg-brand-accent/90 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                 disabled={!newPost.trim()}
               >
                 Publicar
@@ -324,7 +324,7 @@ export default function CommunityPage() {
                             </div>
                             <button 
                               onClick={() => window.open(attachment.url, '_blank')}
-                              className="px-3 py-1 bg-brand-accent text-white rounded-lg hover:bg-brand-accent/90 transition-colors text-sm"
+                              className="px-3 py-1 bg-brand-accent text-white rounded-lg hover:bg-brand-accent/90 transition-colors text-sm cursor-pointer"
                             >
                               Baixar
                             </button>
@@ -338,15 +338,15 @@ export default function CommunityPage() {
                 {/* Ações do Post */}
                 <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-dark-border">
                   <div className="flex items-center gap-6">
-                    <button className="flex items-center gap-2 text-gray-600 dark:text-dark-muted hover:text-red-500 transition-colors">
+                    <button className="flex items-center gap-2 text-gray-600 dark:text-dark-muted hover:text-red-500 transition-colors cursor-pointer">
                       <Heart className="w-4 h-4" />
                       <span>{post.likes}</span>
                     </button>
-                    <button className="flex items-center gap-2 text-gray-600 dark:text-dark-muted hover:text-brand-accent transition-colors">
+                    <button className="flex items-center gap-2 text-gray-600 dark:text-dark-muted hover:text-brand-accent transition-colors cursor-pointer">
                       <Reply className="w-4 h-4" />
                       <span>{post.comments}</span>
                     </button>
-                    <button className="flex items-center gap-2 text-gray-600 dark:text-dark-muted hover:text-green-500 transition-colors">
+                    <button className="flex items-center gap-2 text-gray-600 dark:text-dark-muted hover:text-green-500 transition-colors cursor-pointer">
                       <Share2 className="w-4 h-4" />
                       <span>{post.shares}</span>
                     </button>
@@ -355,7 +355,7 @@ export default function CommunityPage() {
 
                 {/* Comentários */}
                 {post.commentsList && post.commentsList.length > 0 && (
-                  <div className="space-y-3 pt-3 border-t border-gray-200 dark:border-dark-border">
+                  <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-gray-800">
                     {post.commentsList.map((comment) => (
                       <div key={comment.id} className="flex gap-3">
                         <img 
@@ -375,11 +375,11 @@ export default function CommunityPage() {
                           </div>
                           <p className="text-sm text-gray-700 dark:text-dark-text mb-2">{comment.content}</p>
                           <div className="flex items-center gap-4">
-                            <button className="flex items-center gap-1 text-xs text-gray-500 dark:text-dark-muted hover:text-red-500 transition-colors">
+                            <button className="flex items-center gap-1 text-xs text-gray-500 dark:text-dark-muted hover:text-red-500 transition-colors cursor-pointer">
                               <ThumbsUp className="w-3 h-3" />
                               <span>{comment.likes}</span>
                             </button>
-                            <button className="text-xs text-gray-500 dark:text-dark-muted hover:text-brand-accent transition-colors">
+                            <button className="text-xs text-gray-500 dark:text-dark-muted hover:text-brand-accent transition-colors cursor-pointer">
                               Responder
                             </button>
                           </div>
@@ -390,7 +390,7 @@ export default function CommunityPage() {
                 )}
 
                 {/* Campo de Comentário */}
-                <div className="flex gap-3 pt-3 border-t border-gray-200 dark:border-dark-border">
+                <div className="flex gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
                   <div className="w-8 h-8 rounded-full bg-brand-accent/10 flex items-center justify-center flex-shrink-0">
                     <Users className="w-4 h-4 text-brand-accent" />
                   </div>
@@ -420,23 +420,23 @@ export default function CommunityPage() {
             
             <form onSubmit={onAsk} className="space-y-4">
               <div className="relative">
-                <input
+            <input
                   className="w-full h-12 px-4 pr-12 rounded-xl border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-gray-900 dark:text-dark-text placeholder-gray-500 dark:placeholder-dark-muted focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 transition-all"
                   placeholder="Pergunte sobre desenvolvimento, educação, rotinas..."
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                />
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
                 <button 
                   type="submit"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-brand-accent text-white hover:bg-brand-accent/90 transition-colors flex items-center justify-center"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-brand-accent text-white hover:bg-brand-accent/90 transition-colors flex items-center justify-center cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
                 </button>
               </div>
-            </form>
+          </form>
             
             {a && (
-              <div className="p-4 rounded-xl bg-gray-50 dark:bg-dark-border/50 border border-gray-200 dark:border-dark-border">
+              <div className="p-4 rounded-xl bg-gray-50 dark:bg-dark-border/50 shadow-sm">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-brand-accent/10 flex items-center justify-center flex-shrink-0">
                     <Bot className="w-4 h-4 text-brand-accent" />
@@ -461,7 +461,7 @@ export default function CommunityPage() {
               
               <div className="space-y-3">
                 {upcomingEvents.map((event) => (
-                  <div key={event.id} className="p-3 rounded-lg bg-gray-50 dark:bg-dark-border/50 border border-gray-200 dark:border-dark-border">
+                  <div key={event.id} className="p-3 rounded-lg bg-gray-50 dark:bg-dark-border/50 shadow-sm">
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="font-medium text-sm text-gray-900 dark:text-dark-text line-clamp-2">
                         {event.title}
@@ -480,7 +480,7 @@ export default function CommunityPage() {
                         <span>{event.participants} participantes</span>
                       </div>
                       <button 
-                        className="px-3 py-1 text-xs bg-brand-accent text-white rounded-md hover:bg-brand-accent/90 transition-colors flex items-center gap-1"
+                        className="px-3 py-1 text-xs bg-brand-accent text-white rounded-md hover:bg-brand-accent/90 transition-colors flex items-center gap-1 cursor-pointer"
                         onClick={() => window.open(event.zoomLink, '_blank')}
                       >
                         <Play className="w-3 h-3" />
@@ -525,7 +525,7 @@ export default function CommunityPage() {
               </div>
               
               <div className="space-y-3">
-                <div className="p-3 rounded-lg bg-gradient-to-r from-brand-accent/10 to-brand-accent/5 border border-brand-accent/20">
+                <div className="p-3 rounded-lg bg-gradient-to-r from-brand-accent/10 to-brand-accent/5 shadow-sm">
                   <div className="flex items-center gap-2 mb-1">
                     <Award className="w-4 h-4 text-brand-accent" />
                     <span className="text-sm font-medium text-gray-900 dark:text-dark-text">Top Contribuidor</span>
@@ -533,7 +533,7 @@ export default function CommunityPage() {
                   <p className="text-xs text-gray-600 dark:text-dark-muted">Maria Silva ajudou 15 famílias esta semana</p>
                 </div>
                 
-                <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700">
+                <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 shadow-sm">
                   <div className="flex items-center gap-2 mb-1">
                     <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400" />
                     <span className="text-sm font-medium text-gray-900 dark:text-dark-text">Crescimento</span>

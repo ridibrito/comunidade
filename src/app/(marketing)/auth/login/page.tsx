@@ -65,13 +65,13 @@ export default function LoginPage() {
               placeholder="Sua senha"
             />
           </div>
-          <button disabled={loading} className="h-11 w-full rounded-lg bg-brand-accent text-white hover:brightness-110 disabled:opacity-50 transition-all duration-200">
+          <button disabled={loading} className="h-11 w-full rounded-lg bg-brand-accent text-white hover:brightness-110 disabled:opacity-50 transition-all duration-200 cursor-pointer disabled:cursor-not-allowed">
             {loading ? "Entrando..." : "Entrar"}
           </button>
         </form>
         {message && <div className="mt-3 text-sm text-red-600 dark:text-red-400">{message}</div>}
         <div className="mt-4 text-xs text-gray-500 dark:text-dark-muted">
-          Esqueceu a senha? <a href="/auth/recover" className="text-brand-accent hover:underline">Recuperar acesso</a>
+          Esqueceu a senha? <a href="/auth/recover" className="text-brand-accent hover:underline cursor-pointer">Recuperar acesso</a>
         </div>
         <div className="mt-8 text-center text-gray-400 dark:text-dark-muted text-xs">© {new Date().getFullYear()} Aldeia Singular</div>
       </section>

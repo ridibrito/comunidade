@@ -65,7 +65,7 @@ export function UserMenu() {
   const initial = (displayName?.[0] ?? "U").toUpperCase();
   return (
     <div ref={menuRef} className="relative">
-      <button onClick={() => setOpen((v) => !v)} className="h-10 w-56 rounded-full bg-[var(--surface)] border border-[var(--border)] text-white flex items-center gap-2 pl-1 pr-3 ring-1 ring-black/20 shadow">
+      <button onClick={() => setOpen((v) => !v)} className="h-10 w-56 rounded-full bg-[var(--surface)] border border-[var(--border)] text-light-text dark:text-dark-text flex items-center gap-2 pl-1 pr-3 ring-1 ring-black/20 shadow">
         <div className="w-8 h-8 rounded-full overflow-hidden bg-[linear-gradient(180deg,#5061C6_0%,#2C3E97_100%)] flex items-center justify-center">
           {avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element

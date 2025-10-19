@@ -19,9 +19,10 @@ export function Rail() {
       <Link
         href={href}
         className={cn(
-          "flex h-10 w-10 items-center justify-center rounded-xl transition-colors",
-          "hover:bg-light-surface dark:hover:bg-dark-border/50",
-          isActive(href) && "bg-light-surface dark:bg-dark-border/50 text-brand-accent"
+          "flex h-10 w-10 items-center justify-center rounded-xl transition-colors cursor-pointer",
+          "hover:bg-purple-50 dark:hover:bg-purple-900/20",
+          "text-light-muted dark:text-dark-muted",
+          isActive(href) && "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"
         )}
       >
         {icon}
@@ -32,24 +33,13 @@ export function Rail() {
   return (
     <nav className="hidden md:flex w-[64px] shrink-0 flex-col items-center gap-2 py-3 bg-light-surface dark:bg-dark-surface shadow-sm">
       {item("/dashboard", "Início", <Home size={18} />)}
-      <Tooltip label="Comunidade">
-        <Link
-          href="/community"
-          className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-xl transition-all",
-            "text-brand-accent bg-brand-accent/10 hover:bg-brand-accent/15 ring-1 ring-brand-accent/20",
-            isActive("/community") && "ring-2 ring-brand-accent/40"
-          )}
-        >
-          <MessagesSquare size={18} />
-        </Link>
-      </Tooltip>
+      {item("/community", "Comunidade", <MessagesSquare size={18} />)}
       {item("/catalog/montanha-do-amanha", "Conteúdos", <BookOpen size={18} />)}
       <Tooltip label="Corujinha (IA)">
         <Link
           href="/ai"
           className={cn(
-            "relative flex h-10 w-10 items-center justify-center rounded-xl transition-all",
+            "relative flex h-10 w-10 items-center justify-center rounded-xl transition-all cursor-pointer",
             "bg-gradient-to-br from-purple-600 via-purple-700 to-purple-800 hover:from-purple-500 hover:via-purple-600 hover:to-purple-700 text-white shadow-lg",
             isActive("/ai") ? "ring-2 ring-white/30 scale-105" : "ring-0"
           )}
