@@ -22,7 +22,7 @@ export default function ModernCard({
     default: "bg-light-surface dark:bg-dark-surface shadow-lg dark:shadow-xl",
     gradient: "bg-light-surface dark:bg-dark-surface shadow-lg dark:shadow-xl",
     outline: "bg-transparent",
-    elevated: "bg-light-surface dark:bg-dark-surface shadow-xl dark:shadow-2xl"
+    elevated: "bg-light-surface dark:bg-dark-surface shadow-lg dark:shadow-xl"
   };
   
   const sizeClasses = {

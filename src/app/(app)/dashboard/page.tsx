@@ -5,12 +5,13 @@ import { getBrowserSupabaseClient } from "@/lib/supabase";
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
-import Card from "@/components/ui/Card";
+// import Card from "@/components/ui/Card";
 import ModernCard from "@/components/ui/ModernCard";
 import MetricCard from "@/components/ui/MetricCard";
 import ProgressCard from "@/components/ui/ProgressCard";
 import Badge from "@/components/ui/Badge";
-import { Users, BookOpen, Calendar, TrendingUp, CheckCircle, Clock } from "lucide-react";
+import Modal from "@/components/ui/Modal";
+import { BookOpen, Calendar, TrendingUp, CheckCircle, Clock } from "lucide-react";
 
 import { useEffect, useState } from "react";
 
@@ -21,6 +22,8 @@ export default function DashboardPage() {
   const [partnerAvatarUrl, setPartnerAvatarUrl] = useState<string | null>(null);
   type Kid = { id: string; name: string; avatar?: string | null; anamnese?: number; routineToday?: { done: number; total: number }; lessonsDone?: number; lastDiary?: string };
   const [children, setChildren] = useState<Kid[]>([]);
+  const [selectedChild, setSelectedChild] = useState<Kid | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   useEffect(() => {
     const supabase = getBrowserSupabaseClient();
     if (!supabase) return;
@@ -60,114 +63,132 @@ export default function DashboardPage() {
   const avgAnamnese = children.length ? Math.round(children.reduce((a,c)=> a + (c.anamnese ?? 0), 0) / children.length * 100) : 0;
   const avgRoutine = children.length ? Math.round(children.reduce((a,c)=> a + ((c.routineToday?.done ?? 0) / Math.max(1,(c.routineToday?.total ?? 1))), 0) / children.length * 100) : 0;
   const diariesThisWeek = 5; // mock
+
+  const openChildDetails = (child: Kid) => {
+    setSelectedChild(child);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedChild(null);
+  };
   return (
     <Container>
       <Section>
-        <PageHeader title="Início" subtitle={`Olá, ${displayName}. Visão geral da sua família e progresso.`} />
+        <PageHeader title={`Bem-vindo, ${displayName}!`} subtitle="Visão geral da sua família e progresso." />
 
-        {/* Família */}
+        {/* Card da Família */}
         <div className="grid-12">
-          <ModernCard className="col-span-12">
-            <div className="grid gap-6 xl:grid-cols-[360px_1fr] items-center">
-              {/* Pais/Responsáveis */}
-                <div className="flex items-center gap-8">
-                <div className="flex items-center -space-x-4">
-                  <img src={avatarUrl ?? "/logo.png"} alt="Responsável" className="relative z-10 w-16 h-16 rounded-full object-cover border-2 border-white/80 dark:border-white/20" />
-                  <img src={partnerAvatarUrl ?? "/logo.png"} alt="Parceiro(a)" className="relative z-0 w-16 h-16 rounded-full object-cover border-2 border-white/80 dark:border-white/20" />
+          <div className="col-span-12">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-100 via-purple-50 to-white dark:from-purple-900/30 dark:via-purple-800/20 dark:to-dark-surface border border-light-border/20 dark:border-dark-border/20 shadow-xl">
+              <div className="relative p-8">
+                <div className="grid gap-8 lg:grid-cols-2 items-center">
+                  {/* Lado Esquerdo - Família */}
+                  <div className="space-y-6">
+                    {/* Informações dos Pais */}
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center -space-x-4">
+                        <img src={avatarUrl ?? "/logo.png"} alt="Responsável" className="relative z-10 w-20 h-20 rounded-full object-cover border-3 border-white/90 dark:border-white/30 shadow-lg" />
+                        <img src={partnerAvatarUrl ?? "/logo.png"} alt="Parceiro(a)" className="relative z-0 w-20 h-20 rounded-full object-cover border-3 border-white/90 dark:border-white/30 shadow-lg" />
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-light-text dark:text-dark-text mb-1">
+                          {displayName.split(' ')[0]}{partnerName ? ` & ${partnerName.split(' ')[0]}` : ""}
+                        </div>
+                        <div className="text-base text-light-muted dark:text-dark-muted">Família • {children.length} filho(s)</div>
+                        <div className="mt-2 text-sm text-purple-600 dark:text-purple-400 font-medium">Jornada do Amanhã</div>
+                      </div>
+                    </div>
+                    
+                    {/* Informações dos Filhos */}
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">Filhos</h3>
+                      <div className="flex items-center gap-3">
+                        {children.map((child, index) => (
+                          <div 
+                            key={index} 
+                            onClick={() => openChildDetails(child)}
+                            className="relative cursor-pointer hover:scale-110 transition-transform duration-200"
+                          >
+                            <img 
+                              src={child.avatar ?? "/logo.png"} 
+                              alt={child.name} 
+                              className="w-16 h-16 rounded-full object-cover border-3 border-white/90 dark:border-white/30 shadow-lg" 
+                            />
+                            {/* Tooltip com nome */}
+                            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                              {child.name}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Lado Direito - Métricas */}
+                  <div className="flex items-center">
+                    {/* Métricas de Progresso */}
+                    <div className="space-y-3 w-full">
+                      <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">Métricas de Progresso</h3>
+                      <div className="space-y-3">
+                        <div className="p-3 bg-white/50 dark:bg-dark-surface/50 backdrop-blur-sm rounded-lg border border-light-border/5 dark:border-dark-border/5">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                              <span className="text-sm font-medium text-light-text dark:text-dark-text">Anamnese</span>
+                            </div>
+                            <span className="text-lg font-bold text-green-600 dark:text-green-400">{avgAnamnese}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                            <div 
+                              className="bg-green-500 h-1.5 rounded-full transition-all duration-500"
+                              style={{ width: `${avgAnamnese}%` }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        <div className="p-3 bg-white/50 dark:bg-dark-surface/50 backdrop-blur-sm rounded-lg border border-light-border/5 dark:border-dark-border/5">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                              <span className="text-sm font-medium text-light-text dark:text-dark-text">Rotina</span>
+                            </div>
+                            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{avgRoutine}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                            <div 
+                              className="bg-blue-500 h-1.5 rounded-full transition-all duration-500"
+                              style={{ width: `${avgRoutine}%` }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        <div className="p-3 bg-white/50 dark:bg-dark-surface/50 backdrop-blur-sm rounded-lg border border-light-border/5 dark:border-dark-border/5">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <BookOpen className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                              <span className="text-sm font-medium text-light-text dark:text-dark-text">Diários</span>
+                            </div>
+                            <span className="text-lg font-bold text-purple-600 dark:text-purple-400">{diariesThisWeek}</span>
+                          </div>
+                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                            <div 
+                              className="bg-purple-500 h-1.5 rounded-full transition-all duration-500"
+                              style={{ width: `${Math.min(diariesThisWeek * 20, 100)}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="ml-2">
-                  <div className="text-lg font-semibold mb-1 text-light-text dark:text-dark-text">{displayName}{partnerName ? ` & ${partnerName}` : ""}</div>
-                  <div className="text-sm text-light-muted dark:text-dark-muted">Família • {children.length} filho(s)</div>
-                </div>
-              </div>
-              {/* Indicadores relevantes para os pais */}
-              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                <MetricCard
-                  title="Anamnese preenchida"
-                  value={`${avgAnamnese}%`}
-                  description="Formulários completos"
-                  icon={<CheckCircle className="w-5 h-5" />}
-                  variant="default"
-                  trend={{
-                    value: 12,
-                    label: "vs. semana passada",
-                    positive: true
-                  }}
-                />
-                <MetricCard
-                  title="Rotina de hoje"
-                  value={`${avgRoutine}%`}
-                  description="Tarefas concluídas"
-                  icon={<Clock className="w-5 h-5" />}
-                  variant="default"
-                  trend={{
-                    value: 8,
-                    label: "vs. ontem",
-                    positive: true
-                  }}
-                />
-                <MetricCard
-                  title="Diários desta semana"
-                  value={diariesThisWeek}
-                  description="Registros dos responsáveis"
-                  icon={<BookOpen className="w-5 h-5" />}
-                  variant="default"
-                />
               </div>
             </div>
-          </ModernCard>
-        </div>
-
-        {/* Filhos */}
-        <div className="section-spacing">
-          <h2 className="section-title">Filhos</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            {children.map((c, i) => (
-              <ModernCard key={i} variant="gradient" className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <img 
-                    src={c.avatar ?? "/logo.png"} 
-                    alt={c.name} 
-                    className="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-dark-border shadow-sm" 
-                  />
-                  <div>
-                    <div className="font-semibold text-light-text dark:text-dark-text">{c.name}</div>
-                    <Badge variant="outline" size="sm">Filho(a)</Badge>
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <ProgressCard
-                    title="Anamnese"
-                    progress={Math.round((c.anamnese ?? 0) * 100)}
-                    color="success"
-                    size="sm"
-                    showPercentage={true}
-                  />
-                  
-                  <ProgressCard
-                    title="Rotina hoje"
-                    progress={c.routineToday?.done ?? 0}
-                    total={c.routineToday?.total ?? 0}
-                    color="info"
-                    size="sm"
-                    showPercentage={true}
-                  />
-                  
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-light-border/20 dark:bg-dark-border/20 shadow-sm">
-                    <span className="text-sm font-medium text-light-text dark:text-dark-text">Aulas concluídas</span>
-                    <Badge variant="default" size="sm">{c.lessonsDone || 0}</Badge>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-light-border/20 dark:bg-dark-border/20 shadow-sm">
-                    <span className="text-sm font-medium text-light-text dark:text-dark-text">Último diário</span>
-                    <span className="text-xs text-light-muted dark:text-dark-muted">{c.lastDiary || "Nenhum"}</span>
-                  </div>
-                </div>
-              </ModernCard>
-            ))}
           </div>
         </div>
+
+
 
         {/* Progresso geral */}
         <div className="section-spacing">
@@ -212,8 +233,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Trilhas de Aprendizado */}
         <div className="section-spacing">
-          <h2 className="section-title">Montanha do amanhã</h2>
+          <h2 className="section-title">Trilhas de Aprendizado</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {mockTrails.map((trail, index) => (
               <ModernCard key={index} variant="elevated" className="space-y-4">
@@ -255,6 +277,128 @@ export default function DashboardPage() {
           </div>
         </div>
       </Section>
+
+      {/* Modal de Detalhes do Filho */}
+      {selectedChild && (
+        <Modal open={isModalOpen} onClose={closeModal}>
+          <div className="bg-white dark:bg-dark-surface p-6 rounded-lg">
+            <h2 className="text-xl font-bold text-light-text dark:text-dark-text mb-6">Detalhes - {selectedChild.name}</h2>
+            <div className="space-y-6">
+            {/* Header do Filho */}
+            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-orange-50 dark:from-blue-900/20 dark:to-orange-900/20 rounded-xl">
+              <img 
+                src={selectedChild.avatar ?? "/logo.png"} 
+                alt={selectedChild.name} 
+                className="w-16 h-16 rounded-full object-cover border-3 border-white dark:border-dark-border shadow-lg" 
+              />
+              <div>
+                <h3 className="text-xl font-bold text-light-text dark:text-dark-text">{selectedChild.name}</h3>
+                <p className="text-light-muted dark:text-dark-muted">Progresso e evolução</p>
+              </div>
+            </div>
+
+            {/* Métricas de Progresso */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ProgressCard
+                title="Anamnese"
+                progress={Math.round((selectedChild.anamnese ?? 0) * 100)}
+                color="success"
+                size="md"
+                showPercentage={true}
+                description="Formulários de avaliação completados"
+              />
+              
+              <ProgressCard
+                title="Rotina de Hoje"
+                progress={selectedChild.routineToday?.done ?? 0}
+                total={selectedChild.routineToday?.total ?? 0}
+                color="info"
+                size="md"
+                showPercentage={true}
+                description="Tarefas diárias concluídas"
+              />
+            </div>
+
+            {/* Estatísticas Detalhadas */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                    <BookOpen className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-light-text dark:text-dark-text">Aulas Concluídas</div>
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">{selectedChild.lessonsDone || 0}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                    <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-light-text dark:text-dark-text">Último Diário</div>
+                    <div className="text-sm text-light-muted dark:text-dark-muted">{selectedChild.lastDiary || "Nenhum"}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-light-text dark:text-dark-text">Progresso Geral</div>
+                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                      {Math.round((((selectedChild.anamnese ?? 0) + ((selectedChild.routineToday?.done ?? 0) / Math.max(1, selectedChild.routineToday?.total ?? 1))) / 2) * 100)}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Histórico de Atividades */}
+            <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border">
+              <h4 className="font-semibold text-light-text dark:text-dark-text mb-3">Atividades Recentes</h4>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 bg-light-border/10 dark:bg-dark-border/10 rounded-lg">
+                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-light-text dark:text-dark-text">Anamnese atualizada</div>
+                    <div className="text-xs text-light-muted dark:text-dark-muted">Há 2 dias</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 p-3 bg-light-border/10 dark:bg-dark-border/10 rounded-lg">
+                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                    <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-light-text dark:text-dark-text">Aula concluída</div>
+                    <div className="text-xs text-light-muted dark:text-dark-muted">Ontem</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 p-3 bg-light-border/10 dark:bg-dark-border/10 rounded-lg">
+                  <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
+                    <Calendar className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-light-text dark:text-dark-text">Rotina diária completada</div>
+                    <div className="text-xs text-light-muted dark:text-dark-muted">Hoje</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+        </Modal>
+      )}
     </Container>
   );
 }

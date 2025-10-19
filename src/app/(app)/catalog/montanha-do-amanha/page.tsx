@@ -9,6 +9,7 @@ import ModernCard from "@/components/ui/ModernCard";
 import Badge from "@/components/ui/Badge";
 import ProgressCard from "@/components/ui/ProgressCard";
 import Carousel from "@/components/ui/Carousel";
+import CarouselSection from "@/components/ui/CarouselSection";
 import { BookOpen, Play, Clock, Star } from "lucide-react";
 
 export default function MontanhaAmanhaPage() {
@@ -144,14 +145,14 @@ export default function MontanhaAmanhaPage() {
   };
 
   return (
-    <Container>
+    <Container fullWidth>
       <Section>
         <PageHeader title="Montanha do amanhã" />
         
         <div className="space-y-12">
           {/* Renderização dinâmica de todas as trilhas */}
           {trails.map((trail, trailIndex) => (
-            <div key={trail.id} className="space-y-6">
+            <div key={trail.id} className="space-y-2">
               {/* Cabeçalho da trilha */}
               <div className="flex items-center justify-between">
           <div>
@@ -168,7 +169,16 @@ export default function MontanhaAmanhaPage() {
               </div>
               
               {/* Carrossel de módulos da trilha */}
-              <Carousel cardWidth={320} gap={24}>
+              <div 
+                className="relative pt-8 pb-0 flex items-center" // Padding superior apenas
+                style={{
+                  width: '100vw', // Largura total da tela
+                  marginLeft: '0', // Começar da esquerda
+                  paddingLeft: '0', // Cards alinhados à esquerda da div azul
+                  paddingRight: '0'
+                }}
+              >
+                <Carousel cardWidth={320} gap={24}>
                 {trail.modules.map((module, moduleIndex) => (
                   <ModernCard key={moduleIndex} variant="elevated" className="h-full space-y-4">
                     <div className="relative">
@@ -238,7 +248,8 @@ export default function MontanhaAmanhaPage() {
               </div>
                   </ModernCard>
                 ))}
-              </Carousel>
+                </Carousel>
+              </div>
             </div>
           ))}
         </div>

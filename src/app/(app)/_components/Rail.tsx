@@ -20,9 +20,8 @@ export function Rail() {
         href={href}
         className={cn(
           "flex h-10 w-10 items-center justify-center rounded-xl transition-colors cursor-pointer",
-          "hover:bg-purple-50 dark:hover:bg-purple-900/20",
-          "text-light-muted dark:text-dark-muted",
-          isActive(href) && "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"
+          "hover-brand-subtle",
+          isActive(href) ? "active-brand-subtle text-purple-600 dark:text-purple-400" : "text-light-muted dark:text-dark-muted"
         )}
       >
         {icon}

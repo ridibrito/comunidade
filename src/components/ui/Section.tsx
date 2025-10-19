@@ -1,8 +1,15 @@
 import { ReactNode } from "react";
 
-export default function Section({ children, className="" }: { children: ReactNode; className?: string }) {
+interface SectionProps {
+  children: ReactNode;
+  className?: string;
+  fullWidth?: boolean;
+}
+
+export default function Section({ children, className="", fullWidth = false }: SectionProps) {
   // Padding uniforme em todas as páginas para alinhar topo/laterais
-  return <section className={`p-8 overflow-x-hidden ${className}`}>{children}</section>;
+  const baseClasses = fullWidth ? "overflow-x-hidden" : "p-8 overflow-x-hidden";
+  return <section className={`${baseClasses} ${className}`}>{children}</section>;
 }
 
 

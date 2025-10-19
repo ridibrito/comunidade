@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, ReactNode } from "react";
+import { useRef, ReactNode } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CarouselProps {
@@ -14,52 +14,41 @@ export default function Carousel({
   children, 
   cardWidth = 320, 
   gap = 24, 
-  className = "" 
+  className = ""
 }: CarouselProps) {
-  const scrollerRef = useRef<HTMLDivElement>(null);
-  const [canLeft, setCanLeft] = useState(false);
-  const [canRight, setCanRight] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  function updateArrows() {
-    const el = scrollerRef.current;
-    if (!el) return;
-    setCanLeft(el.scrollLeft > 8);
-    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
-  }
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      const scrollAmount = cardWidth + gap;
+      scrollRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    }
+  };
 
-  useEffect(() => {
-    updateArrows();
-    const el = scrollerRef.current;
-    if (!el) return;
-    const onScroll = () => updateArrows();
-    const onResize = () => updateArrows();
-    el.addEventListener("scroll", onScroll);
-    window.addEventListener("resize", onResize);
-    return () => {
-      el.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
-    };
-  }, []);
-
-  function scrollByCards(cards: number) {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const scrollAmount = (cardWidth + gap) * cards;
-    el.scrollBy({ left: scrollAmount, behavior: "smooth" });
-    setTimeout(updateArrows, 350);
-  }
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      const scrollAmount = cardWidth + gap;
+      scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   return (
     <div className={`relative ${className}`}>
+      {/* Container do carrossel com scroll horizontal */}
       <div 
-        className="flex overflow-x-hidden" 
-        ref={scrollerRef}
-        style={{ gap: `${gap}px` }}
+        ref={scrollRef}
+        className="flex overflow-x-auto scrollbar-hide"
+        style={{ 
+          scrollBehavior: 'smooth',
+          gap: `${gap}px`,
+          paddingLeft: '0',
+          paddingRight: '0'
+        }}
       >
         {children.map((child, index) => (
           <div 
             key={index} 
-            className="flex-shrink-0"
+            className="flex-shrink-0 mb-8"
             style={{ width: `${cardWidth}px` }}
           >
             {child}
@@ -67,25 +56,20 @@ export default function Carousel({
         ))}
       </div>
       
-      {/* Botões de navegação */}
+      {/* Botão esquerdo - encostado na borda externa para não sobrepor o card */}
       <button 
-        onClick={() => scrollByCards(-1)} 
-        disabled={!canLeft}
-        className={`absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border shadow-lg flex items-center justify-center transition-all ${
-          canLeft ? "hover:bg-gray-50 dark:hover:bg-dark-border/50" : "opacity-40 cursor-not-allowed"
-        }`}
+        onClick={scrollLeft}
+        className="absolute -left-5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white border border-gray-300 shadow-lg flex items-center justify-center z-20 hover:bg-gray-50"
       >
-        <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-dark-text" />
+        <ChevronLeft className="w-5 h-5 text-gray-700" />
       </button>
       
+      {/* Botão direito - encostado na borda externa para não sobrepor o card */}
       <button 
-        onClick={() => scrollByCards(1)} 
-        disabled={!canRight}
-        className={`absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border shadow-lg flex items-center justify-center transition-all ${
-          canRight ? "hover:bg-gray-50 dark:hover:bg-dark-border/50" : "opacity-40 cursor-not-allowed"
-        }`}
+        onClick={scrollRight}
+        className="absolute -right-5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white border border-gray-300 shadow-lg flex items-center justify-center z-20 hover:bg-gray-50"
       >
-        <ChevronRight className="w-5 h-5 text-gray-600 dark:text-dark-text" />
+        <ChevronRight className="w-5 h-5 text-gray-700" />
       </button>
     </div>
   );

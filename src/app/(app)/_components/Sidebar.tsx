@@ -21,8 +21,8 @@ export function Sidebar() {
         href={href}
         className={cn(
           "flex items-center gap-3 rounded-xl transition-colors px-4 py-3 cursor-pointer",
-          "hover:bg-purple-50 dark:hover:bg-purple-900/20",
-          active && "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"
+          "hover-brand-subtle",
+          active && "active-brand-subtle text-brand-accent"
         )}
       >
         <Icon size={18} className={cn(active ? "text-purple-600 dark:text-purple-400" : "text-light-muted dark:text-dark-muted")} />

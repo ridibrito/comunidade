@@ -84,11 +84,38 @@ html {
 .dark .text-light-text { color: var(--dark-text); }
 .dark .text-light-muted { color: var(--dark-muted); }
 
+/* Hover sutil no tom roxo principal */
+.hover-brand-subtle:hover {
+  background-color: rgba(67, 8, 94, 0.08);
+}
+.dark .hover-brand-subtle:hover {
+  background-color: rgba(67, 8, 94, 0.18);
+}
+
+/* Estado ativo sutil no tom roxo principal */
+.active-brand-subtle {
+  background-color: rgba(67, 8, 94, 0.12);
+}
+.dark .active-brand-subtle {
+  background-color: rgba(67, 8, 94, 0.24);
+}
+
 /* Classes de layout */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
+}
+
+/* Container para carousels que usa toda a largura */
+.carousel-container {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  padding: 0 2rem;
 }
 
 .card {
@@ -150,4 +177,13 @@ html {
   background-color: var(--dark-border); 
 }
 *::-webkit-scrollbar-track { background: transparent; }
+
+/* Esconder scrollbar completamente */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
 
