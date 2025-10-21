@@ -3,10 +3,15 @@
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
-import Carousel from "@/components/ui/Carousel";
-import ModernCard from "@/components/ui/ModernCard";
 import Badge from "@/components/ui/Badge";
-import { BookOpen, Download, Eye, Star, FileText, Book, File } from "lucide-react";
+import { CardLivro, CardPDF } from "@/components/ui/CardModels";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/CarouselNew";
 
 export default function AcervoDigitalPage() {
   // ========================================
@@ -33,7 +38,8 @@ export default function AcervoDigitalPage() {
           downloads: 1247,
           image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=1600&auto=format&fit=crop",
           fileUrl: "/files/guia-completo-ahsd.pdf",
-          isFeatured: true
+          isFeatured: true,
+          isNew: false
         },
         {
           title: "Estratégias Educacionais",
@@ -136,26 +142,9 @@ export default function AcervoDigitalPage() {
     }
   ];
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "PDF": return <FileText className="w-4 h-4" />;
-      case "Artigo": return <File className="w-4 h-4" />;
-      case "Livro": return <Book className="w-4 h-4" />;
-      default: return <BookOpen className="w-4 h-4" />;
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "PDF": return "error";
-      case "Artigo": return "info";
-      case "Livro": return "brand";
-      default: return "default";
-    }
-  };
 
   return (
-    <Container>
+    <Container fullWidth>
       <Section>
         <PageHeader title="Acervo digital" />
         
@@ -171,100 +160,67 @@ export default function AcervoDigitalPage() {
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text">
                     {collection.title}
                   </h2>
-                  <p className="text-sm text-gray-600 dark:text-dark-muted mt-1">
-                    {collection.description}
-                  </p>
+                  {collection.description && (
+                    <p className="text-sm text-gray-600 dark:text-dark-muted mt-1">
+                      {collection.description}
+                    </p>
+                  )}
                 </div>
-                <div className="flex items-center gap-3">
-                  <Badge variant={collection.badgeVariant} size="md">{collection.badge}</Badge>
-                  <Badge variant="outline" size="sm">{collection.resources.length} itens</Badge>
-                </div>
+                <Badge variant={collection.badgeVariant} size="md">{collection.badge}</Badge>
               </div>
               
               {/* Carrossel de recursos da coleção */}
-              <Carousel cardWidth={300} gap={24}>
-                {collection.resources
-                  .sort((a, b) => ((a as any).seriesOrder || 0) - ((b as any).seriesOrder || 0))
-                  .map((resource, resourceIndex) => (
-                  <ModernCard key={resourceIndex} variant="elevated" className="h-full space-y-4">
-                    <div className="relative">
-                      <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-border">
-                        <img src={resource.image} alt={resource.title} className="w-full h-full object-cover" />
-                      </div>
-                      
-                      {/* Badges sobrepostos */}
-                      <div className="absolute top-2 left-2 flex flex-col gap-1">
-                        <Badge variant={getTypeColor(resource.type) as any} size="sm" className="flex items-center gap-1">
-                          {getTypeIcon(resource.type)}
-                          {resource.type}
-                        </Badge>
-                        {(resource as any).isNew && (
-                          <Badge variant="warning" size="sm">Novo</Badge>
+              <div className="relative pt-8 pb-0">
+                <Carousel
+                  opts={{
+                    align: "start",
+                    loop: false,
+                    slidesToScroll: 1,
+                    dragFree: true,
+                    containScroll: "trimSnaps",
+                  }}
+                  className="w-full"
+                >
+                  <CarouselContent className="-ml-2 sm:-ml-4">
+                    {collection.resources
+                      .sort((a, b) => ((a as any).seriesOrder || 0) - ((b as any).seriesOrder || 0))
+                      .map((resource, resourceIndex) => (
+                      <CarouselItem key={resourceIndex} className="pl-2 sm:pl-4 basis-[280px] sm:basis-[320px] lg:basis-[350px]">
+                        {resource.type === "Livro" ? (
+                          <CardLivro
+                            title={resource.title}
+                            author={(resource as any).author || "Autor"}
+                            description={resource.description}
+                            pages={resource.pages}
+                            rating={resource.rating}
+                            downloads={resource.downloads}
+                            isNew={(resource as any).isNew}
+                            isFeatured={(resource as any).isFeatured}
+                            image={resource.image}
+                            fileUrl={resource.fileUrl}
+                          />
+                        ) : (
+                          <CardPDF
+                            title={resource.title}
+                            description={resource.description}
+                            pages={resource.pages}
+                            rating={resource.rating}
+                            downloads={resource.downloads}
+                            isNew={(resource as any).isNew}
+                            isFeatured={(resource as any).isFeatured}
+                            series={(resource as any).series}
+                            seriesOrder={(resource as any).seriesOrder}
+                            image={resource.image}
+                            fileUrl={resource.fileUrl}
+                          />
                         )}
-                        {(resource as any).isFeatured && (
-                          <Badge variant="brand" size="sm">Destaque</Badge>
-                        )}
-                        {(resource as any).series && (
-                          <Badge variant="info" size="sm">Vol. {(resource as any).seriesOrder}</Badge>
-                        )}
-                      </div>
-                      
-                      <div className="absolute top-2 right-2">
-                        <div className="flex items-center gap-1 bg-white/90 dark:bg-dark-surface/90 rounded px-2 py-1">
-                          <Star className="w-3 h-3 text-yellow-500" />
-                          <span className="text-xs font-medium">{resource.rating}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3 flex-1">
-                      <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1">{resource.title}</h3>
-                        <p className="text-sm text-gray-600 dark:text-dark-muted">{resource.description}</p>
-                        {(resource as any).series && (
-                          <p className="text-xs text-brand-accent mt-1 font-medium">{(resource as any).series}</p>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-dark-muted">
-                        <div className="flex items-center gap-1">
-                          <BookOpen className="w-3 h-3" />
-                          {resource.pages} páginas
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Download className="w-3 h-3" />
-                          {resource.downloads.toLocaleString()}
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between mt-auto">
-                        <Badge variant="success" size="sm">Disponível</Badge>
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={() => window.open(resource.fileUrl, '_blank')}
-                            className="inline-flex items-center gap-1 text-sm font-medium text-brand-accent hover:text-brand-accent/80 transition-colors"
-                          >
-                            <Eye className="w-3 h-3" />
-                            Ler
-                          </button>
-                          <button 
-                            onClick={() => {
-                              const link = document.createElement('a');
-                              link.href = resource.fileUrl;
-                              link.download = resource.title;
-                              link.click();
-                            }}
-                            className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 dark:text-dark-muted hover:text-gray-800 dark:hover:text-dark-text transition-colors"
-                          >
-                            <Download className="w-3 h-3" />
-                            Baixar
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </ModernCard>
-                ))}
-              </Carousel>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </Carousel>
+              </div>
             </div>
           ))}
         </div>

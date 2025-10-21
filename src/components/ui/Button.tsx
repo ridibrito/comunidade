@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
   variant?: "default" | "outline" | "ghost" | "destructive";
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "icon";
   className?: string;
 }
 
@@ -27,7 +27,8 @@ export default function Button({
   const sizeClasses = {
     sm: "h-8 px-3 text-sm",
     md: "h-10 px-4 text-sm",
-    lg: "h-12 px-6 text-base"
+    lg: "h-12 px-6 text-base",
+    icon: "h-10 w-10"
   };
 
   return (

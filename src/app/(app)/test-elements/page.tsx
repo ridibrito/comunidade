@@ -43,6 +43,12 @@ import {
   Trash2,
   MoreHorizontal
 } from 'lucide-react';
+import { 
+  CardVideoAula, 
+  CardAulaAoVivo, 
+  CardLivro, 
+  CardPDF 
+} from '@/components/ui/CardModels';
 
 // Componentes inspirados no shadcn-ui
 const Card = ({ className, ...props }: React.ComponentProps<"div">) => (
@@ -237,6 +243,115 @@ export default function TestElementsPage() {
       answers: 7,
       isResolved: true,
       urgency: "high"
+    }
+  ];
+
+  // Dados de exemplo para os novos modelos de card
+  const sampleVideoAulas = [
+    {
+      title: "Aspectos Cognitivos",
+      description: "Desenvolvimento intelectual e habilidades mentais em crianças AHSD",
+      instructor: "Dr. Maria Silva",
+      duration: "2h 30min",
+      lessons: 8,
+      progress: 75,
+      rating: 4.8,
+      isNew: true,
+      difficulty: "Intermediário" as const,
+      image: "https://images.unsplash.com/photo-1537832816519-689ad163238b?q=80&w=1600&auto=format&fit=crop",
+      slug: "/catalog/modulo/aspectos-cognitivos"
+    },
+    {
+      title: "Desenvolvimento Socioemocional",
+      description: "Inteligência emocional e relacionamentos",
+      instructor: "Psicóloga Ana Costa",
+      duration: "1h 45min",
+      lessons: 6,
+      progress: 45,
+      difficulty: "Básico" as const,
+      image: "https://images.unsplash.com/photo-1544776193-352d25ca82cd?q=80&w=1600&auto=format&fit=crop",
+      slug: "/catalog/modulo/desenvolvimento-socioemocional"
+    }
+  ];
+
+  const sampleAulasAoVivo = [
+    {
+      title: "Desenvolvimento Motor",
+      description: "Atividades físicas e coordenação motora para crianças AHSD",
+      instructor: "Fisioterapeuta João Oliveira",
+      originalDate: "2024-01-15",
+      originalTime: "19:00",
+      duration: "1h 30min",
+      participants: 24,
+      maxParticipants: 30,
+      progress: 60,
+      rating: 4.7,
+      image: "https://images.unsplash.com/photo-1559703248-dcaaec9fab78?q=80&w=1600&auto=format&fit=crop",
+      recordingUrl: "/recordings/desenvolvimento-motor.mp4"
+    },
+    {
+      title: "Rotinas e Organização",
+      description: "Estratégias para estruturar o dia a dia com crianças superdotadas",
+      instructor: "Pedagoga Carla Santos",
+      originalDate: "2024-01-12",
+      originalTime: "18:30",
+      duration: "1h 20min",
+      participants: 30,
+      maxParticipants: 30,
+      progress: 100,
+      rating: 4.9,
+      image: "https://images.unsplash.com/photo-1523246191891-9a054b0db644?q=80&w=1600&auto=format&fit=crop",
+      recordingUrl: "/recordings/rotinas-organizacao.mp4"
+    }
+  ];
+
+  const sampleLivros = [
+    {
+      title: "Guia Completo AHSD",
+      author: "Dr. Carlos Mendes",
+      description: "Manual abrangente sobre Altas Habilidades/Superdotação",
+      pages: 156,
+      rating: 4.9,
+      downloads: 1247,
+      isNew: true,
+      isFeatured: true,
+      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=1600&auto=format&fit=crop",
+      fileUrl: "/files/guia-completo-ahsd.pdf"
+    },
+    {
+      title: "Estratégias Educacionais",
+      author: "Prof. Roberto Lima",
+      description: "Métodos práticos para desenvolvimento cognitivo",
+      pages: 89,
+      rating: 4.7,
+      downloads: 892,
+      image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=1600&auto=format&fit=crop",
+      fileUrl: "/files/estrategias-educacionais.pdf"
+    }
+  ];
+
+  const samplePDFs = [
+    {
+      title: "Manual de Rotinas",
+      description: "Organização e estruturação do dia a dia",
+      pages: 67,
+      rating: 4.6,
+      downloads: 743,
+      isNew: false,
+      isFeatured: false,
+      image: "https://images.unsplash.com/photo-1523246191891-9a054b0db644?q=80&w=1600&auto=format&fit=crop",
+      fileUrl: "/files/manual-rotinas.pdf"
+    },
+    {
+      title: "Desenvolvimento Cognitivo",
+      description: "Fundamentos do pensamento e raciocínio",
+      pages: 178,
+      rating: 4.8,
+      downloads: 892,
+      series: "Desenvolvimento Infantil",
+      seriesOrder: 2,
+      image: "https://images.unsplash.com/photo-1537832816519-689ad163238b?q=80&w=1600&auto=format&fit=crop",
+      fileUrl: "/files/desenvolvimento-cognitivo.pdf"
     }
   ];
 
@@ -994,6 +1109,156 @@ export default function TestElementsPage() {
                 </div>
               </CardFooter>
             </Card>
+          </div>
+        </section>
+
+        {/* Separador */}
+        <Separator className="my-12" />
+
+        {/* Seção: Novos Modelos de Card */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-semibold text-light-text dark:text-dark-text mb-6">
+            🎯 Novos Modelos de Card
+          </h2>
+          
+          {/* Card para Aula em Vídeo Gravado (Curso) */}
+          <div className="mb-12">
+            <h3 className="text-xl font-semibold text-light-text dark:text-dark-text mb-6 flex items-center gap-2">
+              📹 Aulas em Vídeo Gravado (Cursos)
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sampleVideoAulas.map((aula, index) => (
+                <CardVideoAula
+                  key={index}
+                  title={aula.title}
+                  description={aula.description}
+                  instructor={aula.instructor}
+                  duration={aula.duration}
+                  lessons={aula.lessons}
+                  progress={aula.progress}
+                  rating={aula.rating}
+                  isNew={aula.isNew}
+                  difficulty={aula.difficulty}
+                  image={aula.image}
+                  slug={aula.slug}
+                />
+              ))}
+            </div>
+            <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">💡 Características do Card de Aula em Vídeo:</h4>
+              <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                <li>• <strong>Botão Play centralizado</strong> indicando conteúdo de vídeo</li>
+                <li>• <strong>Barra de progresso real</strong> para vídeos hospedados no Vimeo</li>
+                <li>• <strong>Progresso visual</strong> com badge de porcentagem</li>
+                <li>• <strong>Informações do instrutor</strong> destacadas</li>
+                <li>• <strong>Badge de dificuldade</strong> com cores diferenciadas</li>
+                <li>• <strong>Rating com estrelas</strong> para avaliação</li>
+                <li>• <strong>Botão roxo acento</strong> "Continuar" ou "Começar" baseado no progresso</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Card para Aula ao Vivo (Agora Gravada) */}
+          <div className="mb-12">
+            <h3 className="text-xl font-semibold text-light-text dark:text-dark-text mb-6 flex items-center gap-2">
+              🔴 Aulas ao Vivo (Agora em Replay)
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sampleAulasAoVivo.map((aula, index) => (
+                <CardAulaAoVivo
+                  key={index}
+                  title={aula.title}
+                  description={aula.description}
+                  instructor={aula.instructor}
+                  originalDate={aula.originalDate}
+                  originalTime={aula.originalTime}
+                  {...aula}
+                />
+              ))}
+            </div>
+            <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              <h4 className="font-semibold text-red-900 dark:text-red-100 mb-2">💡 Características do Card de Aula ao Vivo:</h4>
+              <ul className="text-sm text-red-800 dark:text-red-200 space-y-1">
+                <li>• <strong>Badge "Replay"</strong> indicando que é uma gravação</li>
+                <li>• <strong>Ícone de replay</strong> no centro da imagem</li>
+                <li>• <strong>Barra de progresso real</strong> para vídeos hospedados no Vimeo</li>
+                <li>• <strong>Data e hora original</strong> da transmissão ao vivo</li>
+                <li>• <strong>Contador de participantes</strong> que assistiram</li>
+                <li>• <strong>Botão roxo acento "Assistir Replay"</strong> para acessar a gravação</li>
+                <li>• <strong>Overlay escuro</strong> na imagem indicando conteúdo gravado</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Card para Livros */}
+          <div className="mb-12">
+            <h3 className="text-xl font-semibold text-light-text dark:text-dark-text mb-6 flex items-center gap-2">
+              📚 Livros
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sampleLivros.map((livro, index) => (
+                <CardLivro
+                  key={index}
+                  title={livro.title}
+                  author={livro.author}
+                  description={livro.description}
+                  pages={livro.pages}
+                  rating={livro.rating}
+                  downloads={livro.downloads}
+                  isNew={livro.isNew}
+                  isFeatured={livro.isFeatured}
+                  image={livro.image}
+                  fileUrl={livro.fileUrl}
+                />
+              ))}
+            </div>
+            <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">💡 Características do Card de Livro:</h4>
+              <ul className="text-sm text-green-800 dark:text-green-200 space-y-1">
+                <li>• <strong>Badge "Livro"</strong> com ícone de livro</li>
+                <li>• <strong>Proporção 3:4</strong> na imagem (formato de livro)</li>
+                <li>• <strong>Nome do autor</strong> destacado em cor de marca</li>
+                <li>• <strong>Contador de páginas</strong> e downloads</li>
+                <li>• <strong>Botão "Baixar" roxo acento</strong> e "Ler" outline</li>
+                <li>• <strong>Badges de "Novo" e "Destaque"</strong> para livros especiais</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Card para PDFs */}
+          <div className="mb-12">
+            <h3 className="text-xl font-semibold text-light-text dark:text-dark-text mb-6 flex items-center gap-2">
+              📄 PDFs
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {samplePDFs.map((pdf, index) => (
+                <CardPDF
+                  key={index}
+                  title={pdf.title}
+                  description={pdf.description}
+                  pages={pdf.pages}
+                  rating={pdf.rating}
+                  downloads={pdf.downloads}
+                  isNew={pdf.isNew}
+                  isFeatured={pdf.isFeatured}
+                  series={pdf.series}
+                  seriesOrder={pdf.seriesOrder}
+                  image={pdf.image}
+                  fileUrl={pdf.fileUrl}
+                />
+              ))}
+            </div>
+            <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+              <h4 className="font-semibold text-orange-900 dark:text-orange-100 mb-2">💡 Características do Card de PDF:</h4>
+              <ul className="text-sm text-orange-800 dark:text-orange-200 space-y-1">
+                <li>• <strong>Badge "PDF"</strong> com ícone de documento</li>
+                <li>• <strong>Ícone de PDF</strong> sobreposto na imagem</li>
+                <li>• <strong>Suporte a séries</strong> com numeração de volumes</li>
+                <li>• <strong>Contador de páginas</strong> e downloads</li>
+                <li>• <strong>Botão "Baixar" roxo acento</strong> e "Ler" outline</li>
+                <li>• <strong>Indicação de série</strong> quando aplicável</li>
+              </ul>
+            </div>
           </div>
         </section>
 

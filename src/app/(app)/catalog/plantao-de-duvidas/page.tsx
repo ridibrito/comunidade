@@ -3,10 +3,15 @@
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
-import Carousel from "@/components/ui/Carousel";
-import ModernCard from "@/components/ui/ModernCard";
 import Badge from "@/components/ui/Badge";
-import { MessageCircle, Clock, Users, Calendar, Play, Video } from "lucide-react";
+import { CardAulaAoVivo } from "@/components/ui/CardModels";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/CarouselNew";
 
 export default function DoubtsPage() {
   // Próximas sessões (ao vivo via Zoom)
@@ -14,9 +19,9 @@ export default function DoubtsPage() {
     {
       title: "Desenvolvimento Cognitivo",
       description: "Tire suas dúvidas sobre estimulação intelectual",
-      expert: "Dr. Maria Silva",
-      date: "2024-01-15",
-      time: "19:00",
+      instructor: "Dr. Maria Silva",
+      originalDate: "2024-01-15",
+      originalTime: "19:00",
       participants: 24,
       maxParticipants: 30,
       status: "Agendada",
@@ -82,7 +87,7 @@ export default function DoubtsPage() {
       description: "Orientações iniciais para famílias",
       expert: "Dr. Carlos Mendes",
       date: "2024-01-05",
-      time: "19:00",
+      originalTime: "19:00",
       participants: 22,
       maxParticipants: 25,
       status: "Realizada",
@@ -103,133 +108,111 @@ export default function DoubtsPage() {
   };
 
   return (
-    <Container>
+    <Container fullWidth>
       <Section>
         <PageHeader title="Plantão de dúvidas" />
         
         <div className="space-y-12">
           {/* Próximas Sessões */}
           <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text">
-                Próximas Sessões
-              </h2>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text">
+                  Próximas Sessões
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-dark-muted mt-1">
+                  Sessões ao vivo com especialistas para tirar suas dúvidas
+                </p>
+              </div>
               <Badge variant="success" size="md">{upcomingSessions.length} sessões</Badge>
             </div>
             
-            <Carousel cardWidth={320} gap={24}>
-              {upcomingSessions.map((session, idx) => (
-                <ModernCard key={idx} variant="elevated" className="h-full space-y-4">
-                  <div className="relative">
-                    <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-border">
-                      <img src={session.image} alt={session.title} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="absolute top-2 left-2">
-                      <Badge variant={getStatusColor(session.status) as any} size="sm">{session.status}</Badge>
-                    </div>
-                    <div className="absolute top-2 right-2">
-                      <div className="flex items-center gap-1 bg-white/90 dark:bg-dark-surface/90 rounded px-2 py-1">
-                        <Users className="w-3 h-3 text-gray-600" />
-                        <span className="text-xs font-medium">{session.participants}/{session.maxParticipants}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3 flex-1">
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1">{session.title}</h3>
-                      <p className="text-sm text-gray-600 dark:text-dark-muted">{session.description}</p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-dark-muted">
-                        <MessageCircle className="w-3 h-3" />
-                        <span>{session.expert}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-dark-muted">
-                        <Calendar className="w-3 h-3" />
-                        <span>{new Date(session.date).toLocaleDateString('pt-BR')} às {session.time}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mt-auto">
-                      <Badge variant="outline" size="sm">
-                        {session.participants} participantes
-                      </Badge>
-                      <button 
-                        onClick={() => window.open(session.zoomLink, '_blank')}
-                        className="inline-flex items-center gap-1 text-sm font-medium text-brand-accent hover:text-brand-accent/80 transition-colors"
-                      >
-                        <MessageCircle className="w-3 h-3" />
-                        Entrar no Zoom
-                      </button>
-                    </div>
-                  </div>
-                </ModernCard>
-              ))}
-            </Carousel>
+            <div className="relative pt-8 pb-0">
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: false,
+                  slidesToScroll: 1,
+                  dragFree: true,
+                  containScroll: "trimSnaps",
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-2 sm:-ml-4">
+                  {upcomingSessions.map((session, idx) => (
+                    <CarouselItem key={idx} className="pl-2 sm:pl-4 basis-[280px] sm:basis-[320px] lg:basis-[350px]">
+                      <CardAulaAoVivo
+                        title={session.title}
+                        description={session.description}
+                        instructor={session.instructor || session.expert}
+                        originalDate={session.originalDate || session.date}
+                        originalTime={session.originalTime || session.time}
+                        duration={session.duration || "1h 30min"}
+                        participants={session.participants}
+                        maxParticipants={session.maxParticipants}
+                        progress={session.progress || 0}
+                        rating={session.rating}
+                        image={session.image}
+                        recordingUrl={session.recordingUrl || session.zoomLink}
+                      />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            </div>
           </div>
 
           {/* Sessões Passadas */}
           <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text">
-                Sessões Passadas
-              </h2>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text">
+                  Sessões Passadas
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-dark-muted mt-1">
+                  Gravações das sessões anteriores disponíveis para assistir
+                </p>
+              </div>
               <Badge variant="info" size="md">{pastSessions.length} gravações</Badge>
             </div>
             
-            <Carousel cardWidth={320} gap={24}>
-              {pastSessions.map((session, idx) => (
-                <ModernCard key={idx} variant="elevated" className="h-full space-y-4">
-                  <div className="relative">
-                    <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-border">
-                      <img src={session.image} alt={session.title} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="absolute top-2 left-2">
-                      <Badge variant={getStatusColor(session.status) as any} size="sm">{session.status}</Badge>
-                    </div>
-                    <div className="absolute top-2 right-2">
-                      <div className="flex items-center gap-1 bg-white/90 dark:bg-dark-surface/90 rounded px-2 py-1">
-                        <Clock className="w-3 h-3 text-gray-600" />
-                        <span className="text-xs font-medium">{session.duration}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3 flex-1">
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1">{session.title}</h3>
-                      <p className="text-sm text-gray-600 dark:text-dark-muted">{session.description}</p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-dark-muted">
-                        <MessageCircle className="w-3 h-3" />
-                        <span>{session.expert}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-dark-muted">
-                        <Calendar className="w-3 h-3" />
-                        <span>{new Date(session.date).toLocaleDateString('pt-BR')} às {session.time}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mt-auto">
-                      <Badge variant="outline" size="sm">
-                        {session.participants} participantes
-                      </Badge>
-                      <button 
-                        onClick={() => window.open(session.recordingUrl, '_blank')}
-                        className="inline-flex items-center gap-1 text-sm font-medium text-brand-accent hover:text-brand-accent/80 transition-colors"
-                      >
-                        <Play className="w-3 h-3" />
-                        Assistir
-                      </button>
-                    </div>
-                  </div>
-                </ModernCard>
-              ))}
-            </Carousel>
+            <div className="relative pt-8 pb-0">
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: false,
+                  slidesToScroll: 1,
+                  dragFree: true,
+                  containScroll: "trimSnaps",
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-2 sm:-ml-4">
+                  {pastSessions.map((session, idx) => (
+                    <CarouselItem key={idx} className="pl-2 sm:pl-4 basis-[280px] sm:basis-[320px] lg:basis-[350px]">
+                      <CardAulaAoVivo
+                        title={session.title}
+                        description={session.description}
+                        instructor={session.instructor || session.expert}
+                        originalDate={session.originalDate || session.date}
+                        originalTime={session.originalTime || session.time}
+                        duration={session.duration || "1h 30min"}
+                        participants={session.participants}
+                        maxParticipants={session.maxParticipants}
+                        progress={session.progress || 0}
+                        rating={session.rating}
+                        image={session.image}
+                        recordingUrl={session.recordingUrl}
+                      />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            </div>
           </div>
         </div>
       </Section>

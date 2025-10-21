@@ -3,10 +3,15 @@
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
-import Carousel from "@/components/ui/Carousel";
-import ModernCard from "@/components/ui/ModernCard";
 import Badge from "@/components/ui/Badge";
-import { Users, MessageCircle, Calendar, Clock, Play, Video } from "lucide-react";
+import { CardAulaAoVivo } from "@/components/ui/CardModels";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/CarouselNew";
 
 export default function RodasDeConversaPage() {
   // Próximos eventos (ao vivo via Zoom)
@@ -42,7 +47,7 @@ export default function RodasDeConversaPage() {
       description: "Desenvolvendo o potencial criativo das crianças",
       facilitator: "Roberta Silva",
       date: "2024-01-21",
-      time: "19:00",
+      originalTime: "19:00",
       participants: 8,
       maxParticipants: 12,
       status: "Aberta",
@@ -85,16 +90,18 @@ export default function RodasDeConversaPage() {
     {
       title: "Primeiros Passos com AHSD",
       description: "Introdução para famílias recém-diagnosticadas",
-      facilitator: "Dr. Ana Costa",
-      date: "2024-01-07",
-      time: "19:00",
+      instructor: "Dr. Ana Costa",
+      originalDate: "2024-01-07",
+      originalTime: "19:00",
       participants: 25,
       maxParticipants: 25,
       status: "Realizada",
       topic: "Introdução",
       image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?q=80&w=1600&auto=format&fit=crop",
       recordingUrl: "/recordings/primeiros-passos-ahsd.mp4",
-      duration: "1h 45min"
+      duration: "1h 45min",
+      progress: 0,
+      rating: 4.8
     }
   ];
 
@@ -121,139 +128,111 @@ export default function RodasDeConversaPage() {
   };
 
   return (
-    <Container>
+    <Container fullWidth>
       <Section>
         <PageHeader title="Rodas de conversa" />
         
         <div className="space-y-12">
           {/* Próximos Eventos */}
           <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text">
-                Próximos Eventos
-              </h2>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text">
+                  Próximos Eventos
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-dark-muted mt-1">
+                  Rodas de conversa com outros pais e especialistas
+                </p>
+              </div>
               <Badge variant="success" size="md">{upcomingEvents.length} eventos</Badge>
             </div>
             
-            <Carousel cardWidth={320} gap={24}>
-              {upcomingEvents.map((event, idx) => (
-                <ModernCard key={idx} variant="elevated" className="h-full space-y-4">
-                  <div className="relative">
-                    <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-border">
-                      <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="absolute top-2 left-2">
-                      <Badge variant={getStatusColor(event.status) as any} size="sm">{event.status}</Badge>
-                    </div>
-                    <div className="absolute top-2 right-2">
-                      <Badge variant={getTopicColor(event.topic) as any} size="sm">{event.topic}</Badge>
-                    </div>
-                    <div className="absolute bottom-2 right-2">
-                      <div className="flex items-center gap-1 bg-white/90 dark:bg-dark-surface/90 rounded px-2 py-1">
-                        <Users className="w-3 h-3 text-gray-600" />
-                        <span className="text-xs font-medium">{event.participants}/{event.maxParticipants}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3 flex-1">
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1">{event.title}</h3>
-                      <p className="text-sm text-gray-600 dark:text-dark-muted">{event.description}</p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-dark-muted">
-                        <MessageCircle className="w-3 h-3" />
-                        <span>Facilitador: {event.facilitator}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-dark-muted">
-                        <Calendar className="w-3 h-3" />
-                        <span>{new Date(event.date).toLocaleDateString('pt-BR')} às {event.time}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mt-auto">
-                      <Badge variant="outline" size="sm">
-                        {event.participants} participantes
-                      </Badge>
-                      <button 
-                        onClick={() => window.open(event.zoomLink, '_blank')}
-                        className="inline-flex items-center gap-1 text-sm font-medium text-brand-accent hover:text-brand-accent/80 transition-colors"
-                      >
-                        <MessageCircle className="w-3 h-3" />
-                        Entrar no Zoom
-                      </button>
-                    </div>
-                  </div>
-                </ModernCard>
-              ))}
-            </Carousel>
+            <div className="relative pt-8 pb-0">
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: false,
+                  slidesToScroll: 1,
+                  dragFree: true,
+                  containScroll: "trimSnaps",
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-2 sm:-ml-4">
+                  {upcomingEvents.map((event, idx) => (
+                    <CarouselItem key={idx} className="pl-2 sm:pl-4 basis-[280px] sm:basis-[320px] lg:basis-[350px]">
+                      <CardAulaAoVivo
+                        title={event.title}
+                        description={event.description}
+                        instructor={event.instructor || event.facilitator}
+                        originalDate={event.originalDate || event.date}
+                        originalTime={event.originalTime || event.time}
+                        duration={event.duration || "1h 30min"}
+                        participants={event.participants}
+                        maxParticipants={event.maxParticipants}
+                        progress={event.progress || 0}
+                        rating={event.rating}
+                        image={event.image}
+                        recordingUrl={event.recordingUrl || event.zoomLink}
+                      />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            </div>
           </div>
 
           {/* Eventos Passados */}
           <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text">
-                Eventos Passados
-              </h2>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text">
+                  Eventos Passados
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-dark-muted mt-1">
+                  Gravações das rodas de conversa anteriores
+                </p>
+              </div>
               <Badge variant="info" size="md">{pastEvents.length} gravações</Badge>
             </div>
             
-            <Carousel cardWidth={320} gap={24}>
-              {pastEvents.map((event, idx) => (
-                <ModernCard key={idx} variant="elevated" className="h-full space-y-4">
-                  <div className="relative">
-                    <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-border">
-                      <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="absolute top-2 left-2">
-                      <Badge variant={getStatusColor(event.status) as any} size="sm">{event.status}</Badge>
-                    </div>
-                    <div className="absolute top-2 right-2">
-                      <Badge variant={getTopicColor(event.topic) as any} size="sm">{event.topic}</Badge>
-                    </div>
-                    <div className="absolute bottom-2 right-2">
-                      <div className="flex items-center gap-1 bg-white/90 dark:bg-dark-surface/90 rounded px-2 py-1">
-                        <Clock className="w-3 h-3 text-gray-600" />
-                        <span className="text-xs font-medium">{event.duration}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3 flex-1">
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1">{event.title}</h3>
-                      <p className="text-sm text-gray-600 dark:text-dark-muted">{event.description}</p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-dark-muted">
-                        <MessageCircle className="w-3 h-3" />
-                        <span>Facilitador: {event.facilitator}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-dark-muted">
-                        <Calendar className="w-3 h-3" />
-                        <span>{new Date(event.date).toLocaleDateString('pt-BR')} às {event.time}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mt-auto">
-                      <Badge variant="outline" size="sm">
-                        {event.participants} participantes
-                      </Badge>
-                      <button 
-                        onClick={() => window.open(event.recordingUrl, '_blank')}
-                        className="inline-flex items-center gap-1 text-sm font-medium text-brand-accent hover:text-brand-accent/80 transition-colors"
-                      >
-                        <Play className="w-3 h-3" />
-                        Assistir
-                      </button>
-                    </div>
-                  </div>
-                </ModernCard>
-              ))}
-            </Carousel>
+            <div className="relative pt-8 pb-0">
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: false,
+                  slidesToScroll: 1,
+                  dragFree: true,
+                  containScroll: "trimSnaps",
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-2 sm:-ml-4">
+                  {pastEvents.map((event, idx) => (
+                    <CarouselItem key={idx} className="pl-2 sm:pl-4 basis-[280px] sm:basis-[320px] lg:basis-[350px]">
+                      <CardAulaAoVivo
+                        title={event.title}
+                        description={event.description}
+                        instructor={event.instructor || event.facilitator}
+                        originalDate={event.originalDate || event.date}
+                        originalTime={event.originalTime || event.time}
+                        duration={event.duration || "1h 30min"}
+                        participants={event.participants}
+                        maxParticipants={event.maxParticipants}
+                        progress={event.progress || 0}
+                        rating={event.rating}
+                        image={event.image}
+                        recordingUrl={event.recordingUrl}
+                      />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            </div>
           </div>
         </div>
       </Section>
