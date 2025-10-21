@@ -10,8 +10,12 @@ export default function Modal({ open, onClose, children }: { open: boolean; onCl
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
-      <div role="dialog" aria-modal="true" className="relative w-full max-w-lg rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 shadow-soft">
+      <div className="absolute inset-0 bg-black/50 dark:bg-black/70" onClick={onClose} aria-hidden />
+      <div 
+        role="dialog" 
+        aria-modal="true" 
+        className="relative w-full max-w-lg rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface p-6 shadow-xl"
+      >
         {children}
       </div>
     </div>

@@ -16,8 +16,15 @@
   --dark-text: #FAFAFA;
   --dark-muted: #A1A1AA;
   
-  /* Brand colors */
-  --brand-accent: #43085E;
+          /* Brand colors */
+          --brand-accent: #43085E;
+          
+          /* Chart colors */
+          --chart-1: 67 8 94;
+          --chart-2: 107 70 193;
+          --chart-3: 139 92 246;
+          --chart-4: 168 85 247;
+          --chart-5: 192 132 252;
   
   /* Shadcn-ui border colors */
   --border: 15 23 42 / 0.04;

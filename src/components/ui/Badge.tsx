@@ -17,13 +17,13 @@ export default function Badge({
   const baseClasses = "inline-flex items-center font-medium rounded-full";
   
   const variantClasses = {
-    default: "bg-gray-300 text-gray-900 dark:bg-gray-700 dark:text-gray-100 shadow-sm",
-    success: "bg-green-700 text-white dark:bg-green-600 dark:text-white shadow-sm",
-    warning: "bg-yellow-700 text-white dark:bg-yellow-600 dark:text-white shadow-sm",
-    error: "bg-red-700 text-white dark:bg-red-600 dark:text-white shadow-sm",
-    info: "bg-blue-700 text-white dark:bg-blue-600 dark:text-white shadow-sm",
-    brand: "bg-purple-700 text-white dark:bg-brand-accent dark:text-white shadow-sm",
-    outline: "border border-gray-400 text-gray-900 dark:border-gray-600 dark:text-gray-100 shadow-sm"
+    default: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100 shadow-sm border border-gray-200 dark:border-gray-600",
+    success: "bg-green-600 text-white dark:bg-green-600 dark:text-white shadow-sm",
+    warning: "bg-yellow-500 text-white dark:bg-yellow-600 dark:text-white shadow-sm",
+    error: "bg-red-600 text-white dark:bg-red-600 dark:text-white shadow-sm",
+    info: "bg-blue-600 text-white dark:bg-blue-600 dark:text-white shadow-sm",
+    brand: "bg-purple-600 text-white dark:bg-brand-accent dark:text-white shadow-sm",
+    outline: "border border-gray-300 text-gray-700 dark:border-gray-600 dark:text-gray-100 shadow-sm bg-white dark:bg-gray-800"
   };
   
   const sizeClasses = {
