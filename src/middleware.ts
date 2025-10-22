@@ -37,6 +37,38 @@ export async function middleware(req: NextRequest) {
     return redirectRes;
   }
 
+  // Sistema de tracking de login - atualizar last_login_at e login_count
+  try {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("last_login_at, login_count")
+      .eq("id", data.user.id)
+      .single();
+
+    if (profile) {
+      const now = new Date().toISOString();
+      const lastLogin = profile.last_login_at;
+      const loginCount = profile.login_count || 0;
+      
+      // Atualizar apenas se não fez login hoje ou se é o primeiro login
+      const shouldUpdate = !lastLogin || 
+        new Date(lastLogin).toDateString() !== new Date().toDateString();
+      
+      if (shouldUpdate) {
+        await supabase
+          .from("profiles")
+          .update({
+            last_login_at: now,
+            login_count: loginCount + 1
+          })
+          .eq("id", data.user.id);
+      }
+    }
+  } catch (error) {
+    // Log do erro mas não interrompe o fluxo
+    console.error("Erro ao atualizar tracking de login:", error);
+  }
+
   // Verificar se usuário tem senha temporária e redirecionar para troca
   if (data.user.user_metadata?.temp_password && !url.pathname.startsWith("/auth/change-password")) {
     url.pathname = "/auth/change-password";

@@ -48,6 +48,9 @@ export default function AdminUsersPage() {
   const [useMockData, setUseMockData] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
   
+  // Estado para abas de filtro
+  const [activeTab, setActiveTab] = useState<"all" | "admin" | "aluno" | "profissional">("all");
+  
   // Hook para dados mockados
   const mockUsersHook = useMockUsers();
   
@@ -336,6 +339,16 @@ export default function AdminUsersPage() {
     });
   }
 
+  // Função para filtrar usuários por aba
+  const getFilteredUsers = () => {
+    if (activeTab === "all") {
+      return list;
+    }
+    return list.filter(user => user.role === activeTab);
+  };
+
+  const filteredUsers = getFilteredUsers();
+
   return (
     <Container fullWidth>
       <Section>
@@ -361,7 +374,7 @@ export default function AdminUsersPage() {
                 <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-light-text dark:text-dark-text">{list.length}</div>
+                <div className="text-2xl font-bold text-light-text dark:text-dark-text">{filteredUsers.length}</div>
                 <div className="text-sm text-light-muted dark:text-dark-muted">Total de usuários</div>
               </div>
             </div>
@@ -373,7 +386,7 @@ export default function AdminUsersPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-light-text dark:text-dark-text">
-                  {list.filter(u => u.invite_status === "accepted").length}
+                  {filteredUsers.filter(u => u.invite_status === "accepted").length}
                 </div>
                 <div className="text-sm text-light-muted dark:text-dark-muted">Usuários Ativos</div>
               </div>
@@ -386,7 +399,7 @@ export default function AdminUsersPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-light-text dark:text-dark-text">
-                  {list.filter(u => u.invite_status === "pending").length}
+                  {filteredUsers.filter(u => u.invite_status === "pending").length}
                 </div>
                 <div className="text-sm text-light-muted dark:text-dark-muted">Convites Pendentes</div>
               </div>
@@ -399,7 +412,7 @@ export default function AdminUsersPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-light-text dark:text-dark-text">
-                  {list.filter(u => u.last_login_at && new Date(u.last_login_at) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length}
+                  {filteredUsers.filter(u => u.last_login_at && new Date(u.last_login_at) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length}
                 </div>
                 <div className="text-sm text-light-muted dark:text-dark-muted">Ativos (24h)</div>
               </div>
@@ -417,6 +430,54 @@ export default function AdminUsersPage() {
           </button>
         </div>
 
+        {/* Abas de Filtro */}
+        <div className="mb-6">
+          <div className="border-b border-gray-200 dark:border-gray-700">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab("all")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "all"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                }`}
+              >
+                Todos ({list.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("admin")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "admin"
+                    ? "border-red-500 text-red-600 dark:text-red-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                }`}
+              >
+                Administradores ({list.filter(u => u.role === "admin").length})
+              </button>
+              <button
+                onClick={() => setActiveTab("aluno")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "aluno"
+                    ? "border-green-500 text-green-600 dark:text-green-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                }`}
+              >
+                Alunos ({list.filter(u => u.role === "aluno").length})
+              </button>
+              <button
+                onClick={() => setActiveTab("profissional")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "profissional"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                }`}
+              >
+                Profissionais ({list.filter(u => u.role === "profissional").length})
+              </button>
+            </nav>
+          </div>
+        </div>
+
         <ModernCard>
           <Table>
             <TableHeader>
@@ -430,7 +491,7 @@ export default function AdminUsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {list.map((u) => (
+              {filteredUsers.map((u) => (
                 <TableRow key={u.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
@@ -474,7 +535,7 @@ export default function AdminUsersPage() {
                   </TableCell>
                 </TableRow>
               ))}
-              {list.length===0 && (
+              {filteredUsers.length===0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="py-12 text-center text-light-muted dark:text-dark-muted">
                     <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
