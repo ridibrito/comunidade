@@ -60,6 +60,22 @@ export default function DashboardPage() {
     })();
   }, []);
   const progressPct = Math.round((mockProgress.completed / mockProgress.totalLessons) * 100);
+
+  // Funções determinísticas para evitar hydration mismatch (sem Math.random no render)
+  function hashStringToInt(input: string, seed = 0): number {
+    let hash = 2166136261 ^ seed;
+    for (let i = 0; i < input.length; i++) {
+      hash ^= input.charCodeAt(i);
+      // FNV-1a like
+      hash = (hash + (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24)) >>> 0;
+    }
+    return hash >>> 0;
+  }
+
+  function deterministicPercent(label: string, index: number): number {
+    const h = hashStringToInt(`${label}#${index}`, 1337);
+    return h % 101; // 0..100
+  }
   const avgAnamnese = children.length ? Math.round(children.reduce((a,c)=> a + (c.anamnese ?? 0), 0) / children.length * 100) : 0;
   const avgRoutine = children.length ? Math.round(children.reduce((a,c)=> a + ((c.routineToday?.done ?? 0) / Math.max(1,(c.routineToday?.total ?? 1))), 0) / children.length * 100) : 0;
   const diariesThisWeek = 5; // mock
@@ -255,13 +271,13 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-light-muted dark:text-dark-muted">Progresso</span>
                     <Badge variant="outline" size="sm">
-                      {Math.round(Math.random() * 100)}%
+                      {deterministicPercent(trail.title, index)}%
                     </Badge>
                   </div>
                   <div className="w-full bg-light-border/20 dark:bg-dark-border/20 rounded-full h-2 shadow-sm">
                     <div 
                       className="bg-brand-accent h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${Math.round(Math.random() * 100)}%` }}
+                      style={{ width: `${deterministicPercent(trail.title + ':bar', index)}%` }}
                     />
                   </div>
                 </div>

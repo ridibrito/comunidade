@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -347,6 +347,7 @@ function SortableModuleItem({ module, trailId, onToggleExpand, onEdit, onDelete,
 
 // Componente principal
 export default function TrailManager({ trails, onUpdateTrails }: TrailManagerProps) {
+  const [isClient, setIsClient] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingTrail, setEditingTrail] = useState<Trail | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -354,6 +355,11 @@ export default function TrailManager({ trails, onUpdateTrails }: TrailManagerPro
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [isVideoUploadOpen, setIsVideoUploadOpen] = useState(false);
   const [selectedLessonForUpload, setSelectedLessonForUpload] = useState<{id: string, title: string} | null>(null);
+
+  // Garantir que o componente só renderize no cliente para evitar erros de hidratação
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -552,24 +558,45 @@ export default function TrailManager({ trails, onUpdateTrails }: TrailManagerPro
       </div>
 
       {/* Lista de Trilhas */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext items={filteredTrails.map(t => t.id)} strategy={verticalListSortingStrategy}>
+      {isClient ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={filteredTrails.map(t => t.id)} strategy={verticalListSortingStrategy}>
+            {filteredTrails.map((trail) => (
+              <SortableTrailItem
+                key={trail.id}
+                trail={trail}
+                onToggleExpand={handleToggleExpand}
+                onEdit={handleEditTrail}
+                onDelete={handleDeleteTrail}
+                onAddModule={handleAddModule}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
+      ) : (
+        <div className="space-y-4">
           {filteredTrails.map((trail) => (
-            <SortableTrailItem
-              key={trail.id}
-              trail={trail}
-              onToggleExpand={handleToggleExpand}
-              onEdit={handleEditTrail}
-              onDelete={handleDeleteTrail}
-              onAddModule={handleAddModule}
-            />
+            <div key={trail.id} className="bg-white dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <div className="text-light-muted dark:text-dark-muted">
+                  <GripVertical className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-light-text dark:text-dark-text">{trail.title}</h3>
+                  <p className="text-sm text-light-muted dark:text-dark-muted">{trail.description}</p>
+                </div>
+                <Badge variant="default" size="sm">
+                  {trail.modules.length} módulos
+                </Badge>
+              </div>
+            </div>
           ))}
-        </SortableContext>
-      </DndContext>
+        </div>
+      )}
 
       {/* Modal para adicionar trilha */}
       <Modal open={isAddModalOpen} onClose={() => setIsAddModalOpen(false)}>

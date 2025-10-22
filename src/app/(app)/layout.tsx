@@ -3,12 +3,18 @@ import { Sidebar } from "./_components/Sidebar";
 import { Rail } from "./_components/Rail";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SidebarWrapper } from "./_components/SidebarWrapper";
+import { getServerUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function AppGroupLayout({
+export default async function AppGroupLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const user = await getServerUser();
+  if (!user) {
+    redirect("/auth/login");
+  }
   return (
     <ThemeProvider>
       <section className="min-h-screen bg-light-bg dark:bg-dark-bg">

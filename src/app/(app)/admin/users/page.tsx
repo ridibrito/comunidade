@@ -15,12 +15,11 @@ import {
   TableRow,
 } from "@/components/ui/Table";
 import { useConfirm } from "@/components/ui/ConfirmProvider";
-import { MoreVertical, Plus, Trash2, Pencil, Users, Mail, Shield, TrendingUp, Activity, Clock, CheckCircle, AlertCircle, Send, UserCheck } from "lucide-react";
+import { MoreVertical, Plus, Trash2, Pencil, Users, Mail, Shield, TrendingUp, Activity, Clock, CheckCircle, AlertCircle, Send, UserCheck, Key, Copy } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useToast } from "@/components/ui/ToastProvider";
-import DebugSupabase from "@/components/ui/DebugSupabase";
 import { useMockUsers } from "@/components/ui/MockUsers";
 
 type Role = "admin" | "aluno" | "profissional";
@@ -122,19 +121,23 @@ export default function AdminUsersPage() {
       if (!resp.ok) throw new Error(await resp.text());
       const result = await resp.json();
       
-      if (result.emailSent) {
-        push({ title: "Convite enviado", message: result.message || "E‑mail de convite enviado com sucesso via Supabase." });
-      } else if (result.supabaseError) {
-        // Se houve erro no Supabase, mostrar o link para envio manual
-        const linkText = result.inviteLink ? `\n\nLink de convite: ${result.inviteLink}` : '';
-        push({ 
-          title: "Usuário criado", 
-          message: `${result.message}${linkText}`,
-          variant: "warning"
-        });
-      } else {
-        push({ title: "Convite enviado", message: result.message || "E‑mail de convite enviado com sucesso." });
-      }
+        if (result.success) {
+          const emailStatus = result.emailSent ? 
+            "📧 Email com credenciais enviado automaticamente" : 
+            "📧 Email não foi enviado";
+          
+          const credentials = result.credentials ? 
+            `\n\n🔑 Credenciais Geradas:\nEmail: ${result.credentials.email}\nSenha: ${result.credentials.tempPassword}` : 
+            "";
+          
+          push({ 
+            title: "Usuário criado com sucesso", 
+            message: `${result.message}\n\n${emailStatus}${credentials}\n\nO usuário receberá um email com as credenciais e poderá fazer login imediatamente.`,
+            variant: "success"
+          });
+        } else {
+          push({ title: "Erro", message: result.error || "Erro ao criar usuário", variant: "error" });
+        }
       setEmail(""); setName(""); setRole("aluno"); setOpenAdd(false);
       // refresh lista
       const listResp = await fetch("/api/admin/users");
@@ -187,11 +190,11 @@ export default function AdminUsersPage() {
     const status = user.invite_status || 'pending';
     
     switch (status) {
-      case "sent":
+      case "pending":
         return (
           <div className="flex items-center gap-1">
-            <Send className="w-3 h-3 text-blue-500" />
-            <Badge variant="outline" size="sm">Convite Enviado</Badge>
+            <Clock className="w-3 h-3 text-yellow-500" />
+            <Badge variant="warning" size="sm">Convite Pendente</Badge>
           </div>
         );
       case "accepted":
@@ -234,10 +237,109 @@ export default function AdminUsersPage() {
     return "Nunca";
   };
 
+  async function removeUser(id: string) {
+    const ok = await confirm({ title: "Excluir usuário", message: "Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita." });
+    if (!ok) return;
+    
+    if (useMockData) {
+      await mockUsersHook.removeUser(id);
+      return;
+    }
+    
+    try {
+      const resp = await fetch(`/api/admin/users?id=${id}`, { method: "DELETE" });
+      if (!resp.ok) throw new Error(await resp.text());
+      // refresh lista
+      const listResp = await fetch("/api/admin/users");
+      const json = await listResp.json();
+      setRealUsers(json.users ?? []);
+      push({ title: "Usuário excluído", message: "Usuário removido com sucesso." });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      push({ title: "Erro ao excluir", message: msg, variant: "error" });
+    }
+  }
+
+  async function toggleUserActive(id: string, currentStatus: boolean) {
+    const action = currentStatus ? "desativar" : "ativar";
+    const ok = await confirm({ 
+      title: `${action.charAt(0).toUpperCase() + action.slice(1)} usuário`, 
+      message: `Tem certeza que deseja ${action} este usuário?` 
+    });
+    if (!ok) return;
+    
+    try {
+      const resp = await fetch("/api/admin/users", { 
+        method: "PATCH", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify({ id, action: "toggle_active" }) 
+      });
+      if (!resp.ok) throw new Error(await resp.text());
+      const result = await resp.json();
+      
+      // refresh lista
+      const listResp = await fetch("/api/admin/users");
+      const json = await listResp.json();
+      setRealUsers(json.users ?? []);
+      
+      push({ 
+        title: result.message, 
+        message: `Usuário ${result.is_active ? 'ativado' : 'desativado'} com sucesso.`,
+        variant: "success"
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      push({ title: "Erro ao alterar status", message: msg, variant: "error" });
+    }
+  }
+
+  async function resetUserPassword(id: string) {
+    const ok = await confirm({ 
+      title: "Resetar senha", 
+      message: "Tem certeza que deseja enviar um link de reset de senha para este usuário?" 
+    });
+    if (!ok) return;
+    
+    try {
+      const resp = await fetch("/api/admin/users", { 
+        method: "PATCH", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify({ id, action: "reset_password" }) 
+      });
+      if (!resp.ok) throw new Error(await resp.text());
+      const result = await resp.json();
+      
+      if (result.ok) {
+        push({ 
+          title: result.message, 
+          message: "Link de reset de senha enviado por email para o usuário.",
+          variant: "success"
+        });
+      } else {
+        push({ 
+          title: "Erro", 
+          message: result.message || "Erro ao enviar link de reset",
+          variant: "error"
+        });
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      push({ title: "Erro ao resetar senha", message: msg, variant: "error" });
+    }
+  }
+
+  function copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text).then(() => {
+      push({ title: "Copiado", message: "Senha copiada para a área de transferência.", variant: "success" });
+    }).catch(() => {
+      push({ title: "Erro", message: "Não foi possível copiar a senha.", variant: "error" });
+    });
+  }
+
   return (
     <Container fullWidth>
       <Section>
-        <PageHeader title="Usuários" subtitle="Criar e administrar contas: admin, aluno e profissional." />
+        <PageHeader title="Usuários" subtitle="Criar e administrar contas. Novos usuários recebem email de convite para definir senha." />
         
         {useMockData && (
           <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
@@ -250,16 +352,6 @@ export default function AdminUsersPage() {
           </div>
         )}
         
-        {!useMockData && realUsers.length > 0 && (
-          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-sm text-green-800 dark:text-green-200">
-                <strong>Conectado ao Banco:</strong> Exibindo {realUsers.length} usuário{realUsers.length !== 1 ? 's' : ''} real{realUsers.length !== 1 ? 'is' : ''} do banco de dados.
-              </span>
-            </div>
-          </div>
-        )}
         
         {/* Stats */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -294,9 +386,9 @@ export default function AdminUsersPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-light-text dark:text-dark-text">
-                  {list.filter(u => u.invite_status === "sent").length}
+                  {list.filter(u => u.invite_status === "pending").length}
                 </div>
-                <div className="text-sm text-light-muted dark:text-dark-muted">Convites Enviados</div>
+                <div className="text-sm text-light-muted dark:text-dark-muted">Convites Pendentes</div>
               </div>
             </div>
           </ModernCard>
@@ -332,7 +424,7 @@ export default function AdminUsersPage() {
                 <TableHead>Nome</TableHead>
                 <TableHead>E‑mail</TableHead>
                 <TableHead>Permissão</TableHead>
-                <TableHead>Status do Convite</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Último Login</TableHead>
                 <TableHead className="w-10"></TableHead>
               </TableRow>
@@ -340,10 +432,26 @@ export default function AdminUsersPage() {
             <TableBody>
               {list.map((u) => (
                 <TableRow key={u.id}>
-                  <TableCell className="font-medium">{u.full_name || "—"}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <span>{u.full_name || "—"}</span>
+                      {u.is_active === false && (
+                        <span className="px-2 py-1 text-xs font-medium bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-full">
+                          Inativo
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>{u.email || u.id}</TableCell>
                   <TableCell>{getRoleBadge(u.role)}</TableCell>
-                  <TableCell>{getInviteStatusBadge(u)}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      {getInviteStatusBadge(u)}
+                      {u.is_active === false && (
+                        <span className="text-xs text-red-600 dark:text-red-400">Usuário desativado</span>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <span className="text-sm text-light-muted dark:text-dark-muted">
@@ -357,13 +465,18 @@ export default function AdminUsersPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <RowMenu onEdit={()=>{ setEditId(u.id); setEditName(u.full_name ?? ""); setEditRole((u.role as Role) ?? "aluno"); setOpenEdit(true); }} onDelete={()=>removeUser(u.id)} />
+                    <RowMenu 
+                      onEdit={()=>{ setEditId(u.id); setEditName(u.full_name ?? ""); setEditRole((u.role as Role) ?? "aluno"); setOpenEdit(true); }} 
+                      onDelete={()=>removeUser(u.id)}
+                      onToggleActive={()=>toggleUserActive(u.id, u.is_active)}
+                      onResetPassword={()=>resetUserPassword(u.id)}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
               {list.length===0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-12 text-center text-light-muted dark:text-dark-muted">
+                  <TableCell colSpan={5} className="py-12 text-center text-light-muted dark:text-dark-muted">
                     <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <div className="text-lg font-medium mb-1">Nenhum usuário encontrado</div>
                     <div className="text-sm">Comece adicionando um novo usuário</div>
@@ -490,13 +603,17 @@ export default function AdminUsersPage() {
           </div>
         </Modal>
 
-        <DebugSupabase />
       </Section>
     </Container>
   );
 }
 
-function RowMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }){
+function RowMenu({ onEdit, onDelete, onToggleActive, onResetPassword }: { 
+  onEdit: () => void; 
+  onDelete: () => void; 
+  onToggleActive?: () => void;
+  onResetPassword?: () => void;
+}){
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
@@ -543,13 +660,30 @@ function RowMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => voi
         <MoreVertical size={14} className="text-light-muted dark:text-dark-muted" />
       </button>
       {open && coords && createPortal(
-        <div className="fixed z-50 w-40 rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface shadow-lg py-1" style={{ top: coords.top, left: coords.left }}>
+        <div className="fixed z-50 w-48 rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface shadow-lg py-1" style={{ top: coords.top, left: coords.left }}>
           <button 
             onClick={()=>{ setOpen(false); onEdit(); }} 
             className="w-full flex items-center gap-2 px-3 py-2 hover:bg-light-border/50 dark:hover:bg-dark-border/50 text-sm text-light-text dark:text-dark-text transition-colors"
           >
             <Pencil size={14}/> Editar
           </button>
+          {onToggleActive && (
+            <button 
+              onClick={()=>{ setOpen(false); onToggleActive(); }} 
+              className="w-full flex items-center gap-2 px-3 py-2 hover:bg-light-border/50 dark:hover:bg-dark-border/50 text-sm text-orange-600 dark:text-orange-400 transition-colors"
+            >
+              <UserCheck size={14}/> Ativar/Desativar
+            </button>
+          )}
+          {onResetPassword && (
+            <button 
+              onClick={()=>{ setOpen(false); onResetPassword(); }} 
+              className="w-full flex items-center gap-2 px-3 py-2 hover:bg-light-border/50 dark:hover:bg-dark-border/50 text-sm text-blue-600 dark:text-blue-400 transition-colors"
+            >
+              <Key size={14}/> Resetar Senha
+            </button>
+          )}
+          <div className="border-t border-light-border dark:border-dark-border my-1"></div>
           <button 
             onClick={()=>{ setOpen(false); onDelete(); }} 
             className="w-full flex items-center gap-2 px-3 py-2 hover:bg-light-border/50 dark:hover:bg-dark-border/50 text-sm text-red-600 dark:text-red-400 transition-colors"

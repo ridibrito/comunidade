@@ -11,6 +11,7 @@ export async function getServerUser() {
         get(name: string) {
           return cookieStore.get(name)?.value;
         },
+        // Sem set/remove: Next.js cookies() pode ser somente leitura em algumas rotas
       },
     }
   );

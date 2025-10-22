@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, BookOpen, Library, UsersRound, PlayCircle, Mountain, HelpCircle, ShieldCheck, Settings, BarChart3 } from "lucide-react";
+import { CalendarDays, BookOpen, Library, UsersRound, PlayCircle, Mountain, HelpCircle, ShieldCheck, Settings, BarChart3, ImageIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -59,6 +59,7 @@ export function Sidebar() {
                 {item("/admin", "Dashboard", pathname === "/admin", BarChart3)}
                 {item("/admin/users", "Usuários", pathname.startsWith("/admin/users"), UsersRound)}
                 {item("/admin/mountains", "Montanhas", pathname.startsWith("/admin/mountains"), Mountain)}
+                {item("/admin/heroes", "Heroes", pathname.startsWith("/admin/heroes"), ImageIcon)}
                 {item("/admin/settings", "Configurações", pathname.startsWith("/admin/settings"), Settings)}
               </>
             )}

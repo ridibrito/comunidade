@@ -7,6 +7,7 @@ import ProgressCard from '@/components/ui/ProgressCard';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Carousel from '@/components/ui/Carousel';
+import { AuthTest } from '@/components/AuthTest';
 import { 
   Star, 
   BookOpen, 
@@ -358,6 +359,14 @@ export default function TestElementsPage() {
   return (
     <div className="min-h-screen bg-light-bg dark:bg-dark-bg">
       <div className="container mx-auto px-6 py-8">
+        
+        {/* Auth Test */}
+        <section className="mb-8">
+          <h2 className="text-2xl font-bold text-light-text dark:text-dark-text mb-4">
+            🔐 Teste de Autenticação
+          </h2>
+          <AuthTest />
+        </section>
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-light-text dark:text-dark-text mb-2">
             Playground de Elementos

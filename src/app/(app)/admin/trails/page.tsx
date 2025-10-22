@@ -1,142 +1,458 @@
 "use client";
 
-import { useState } from "react";
-import { Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { getBrowserSupabaseClient } from "@/lib/supabase";
+import { useToast } from "@/components/ui/ToastProvider";
+import Container from "@/components/ui/Container";
+import Section from "@/components/ui/Section";
+import PageHeader from "@/components/ui/PageHeader";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import Modal from "@/components/ui/Modal";
+import { Plus, Edit, Trash2, BookOpen, Users, Play } from "lucide-react";
 
-interface LessonForm { title: string; description: string; videoUrl: string; materialsUrl?: string }
-interface ModuleForm { title: string; lessons: LessonForm[] }
-interface TrailForm { title: string; modules: ModuleForm[] }
+interface Trail {
+  id: string;
+  title: string;
+  description: string;
+  slug: string;
+  mountain_id: string;
+  position: number;
+  modules?: Module[];
+}
+
+interface Module {
+  id: string;
+  trail_id: string;
+  title: string;
+  description: string;
+  slug: string;
+  position: number;
+  lessons?: Lesson[];
+}
+
+interface Lesson {
+  id: string;
+  module_id: string;
+  title: string;
+  description: string;
+  slug: string;
+  video_url?: string;
+  position: number;
+}
 
 export default function AdminTrailsPage() {
-  const [trails, setTrails] = useState<TrailForm[]>([]);
-  const [isCreating, setIsCreating] = useState(false);
-  const [form, setForm] = useState<TrailForm>({ title: "", modules: [{ title: "Módulo 1", lessons: [{ title: "Aula 1", description: "", videoUrl: "", materialsUrl: "" }] }] });
+  const supabase = getBrowserSupabaseClient();
+  const { push } = useToast();
+  
+  const [trails, setTrails] = useState<Trail[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editingTrail, setEditingTrail] = useState<Trail | null>(null);
+  const [selectedTrail, setSelectedTrail] = useState<Trail | null>(null);
 
-  function addModule() {
-    setForm((f) => ({ ...f, modules: [...f.modules, { title: `Módulo ${f.modules.length + 1}`, lessons: [{ title: "Aula 1", description: "", videoUrl: "", materialsUrl: "" }] }] }));
+  // Form states
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    slug: ""
+  });
+
+  useEffect(() => {
+    loadTrails();
+  }, []);
+
+  async function loadTrails() {
+    setLoading(true);
+    
+    try {
+      // Buscar trilhas do Supabase
+      const { data: trailsData, error: trailsError } = await supabase
+        .from('trails')
+        .select('*');
+      
+      if (trailsError) {
+        console.error('Erro ao carregar trilhas:', trailsError);
+        push('Erro ao carregar trilhas', 'error');
+        return;
+      }
+      
+      // Para cada trilha, buscar seus módulos
+      const trailsWithModules = await Promise.all(
+        (trailsData || []).map(async (trail) => {
+          const { data: modulesData, error: modulesError } = await supabase
+            .from('modules')
+            .select('*')
+            .eq('trail_id', trail.id);
+          
+          if (modulesError) {
+            console.error('Erro ao carregar módulos:', modulesError);
+            return { ...trail, modules: [] };
+          }
+          
+          // Para cada módulo, buscar suas aulas
+          const modulesWithLessons = await Promise.all(
+            (modulesData || []).map(async (module) => {
+              const { data: lessonsData, error: lessonsError } = await supabase
+                .from('lessons')
+                .select('*')
+                .eq('module_id', module.id);
+              
+              if (lessonsError) {
+                console.error('Erro ao carregar aulas:', lessonsError);
+                return { ...module, lessons: [] };
+              }
+              
+              return {
+                ...module,
+                lessons: lessonsData || []
+              };
+            })
+          );
+          
+          return {
+            ...trail,
+            modules: modulesWithLessons
+          };
+        })
+      );
+      
+      setTrails(trailsWithModules);
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      push('Erro ao carregar dados', 'error');
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function addLesson(modIdx: number) {
-    setForm((f) => {
-      const copy = structuredClone(f);
-      copy.modules[modIdx].lessons.push({ title: `Aula ${copy.modules[modIdx].lessons.length + 1}`, description: "", videoUrl: "", materialsUrl: "" });
-      return copy;
+  function editTrail(trail: Trail) {
+    setEditingTrail(trail);
+    setFormData({
+      title: trail.title,
+      description: trail.description,
+      slug: trail.slug
+    });
+    setShowModal(true);
+  }
+
+  function resetForm() {
+    setFormData({
+      title: "",
+      description: "",
+      slug: ""
     });
   }
 
-  function saveTrail() {
-    if (!form.title.trim()) return;
-    setTrails((t) => [...t, form]);
-    setForm({ title: "", modules: [{ title: "Módulo 1", lessons: [{ title: "Aula 1", description: "", videoUrl: "", materialsUrl: "" }] }] });
-    setIsCreating(false);
+  function openCreateModal() {
+    resetForm();
+    setEditingTrail(null);
+    setShowModal(true);
+  }
+
+  async function saveTrail() {
+    try {
+      if (!formData.title || !formData.slug) {
+        push('Título e slug são obrigatórios', 'error');
+        return;
+      }
+
+      // Buscar montanha existente para vincular a trilha
+      const { data: mountains, error: mountainsError } = await supabase
+        .from('mountains')
+        .select('id')
+        .limit(1);
+      
+      if (mountainsError || !mountains || mountains.length === 0) {
+        push('Erro ao buscar montanha para vincular a trilha', 'error');
+        return;
+      }
+
+      const mountainId = mountains[0].id;
+
+      if (editingTrail) {
+        // Atualizar trilha existente
+        const { error } = await supabase
+          .from('trails')
+          .update({
+            title: formData.title,
+            description: formData.description,
+            slug: formData.slug,
+            mountain_id: mountainId
+          })
+          .eq('id', editingTrail.id);
+
+        if (error) {
+          console.error('Erro ao atualizar trilha:', error);
+          push('Erro ao atualizar trilha', 'error');
+          return;
+        }
+
+        push('Trilha atualizada com sucesso!', 'success');
+      } else {
+        // Criar nova trilha
+        const { error } = await supabase
+          .from('trails')
+          .insert({
+            title: formData.title,
+            description: formData.description,
+            slug: formData.slug,
+            mountain_id: mountainId
+          });
+
+        if (error) {
+          console.error('Erro ao criar trilha:', error);
+          push('Erro ao criar trilha', 'error');
+          return;
+        }
+
+        push('Trilha criada com sucesso!', 'success');
+      }
+
+      // Recarregar dados
+      await loadTrails();
+      setShowModal(false);
+      resetForm();
+    } catch (error) {
+      console.error('Erro ao salvar trilha:', error);
+      push('Erro ao salvar trilha', 'error');
+    }
+  }
+
+  async function deleteTrail(trailId: string) {
+    try {
+      const { error } = await supabase
+        .from('trails')
+        .delete()
+        .eq('id', trailId);
+
+      if (error) {
+        console.error('Erro ao deletar trilha:', error);
+        push('Erro ao deletar trilha', 'error');
+        return;
+      }
+
+      push('Trilha deletada com sucesso!', 'success');
+      await loadTrails();
+    } catch (error) {
+      console.error('Erro ao deletar trilha:', error);
+      push('Erro ao deletar trilha', 'error');
+    }
   }
 
   return (
-    <main className="p-0">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Trilhas</h1>
-          <p className="text-[var(--foreground)]/70 mt-1">Crie trilhas, módulos e aulas em um fluxo único.</p>
-        </div>
-        <button onClick={() => setIsCreating(true)} className="text-xs px-3 py-1 rounded-lg border border-[var(--border)] hover:bg-[var(--hover)] inline-flex items-center gap-1">
-          <Plus size={14}/> Criar trilha
-        </button>
-      </div>
+    <Container fullWidth>
+      <Section>
+        <PageHeader 
+          title="Gerenciar Trilhas" 
+          subtitle="Configure trilhas, módulos e aulas do sistema educacional" 
+        />
 
-      {isCreating && (
-        <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
-          <div>
-            <label className="text-sm">Nome da trilha</label>
-            <input value={form.title} onChange={(e)=>setForm({...form, title: e.target.value})} className="mt-1 w-full h-10 rounded-xl bg-transparent border px-3" placeholder="Ex.: Introdução" />
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-semibold text-light-text dark:text-dark-text">
+                Trilhas Disponíveis
+              </h2>
+              <p className="text-sm text-light-muted dark:text-dark-muted">
+                Gerencie o conteúdo educacional da plataforma
+              </p>
+            </div>
+            <Button onClick={openCreateModal} className="bg-brand-accent text-white hover:bg-brand-accent/90">
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Trilha
+            </Button>
           </div>
-          <div className="mt-4 space-y-4">
-            {form.modules.map((m, mi)=> (
-              <div key={mi} className="rounded-xl border border-[var(--border)] p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-sm">Nome do módulo</label>
-                    <input value={m.title} onChange={(e)=>{
-                      const copy = structuredClone(form); copy.modules[mi].title = e.target.value; setForm(copy);
-                    }} className="mt-1 w-full h-10 rounded-xl bg-transparent border px-3" placeholder="Módulo A" />
-                  </div>
-                  <button onClick={()=>addLesson(mi)} className="text-xs px-3 py-1 rounded-lg border border-[var(--border)] hover:bg-[var(--hover)]">Adicionar aula</button>
-                </div>
-                <div className="mt-3 space-y-3">
-                  {m.lessons.map((l, li)=> (
-                    <div key={li} className="grid sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm">Nome da aula</label>
-                        <input value={l.title} onChange={(e)=>{
-                          const copy = structuredClone(form); copy.modules[mi].lessons[li].title = e.target.value; setForm(copy);
-                        }} className="mt-1 w-full h-10 rounded-xl bg-transparent border px-3" placeholder="Aula 1" />
-                      </div>
-                      <div>
-                        <label className="text-sm">Link do vídeo (YouTube/Vimeo)</label>
-                        <input value={l.videoUrl} onChange={(e)=>{
-                          const copy = structuredClone(form); copy.modules[mi].lessons[li].videoUrl = e.target.value; setForm(copy);
-                        }} className="mt-1 w-full h-10 rounded-xl bg-transparent border px-3" placeholder="https://..." />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className="text-sm">Descrição</label>
-                        <textarea value={l.description} onChange={(e)=>{
-                          const copy = structuredClone(form); copy.modules[mi].lessons[li].description = e.target.value; setForm(copy);
-                        }} className="mt-1 w-full h-24 rounded-xl bg-transparent border px-3 py-2 resize-none" placeholder="Sobre a aula" />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className="text-sm">Materiais complementares (URL)</label>
-                        <input value={l.materialsUrl || ""} onChange={(e)=>{
-                          const copy = structuredClone(form); copy.modules[mi].lessons[li].materialsUrl = e.target.value; setForm(copy);
-                        }} className="mt-1 w-full h-10 rounded-xl bg-transparent border px-3" placeholder="https://...pdf" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
+
+          <div className="grid gap-6">
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="w-6 h-6 border-2 border-brand-accent border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                <p className="text-light-muted dark:text-dark-muted">Carregando trilhas...</p>
               </div>
-            ))}
-          </div>
-          <div className="mt-3 flex items-center gap-2">
-            <button onClick={addModule} className="text-xs px-3 py-1 rounded-lg border border-[var(--border)] hover:bg-[var(--hover)] inline-flex items-center gap-1"><Plus size={14}/> Adicionar módulo</button>
-            <button onClick={saveTrail} className="text-xs px-3 py-1 rounded-lg border border-[var(--border)] hover:bg-[var(--hover)]">Salvar trilha</button>
-            <button onClick={()=>setIsCreating(false)} className="text-xs px-3 py-1 rounded-lg border border-[var(--border)] hover:bg-[var(--hover)]">Cancelar</button>
+            ) : trails.length === 0 ? (
+              <Card className="text-center py-12">
+                <BookOpen className="w-12 h-12 mx-auto mb-4 text-light-muted dark:text-dark-muted opacity-50" />
+                <h3 className="text-lg font-medium text-light-text dark:text-dark-text mb-2">
+                  Nenhuma trilha configurada
+                </h3>
+                <p className="text-light-muted dark:text-dark-muted mb-4">
+                  Comece criando uma nova trilha educacional
+                </p>
+                <Button onClick={openCreateModal} className="bg-brand-accent text-white hover:bg-brand-accent/90">
+                  Criar Primeira Trilha
+                </Button>
+              </Card>
+            ) : (
+              trails.map((trail) => (
+                <Card key={trail.id} className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <BookOpen className="w-5 h-5 text-brand-accent" />
+                        <h3 className="text-xl font-semibold text-light-text dark:text-dark-text">
+                          {trail.title}
+                        </h3>
+                        <span className="px-2 py-1 text-xs font-medium bg-brand-accent/10 text-brand-accent rounded-full">
+                          {trail.type}
+                        </span>
+                      </div>
+                      
+                      <p className="text-light-muted dark:text-dark-muted mb-4">
+                        {trail.description}
+                      </p>
+                      
+                      <div className="flex items-center gap-6 text-sm text-light-muted dark:text-dark-muted">
+                        <div className="flex items-center gap-1">
+                          <Users className="w-4 h-4" />
+                          <span>{trail.modules?.length || 0} módulos</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Play className="w-4 h-4" />
+                          <span>{trail.modules?.reduce((acc, m) => acc + (m.lessons?.length || 0), 0) || 0} aulas</span>
+                        </div>
+                      </div>
+                      
+                      {trail.modules && trail.modules.length > 0 && (
+                        <div className="mt-4">
+                          <h4 className="text-sm font-medium text-light-text dark:text-dark-text mb-2">
+                            Módulos:
+                          </h4>
+                          <div className="space-y-2">
+                            {trail.modules.map((module) => (
+                              <div key={module.id} className="flex items-center justify-between p-3 bg-light-border/30 dark:bg-dark-border/30 rounded-lg">
+                                <div>
+                                  <div className="font-medium text-light-text dark:text-dark-text">
+                                    {module.title}
+                                  </div>
+                                  <div className="text-xs text-light-muted dark:text-dark-muted">
+                                    {module.instructor} • {module.duration} • {module.difficulty}
+                                  </div>
+                                </div>
+                                <div className="text-xs text-light-muted dark:text-dark-muted">
+                                  {module.lessons?.length || 0} aulas
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2 ml-4">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setSelectedTrail(trail)}
+                      >
+                        <BookOpen className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => editTrail(trail)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => deleteTrail(trail.id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            )}
           </div>
         </div>
-      )}
 
-      {/* Tabela de trilhas */}
-      <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
-        <h2 className="text-lg font-semibold">Trilhas criadas</h2>
-        <div className="mt-3 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-[var(--foreground)]/60">
-              <tr>
-                <th className="text-left py-2">Trilha</th>
-                <th className="text-left py-2">Módulos</th>
-                <th className="text-left py-2">Aulas</th>
-              </tr>
-            </thead>
-            <tbody>
-              {trails.map((t, i)=> {
-                const modulesCount = t.modules.length;
-                const lessonsCount = t.modules.reduce((acc,m)=> acc + m.lessons.length, 0);
-                return (
-                  <tr key={i} className="border-t border-[var(--border)]">
-                    <td className="py-2 font-medium">{t.title}</td>
-                    <td className="py-2">{modulesCount}</td>
-                    <td className="py-2">{lessonsCount}</td>
-                  </tr>
-                );
-              })}
-              {trails.length===0 && (
-                <tr className="border-t border-[var(--border)]">
-                  <td className="py-3 text-[var(--foreground)]/60" colSpan={3}>Nenhuma trilha cadastrada ainda.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </main>
+        {/* Modal para criar/editar trilha */}
+        <Modal open={showModal} onClose={() => setShowModal(false)}>
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">
+                {editingTrail ? 'Editar Trilha' : 'Nova Trilha'}
+              </h3>
+              <p className="text-sm text-light-muted dark:text-dark-muted">
+                Configure os dados da trilha educacional
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="title">Título da Trilha</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="ex: Montanha do Amanhã"
+                  className="bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="description">Descrição</Label>
+                <textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Descreva o objetivo e conteúdo da trilha..."
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-lg bg-light-surface dark:bg-dark-surface border border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-2 focus:ring-brand-accent/20 resize-none"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="slug">Slug</Label>
+                <Input
+                  id="slug"
+                  value={formData.slug}
+                  onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                  placeholder="ex: montanha-do-amanha"
+                  className="bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="type">Tipo</Label>
+                <select
+                  id="type"
+                  value={formData.type}
+                  onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg bg-light-surface dark:bg-dark-surface border border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-2 focus:ring-brand-accent/20"
+                >
+                  <option value="montanha">Montanha</option>
+                  <option value="acervo">Acervo Digital</option>
+                  <option value="rodas">Rodas de Conversa</option>
+                  <option value="plantao">Plantão de Dúvidas</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button 
+                onClick={saveTrail}
+                className="bg-brand-accent text-white hover:bg-brand-accent/90 flex-1"
+              >
+                Salvar
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => setShowModal(false)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      </Section>
+    </Container>
   );
 }
-
-

@@ -3,6 +3,13 @@ import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
+  const res = NextResponse.next();
+  
+  // Permitir acesso à página de change-password se há token na URL
+  if (url.pathname === "/auth/change-password" && url.searchParams.has("token")) {
+    return res;
+  }
+  
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -11,19 +18,31 @@ export async function middleware(req: NextRequest) {
         get(name: string) {
           return req.cookies.get(name)?.value;
         },
+        set(name: string, value: string, options: any) {
+          res.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: any) {
+          res.cookies.set({ name, value: "", ...options });
+        },
       },
     }
   );
 
-  // Routes to protect
-  const protectedPrefixes = ["/dashboard", "/catalog", "/community", "/events", "/admin"];
-  const isProtected = protectedPrefixes.some((p) => url.pathname.startsWith(p));
-  if (!isProtected) return NextResponse.next();
-
   const { data } = await supabase.auth.getUser();
   if (!data.user) {
     url.pathname = "/auth/login";
-    return NextResponse.redirect(url);
+    const redirectRes = NextResponse.redirect(url);
+    // Propaga cookies potencialmente atualizados (ex.: refresh de sessão)
+    res.cookies.getAll().forEach((c) => redirectRes.cookies.set(c));
+    return redirectRes;
+  }
+
+  // Verificar se usuário tem senha temporária e redirecionar para troca
+  if (data.user.user_metadata?.temp_password && !url.pathname.startsWith("/auth/change-password")) {
+    url.pathname = "/auth/change-password";
+    const redirectRes = NextResponse.redirect(url);
+    res.cookies.getAll().forEach((c) => redirectRes.cookies.set(c));
+    return redirectRes;
   }
   // Restringe /admin a administradores
   if (url.pathname.startsWith("/admin")) {
@@ -36,18 +55,30 @@ export async function middleware(req: NextRequest) {
       const isAdmin = Boolean(profile?.is_admin) || (profile?.role === "admin");
       if (!isAdmin) {
         url.pathname = "/dashboard";
-        return NextResponse.redirect(url);
+        const redirectRes = NextResponse.redirect(url);
+        res.cookies.getAll().forEach((c) => redirectRes.cookies.set(c));
+        return redirectRes;
       }
     } catch {
       url.pathname = "/dashboard";
-      return NextResponse.redirect(url);
+      const redirectRes = NextResponse.redirect(url);
+      res.cookies.getAll().forEach((c) => redirectRes.cookies.set(c));
+      return redirectRes;
     }
   }
-  return NextResponse.next();
+  return res;
 }
 
 export const config = {
-  matcher: ["/((?!_next|.*\..*).*)"],
+  // Protege apenas os caminhos definidos abaixo; outras rotas (auth, marketing, estáticos) não passam aqui
+  matcher: [
+    "/dashboard/:path*",
+    "/catalog/:path*",
+    "/community/:path*",
+    "/events/:path*",
+    "/admin/:path*",
+    "/auth/change-password",
+  ],
 };
 
 

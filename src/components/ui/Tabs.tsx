@@ -1,27 +1,66 @@
-import { useState } from "react";
+"use client"
 
-export function Tabs({ tabs }: { tabs: { key: string; label: string; content: React.ReactNode }[] }) {
-  const [active, setActive] = useState(tabs[0]?.key);
+import * as React from "react"
+import * as TabsPrimitive from "@radix-ui/react-tabs"
+
+import { cn } from "@/lib/utils"
+
+function Tabs({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Root>) {
   return (
-    <div>
-      <div className="flex gap-4 border-b border-gray-200 mb-4">
-        {tabs.map(t => (
-          <button
-            key={t.key}
-            onClick={() => setActive(t.key)}
-            className={`pb-3 -mb-px text-sm ${active===t.key ? "border-b-2 border-brand text-brand" : "text-gray-500 hover:text-gray-700"}`}
-            aria-selected={active===t.key}
-            role="tab"
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-      <div role="tabpanel">
-        {tabs.find(t => t.key===active)?.content}
-      </div>
-    </div>
-  );
+    <TabsPrimitive.Root
+      data-slot="tabs"
+      className={cn("flex flex-col gap-2", className)}
+      {...props}
+    />
+  )
 }
 
+function TabsList({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.List>) {
+  return (
+    <TabsPrimitive.List
+      data-slot="tabs-list"
+      className={cn(
+        "bg-light-border/50 dark:bg-dark-border/50 text-light-muted dark:text-dark-muted inline-flex h-9 w-fit items-center justify-center rounded-lg p-[3px]",
+        className
+      )}
+      {...props}
+    />
+  )
+}
 
+function TabsTrigger({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+  return (
+    <TabsPrimitive.Trigger
+      data-slot="tabs-trigger"
+      className={cn(
+        "data-[state=active]:bg-light-surface dark:data-[state=active]:bg-dark-surface data-[state=active]:text-light-text dark:data-[state=active]:text-dark-text focus-visible:border-light-border dark:focus-visible:border-dark-border focus-visible:ring-light-border/50 dark:focus-visible:ring-dark-border/50 focus-visible:outline-light-border dark:focus-visible:outline-dark-border text-light-text dark:text-light-muted inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function TabsContent({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Content>) {
+  return (
+    <TabsPrimitive.Content
+      data-slot="tabs-content"
+      className={cn("flex-1 outline-none", className)}
+      {...props}
+    />
+  )
+}
+
+export { Tabs, TabsList, TabsTrigger, TabsContent }

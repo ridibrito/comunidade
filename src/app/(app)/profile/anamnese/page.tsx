@@ -1,29 +1,58 @@
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
+import Container from "@/components/ui/Container";
+import Section from "@/components/ui/Section";
+import { UserCircle, UsersRound, ClipboardList, CalendarDays, BookOpen } from "lucide-react";
 
 export default function AnamnesePage() {
   return (
-    <main className="p-0 h-[calc(100vh-64px)] overflow-hidden -m-4">
+    <Container fullWidth>
       <div className="flex h-full">
-        <aside className="hidden md:block w-[280px] xl:w-[340px] border-r-2 border-[var(--border)] bg-[var(--surface)] p-3">
-          <div className="mb-2 px-2 text-sm font-medium opacity-70">Perfil</div>
-          <ul className="text-sm space-y-1">
-            <li><a href="/profile?s=responsavel" className="block px-3 py-2 rounded-xl hover:bg-[var(--hover)]">Responsável</a></li>
-            <li><a href="/profile?s=familia" className="block px-3 py-2 rounded-xl hover:bg-[var(--hover)]">Família</a></li>
-            <li className="pt-2 mt-2 border-t border-[var(--border)]" />
-            <li><a aria-current="page" className="block px-3 py-2 rounded-xl bg-[var(--hover)]" href="#">Anamnese</a></li>
-            <li><a href="/profile/rotina" className="block px-3 py-2 rounded-xl hover:bg-[var(--hover)]">Rotina</a></li>
-            <li><a href="/profile/diario" className="block px-3 py-2 rounded-xl hover:bg-[var(--hover)]">Diário</a></li>
+        <aside className="hidden md:block shrink-0 h-screen bg-light-surface dark:bg-dark-surface transition-all duration-300 shadow-sm w-[240px] xl:w-[280px] p-4">
+          <div className="mb-2" />
+          <ul className="text-sm space-y-2">
+            <li>
+              <a href="/profile" className="flex items-center gap-3 rounded-xl transition-colors px-4 py-3 cursor-pointer w-full text-left hover-brand-subtle">
+                <UserCircle size={18} className="text-light-muted dark:text-dark-muted" />
+                <span className="text-light-text dark:text-dark-text">Responsável</span>
+              </a>
+            </li>
+            <li>
+              <a href="/profile/familia" className="flex items-center gap-3 rounded-xl transition-colors px-4 py-3 cursor-pointer w-full text-left hover-brand-subtle">
+                <UsersRound size={18} className="text-light-muted dark:text-dark-muted" />
+                <span className="text-light-text dark:text-dark-text">Família</span>
+              </a>
+            </li>
+            <li className="my-4"><div className="h-px bg-light-border dark:bg-dark-border" /></li>
+            <li>
+              <a aria-current="page" href="/profile/anamnese" className="flex items-center gap-3 rounded-xl transition-colors px-4 py-3 cursor-pointer w-full text-left active-brand-subtle text-brand-accent">
+                <ClipboardList size={18} className="text-purple-600 dark:text-purple-400" />
+                <span className="text-purple-600 dark:text-purple-400">Anamnese</span>
+              </a>
+            </li>
+            <li>
+              <a href="/profile/rotina" className="flex items-center gap-3 rounded-xl transition-colors px-4 py-3 cursor-pointer w-full text-left hover-brand-subtle">
+                <CalendarDays size={18} className="text-light-muted dark:text-dark-muted" />
+                <span className="text-light-text dark:text-dark-text">Rotina</span>
+              </a>
+            </li>
+            <li>
+              <a href="/profile/diario" className="flex items-center gap-3 rounded-xl transition-colors px-4 py-3 cursor-pointer w-full text-left hover-brand-subtle">
+                <BookOpen size={18} className="text-light-muted dark:text-dark-muted" />
+                <span className="text-light-text dark:text-dark-text">Diário</span>
+              </a>
+            </li>
           </ul>
         </aside>
-        <section className="flex-1 p-8 overflow-y-auto">
+
+        <Section>
           <PageHeader title="Anamnese" subtitle="Formulário por filho" />
-          <Card>
-            <div className="text-sm text-[var(--foreground)]/70">Em breve: formulário completo de Anamnese por filho.</div>
+          <Card className="shadow-sm border border-light-border dark:border-dark-border rounded-lg">
+            <div className="text-sm text-light-muted dark:text-dark-muted">Em breve: formulário completo de Anamnese por filho.</div>
           </Card>
-        </section>
+        </Section>
       </div>
-    </main>
+    </Container>
   );
 }
 

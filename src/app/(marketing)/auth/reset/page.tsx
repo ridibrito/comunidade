@@ -1,196 +1,234 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getBrowserSupabaseClient } from "@/lib/supabase";
-import Image from "next/image";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { createClient } from "@/lib/supabase";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isInvite, setIsInvite] = useState(false);
-  const [inviteValid, setInviteValid] = useState<boolean | null>(null);
-  const [inviteUser, setInviteUser] = useState<any>(null);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const supabase = createClient();
 
   useEffect(() => {
-    // Verificar se é um convite ou reset de senha
-    const urlParams = new URLSearchParams(window.location.search);
-    const type = urlParams.get('type');
-    const token = urlParams.get('token');
-    const email = urlParams.get('email');
-    const hash = window.location.hash;
-    
-    // Se há token e email na URL, é um convite
-    if (token && email) {
-      setIsInvite(true);
-      validateInviteToken(token, email);
-    }
-    // Se há hash na URL, provavelmente é um convite do Supabase
-    else if (hash.includes('access_token') || hash.includes('type=signup')) {
-      setIsInvite(true);
-      setInviteValid(true); // Assumir válido para fluxo do Supabase
-    } 
-    // Se há type=invite na URL
-    else if (type === 'invite') {
-      setIsInvite(true);
-      setInviteValid(true); // Assumir válido
-    }
-  }, []);
-
-  async function validateInviteToken(token: string, email: string) {
-    try {
-      const response = await fetch(`/api/auth/validate-invite?token=${token}&email=${encodeURIComponent(email)}`);
-      const result = await response.json();
-      
-      if (result.valid) {
-        setInviteValid(true);
-        setInviteUser(result.user);
+    // Verificar se o usuário está autenticado
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setIsAuthenticated(true);
+        setEmail(user.email || "");
       } else {
-        setInviteValid(false);
-        setMessage(result.error || "Convite inválido ou expirado");
+        setError("Você precisa estar logado para redefinir sua senha. Verifique o link do email.");
       }
-    } catch (error) {
-      setInviteValid(false);
-      setMessage("Erro ao validar convite");
-    }
-  }
+      setCheckingAuth(false);
+    };
+    
+    checkAuth();
+  }, [supabase.auth]);
 
-  async function onSubmit(e: React.FormEvent) {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) return setMessage("Senha deve ter no mínimo 8 caracteres.");
-    if (password !== confirm) return setMessage("As senhas não conferem.");
-    
+    setError("");
     setLoading(true);
-    setMessage(null);
-    
-    const supabase = getBrowserSupabaseClient();
-    if (!supabase) return setMessage("Supabase não configurado.");
-    
+
+    if (password !== confirmPassword) {
+      setError("As senhas não coincidem");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("A senha deve ter pelo menos 6 caracteres");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      // Atualizar senha usando o método correto do Supabase
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      });
+
       if (error) {
-        setMessage(error.message);
-      } else {
-        setMessage("Senha definida com sucesso! Redirecionando...");
-        
-        // Aguardar um pouco e redirecionar
-        setTimeout(() => {
-          if (isInvite) {
-            router.push("/dashboard");
-          } else {
-            router.push("/onboarding/sucesso");
-          }
-        }, 1500);
+        setError(error.message);
+        setLoading(false);
+        return;
       }
+
+      // Atualizar status do convite no perfil
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({
+            invite_status: 'accepted',
+            last_login_at: new Date().toISOString(),
+            login_count: 1
+          })
+          .eq('id', user.id);
+      }
+
+      setSuccess(true);
+      
+      // Redirecionar para o dashboard após 2 segundos
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 2000);
+
     } catch (error) {
-      setMessage("Erro inesperado. Tente novamente.");
+      setError("Erro ao redefinir senha. Tente novamente.");
+      console.error("Erro:", error);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  // Mostrar loading enquanto valida o convite
-  if (isInvite && inviteValid === null) {
+  if (checkingAuth) {
     return (
-      <main className="min-h-[60vh] flex items-center justify-center p-6 bg-light-bg dark:bg-dark-bg">
-        <div className="w-full max-w-md rounded-2xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface p-6 shadow-lg text-center">
-          <div className="mb-6 flex justify-center">
-            <Image src="/logo_full.png" alt="Comunidade Coruss" width={200} height={40} />
-          </div>
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-5 h-5 rounded-full border-2 border-light-border dark:border-dark-border border-t-brand-accent animate-spin" />
-            <span className="text-light-muted dark:text-dark-muted">Validando convite...</span>
-          </div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Verificando autenticação...</p>
         </div>
-      </main>
+      </div>
     );
   }
 
-  // Mostrar erro se convite inválido
-  if (isInvite && inviteValid === false) {
+  if (!isAuthenticated) {
     return (
-      <main className="min-h-[60vh] flex items-center justify-center p-6 bg-light-bg dark:bg-dark-bg">
-        <div className="w-full max-w-md rounded-2xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface p-6 shadow-lg text-center">
-          <div className="mb-6 flex justify-center">
-            <Image src="/logo_full.png" alt="Comunidade Coruss" width={200} height={40} />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md text-center">
+          <div className="mb-4">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900">
+              <svg className="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
           </div>
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-            <span className="text-2xl">❌</span>
-          </div>
-          <h1 className="text-2xl font-semibold text-light-text dark:text-dark-text mb-2">Convite Inválido</h1>
-          <p className="text-light-muted dark:text-dark-muted mb-6">
-            {message || "Este convite não é válido ou expirou. Entre em contato com o administrador."}
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            Acesso Negado
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            {error || "Você precisa estar logado para redefinir sua senha. Verifique o link do email."}
           </p>
-          <button 
-            onClick={() => router.push('/auth/login')}
-            className="h-11 w-full rounded-lg bg-brand-accent text-white hover:bg-brand-accent/90 transition-colors font-medium"
+          <a
+            href="/auth/login"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             Ir para Login
-          </button>
+          </a>
         </div>
-      </main>
+      </div>
+    );
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md text-center">
+          <div className="mb-4">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900">
+              <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            Senha Redefinida com Sucesso!
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            Sua senha foi redefinida com sucesso. Você será redirecionado para o dashboard em instantes.
+          </p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-[60vh] flex items-center justify-center p-6 bg-light-bg dark:bg-dark-bg">
-      <div className="w-full max-w-md rounded-2xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface p-6 shadow-lg">
-        <div className="mb-6 flex justify-center">
-          <Image src="/logo_full.png" alt="Comunidade Coruss" width={200} height={40} />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+      <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md w-full">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Definir Nova Senha
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300">
+            {email ? `Para ${email}` : "Digite sua nova senha"}
+          </p>
         </div>
-        <h1 className="text-2xl font-semibold text-light-text dark:text-dark-text mb-2">
-          {isInvite ? "Definir sua senha" : "Redefinir senha"}
-        </h1>
-        <p className="text-light-muted dark:text-dark-muted mb-6">
-          {isInvite 
-            ? `Olá ${inviteUser?.full_name || ''}! Você foi convidado para participar da nossa comunidade. Defina uma senha segura para acessar sua conta.`
-            : "Defina uma nova senha segura para sua conta."
-          }
-        </p>
-        <form onSubmit={onSubmit} className="space-y-4">
+
+        <form onSubmit={handleResetPassword} className="space-y-6">
           <div>
-            <label className="text-sm font-medium text-light-text dark:text-dark-text">Nova senha</label>
-            <input 
-              type="password" 
-              value={password} 
-              onChange={(e)=>setPassword(e.target.value)} 
-              className="mt-1 w-full h-11 rounded-lg bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border px-3 text-light-text dark:text-dark-text focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20" 
-              placeholder="Mínimo 8 caracteres"
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Nova Senha
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+              placeholder="Digite sua nova senha"
+              required
+              minLength={6}
             />
           </div>
+
           <div>
-            <label className="text-sm font-medium text-light-text dark:text-dark-text">Confirmar senha</label>
-            <input 
-              type="password" 
-              value={confirm} 
-              onChange={(e)=>setConfirm(e.target.value)} 
-              className="mt-1 w-full h-11 rounded-lg bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border px-3 text-light-text dark:text-dark-text focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20" 
-              placeholder="Digite a senha novamente"
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Confirmar Senha
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+              placeholder="Confirme sua nova senha"
+              required
+              minLength={6}
             />
           </div>
-          <button 
+
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-md p-3">
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            </div>
+          )}
+
+          <button
             type="submit"
             disabled={loading}
-            className="h-11 w-full rounded-lg bg-brand-accent text-white hover:bg-brand-accent/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Processando..." : isInvite ? "Criar conta e entrar" : "Definir senha"}
+            {loading ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Redefinindo...
+              </div>
+            ) : (
+              "Redefinir Senha"
+            )}
           </button>
         </form>
-        {message && (
-          <div className={`mt-4 p-3 rounded-lg text-sm ${
-            message.includes('sucesso') || message.includes('conta') 
-              ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' 
-              : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
-          }`}>
-            {message}
-          </div>
-        )}
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Lembrou da senha?{" "}
+            <a href="/auth/login" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
+              Fazer login
+            </a>
+          </p>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
-
-
