@@ -14,8 +14,10 @@ import Modal from "@/components/ui/Modal";
 import { BookOpen, Calendar, TrendingUp, CheckCircle, Clock } from "lucide-react";
 
 import { useEffect, useState } from "react";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export default function DashboardPage() {
+  const { push } = useToast();
   const [displayName, setDisplayName] = useState<string>(mockUser.name);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [partnerName, setPartnerName] = useState<string | null>(null);
@@ -24,6 +26,22 @@ export default function DashboardPage() {
   const [children, setChildren] = useState<Kid[]>([]);
   const [selectedChild, setSelectedChild] = useState<Kid | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // Verificar se há erro de acesso negado
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('error') === 'access_denied') {
+      push({
+        title: "Acesso Negado",
+        message: "Você não tem permissão para acessar a área administrativa. Apenas administradores podem acessar essa área.",
+        variant: "error"
+      });
+      // Limpar o parâmetro da URL
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('error');
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+  }, [push]);
+
   useEffect(() => {
     const supabase = getBrowserSupabaseClient();
     if (!supabase) return;

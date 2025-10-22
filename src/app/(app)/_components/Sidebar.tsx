@@ -6,14 +6,52 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { getBrowserSupabaseClient } from "@/lib/supabase";
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
   // Determine current section for dynamic internal menu
   const inCatalog = pathname.startsWith("/catalog");
   const inEvents = pathname.startsWith("/events");
   const inAdmin = pathname.startsWith("/admin");
   const show = (inCatalog || inEvents || inAdmin);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const supabase = getBrowserSupabaseClient();
+      if (!supabase) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setIsAdmin(false);
+          setLoading(false);
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_admin, role")
+          .eq("id", user.id)
+          .single();
+
+        const userIsAdmin = Boolean(profile?.is_admin) || (profile?.role === "admin");
+        setIsAdmin(userIsAdmin);
+      } catch (error) {
+        console.error("Erro ao verificar status de admin:", error);
+        setIsAdmin(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, []);
 
   const item = (href: string, label: string, active: boolean, Icon: React.ComponentType<{size?: number; className?: string}>) => (
     <li>
@@ -54,7 +92,7 @@ export function Sidebar() {
                 {item("/events/calendar", "Calendário", pathname.startsWith("/events/calendar"), CalendarDays)}
               </>
             )}
-            {inAdmin && (
+            {inAdmin && !loading && isAdmin && (
               <>
                 {item("/admin", "Dashboard", pathname === "/admin", BarChart3)}
                 {item("/admin/users", "Usuários", pathname.startsWith("/admin/users"), UsersRound)}

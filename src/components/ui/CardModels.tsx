@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import ModernCard from "@/components/ui/ModernCard";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -74,17 +75,18 @@ export function CardVideoAula({
   };
 
   return (
-    <ModernCard variant="elevated" className={`h-full flex flex-col ${className}`}>
-      <div className="relative">
-        <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-border">
-          <img src={image} alt={title} className="w-full h-full object-cover" />
-          {/* Play button overlay */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-16 h-16 bg-white/90 dark:bg-dark-surface/90 rounded-full flex items-center justify-center shadow-lg">
-              <Play className="w-8 h-8 text-brand-accent ml-1" />
+    <Link href={`/catalog/modulo/${slug}`} className="block h-full" onClick={() => console.log('🔗 Link clicado para:', `/catalog/modulo/${slug}`)}>
+      <ModernCard variant="elevated" className={`h-full flex flex-col ${className} hover:shadow-lg transition-all duration-300 cursor-pointer`}>
+        <div className="relative">
+          <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-border">
+            <img src={image} alt={title} className="w-full h-full object-cover" />
+            {/* Play button overlay */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-16 h-16 bg-white/90 dark:bg-dark-surface/90 rounded-full flex items-center justify-center shadow-lg">
+                <Play className="w-8 h-8 text-brand-accent ml-1" />
+              </div>
             </div>
           </div>
-        </div>
         
         {/* Badges sobrepostos */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -151,6 +153,7 @@ export function CardVideoAula({
         </div>
       </div>
     </ModernCard>
+    </Link>
   );
 }
 

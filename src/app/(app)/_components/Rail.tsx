@@ -5,11 +5,51 @@ import { usePathname } from "next/navigation";
 import { Home, BookOpen, MessagesSquare, ShieldCheck } from "lucide-react";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { getBrowserSupabaseClient } from "@/lib/supabase";
 // using plain img for small svg to avoid Next Image aspect warnings
 
 export function Rail() {
   const pathname = usePathname();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
   const isActive = (path: string) => pathname.startsWith(path);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const supabase = getBrowserSupabaseClient();
+      if (!supabase) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setIsAdmin(false);
+          setLoading(false);
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_admin, role")
+          .eq("id", user.id)
+          .single();
+
+        const userIsAdmin = Boolean(profile?.is_admin) || (profile?.role === "admin");
+        setIsAdmin(userIsAdmin);
+      } catch (error) {
+        console.error("Erro ao verificar status de admin:", error);
+        setIsAdmin(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, []);
+
   const item = (
     href: string,
     label: string,
@@ -61,9 +101,11 @@ export function Rail() {
         </Link>
       </Tooltip>
       <div className="flex-1" />
-      <div className="w-full pt-2 mt-2 flex flex-col items-center">
-        {item("/admin", "Admin", <ShieldCheck size={18} />)}
-      </div>
+      {!loading && isAdmin && (
+        <div className="w-full pt-2 mt-2 flex flex-col items-center">
+          {item("/admin", "Admin", <ShieldCheck size={18} />)}
+        </div>
+      )}
     </nav>
   );
 }

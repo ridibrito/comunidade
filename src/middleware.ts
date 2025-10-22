@@ -81,18 +81,27 @@ export async function middleware(req: NextRequest) {
     try {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("is_admin, role")
+        .select("is_admin, role, full_name")
         .eq("id", data.user.id)
         .maybeSingle();
+      
       const isAdmin = Boolean(profile?.is_admin) || (profile?.role === "admin");
+      
       if (!isAdmin) {
+        // Log da tentativa de acesso não autorizado
+        console.log(`🚫 Acesso negado: ${profile?.full_name || 'Usuário'} (${profile?.role || 'sem role'}) tentou acessar ${url.pathname}`);
+        
+        // Redirecionar para dashboard com parâmetro de erro
         url.pathname = "/dashboard";
+        url.searchParams.set("error", "access_denied");
         const redirectRes = NextResponse.redirect(url);
         res.cookies.getAll().forEach((c) => redirectRes.cookies.set(c));
         return redirectRes;
       }
-    } catch {
+    } catch (error) {
+      console.error("Erro ao verificar permissões de admin:", error);
       url.pathname = "/dashboard";
+      url.searchParams.set("error", "access_denied");
       const redirectRes = NextResponse.redirect(url);
       res.cookies.getAll().forEach((c) => redirectRes.cookies.set(c));
       return redirectRes;
