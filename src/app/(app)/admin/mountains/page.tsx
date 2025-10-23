@@ -631,7 +631,7 @@ export default function AdminMountainsPage() {
                       {/* Trail Header */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 flex-1">
-                          <button
+              <button 
                             onClick={() => toggleTrailExpand(trail.id)}
                             className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
                           >
@@ -640,7 +640,7 @@ export default function AdminMountainsPage() {
                             ) : (
                               <ChevronRight className="w-5 h-5" />
                             )}
-                          </button>
+              </button>
                           <div className="flex-1">
                             <h4 className="font-semibold text-light-text dark:text-dark-text">
                               {trail.title}
@@ -674,8 +674,8 @@ export default function AdminMountainsPage() {
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
-                        </div>
-                      </div>
+            </div>
+          </div>
 
                       {/* Modules List */}
                       {trail.isExpanded && trail.modules && trail.modules.length > 0 && (

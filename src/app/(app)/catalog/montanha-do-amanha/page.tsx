@@ -94,9 +94,9 @@ export default function MontanhaAmanhaPage() {
   const router = useRouter();
 
   async function loadPageData() {
-    try {
-      const supabase = createClient();
-      
+      try {
+        const supabase = createClient();
+        
       console.log('🔄 Carregando dados da página Montanha do Amanhã...');
         
       // Buscar a página específica
@@ -112,28 +112,28 @@ export default function MontanhaAmanhaPage() {
       }
         
       // Buscar trilhas da página
-      const { data: trailsData, error: trailsError } = await supabase
-        .from('trails')
+        const { data: trailsData, error: trailsError } = await supabase
+          .from('trails')
         .select('*')
         .eq('page_id', pageData.id)
         .order('position') as { data: Trail[] | null; error: any };
-
-      if (trailsError) {
-        console.error('Erro ao carregar trilhas:', trailsError);
-        return;
-      }
-
-      // Para cada trilha, buscar seus módulos
-      const trailsWithModules = await Promise.all(
+        
+        if (trailsError) {
+          console.error('Erro ao carregar trilhas:', trailsError);
+          return;
+        }
+        
+        // Para cada trilha, buscar seus módulos
+        const trailsWithModules = await Promise.all(
         (trailsData || []).map(async (trail: Trail) => {
-          const { data: modulesData, error: modulesError } = await supabase
-            .from('modules')
-            .select('*')
+            const { data: modulesData, error: modulesError } = await supabase
+              .from('modules')
+              .select('*')
             .eq('trail_id', trail.id)
             .order('position');
-
-          if (modulesError) {
-            console.error('Erro ao carregar módulos:', modulesError);
+            
+            if (modulesError) {
+              console.error('Erro ao carregar módulos:', modulesError);
             return { 
               ...trail, 
               modules: [],
@@ -147,7 +147,7 @@ export default function MontanhaAmanhaPage() {
             (modulesData || []).map(async (module: Module) => {
               const { data: contentsData, error: contentsError } = await supabase
                 .from('contents')
-                .select('*')
+                  .select('*')
                 .eq('module_id', module.id)
                 .order('position');
 
@@ -173,42 +173,42 @@ export default function MontanhaAmanhaPage() {
               const durationString = durationHours > 0 
                 ? `${durationHours}h ${durationMinutes}min`
                 : `${durationMinutes}min`;
-
-              return { 
-                ...module, 
+                
+                return {
+                  ...module,
                 contents: contentsData || [], 
                 contentsCount: (contentsData || []).length,
                 totalDuration,
                 duration: durationString,
-                image: `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000000)}?q=80&w=1600&auto=format&fit=crop`,
-                progress: Math.floor(Math.random() * 100),
+                  image: `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000000)}?q=80&w=1600&auto=format&fit=crop`,
+                  progress: Math.floor(Math.random() * 100),
                 difficulty: ["Básico", "Intermediário", "Avançado"][Math.floor(Math.random() * 3)] as "Básico" | "Intermediário" | "Avançado",
                 rating: Math.floor(Math.random() * 5) + 1
-              };
-            })
-          );
-
-          return {
-            ...trail,
+                };
+              })
+            );
+            
+            return {
+              ...trail,
             modules: modulesWithContents,
             badge: `${modulesWithContents.length} módulos`,
             badgeVariant: (modulesWithContents.length > 0 ? "success" : "warning") as "info" | "success" | "warning" | "error"
-          };
-        })
-      );
-
-      setTrails(trailsWithModules);
-      console.log('✅ Dados carregados:', trailsWithModules.length, 'trilhas');
+            };
+          })
+        );
+        
+        setTrails(trailsWithModules);
+        console.log('✅ Dados carregados:', trailsWithModules.length, 'trilhas');
 
       // Carregar progresso de todos os módulos
       await loadModulesProgress(trailsWithModules, supabase);
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-    } finally {
-      setLoading(false);
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+      } finally {
+        setLoading(false);
+      }
     }
-  }
-
+    
   // Função para carregar progresso de todos os módulos
   async function loadModulesProgress(trails: TrailWithModules[], supabase: any) {
     try {
@@ -343,26 +343,26 @@ export default function MontanhaAmanhaPage() {
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <div className="flex-1">
                       <h2 className="text-2xl font-bold text-light-text dark:text-dark-text mb-1">
-                        {trail.title}
-                      </h2>
+                    {trail.title}
+                  </h2>
                       <p className="text-light-muted dark:text-dark-muted">
-                        {trail.description}
-                      </p>
+                      {trail.description}
+                    </p>
                     </div>
                     <Badge variant="outline" className="text-white border-light-border dark:border-dark-border">
                       {trail.badge}
                     </Badge>
-                  </div>
                 </div>
-
+              </div>
+              
                 {/* Carrossel de Módulos */}
                 {trail.modules.length > 0 && (
-                  <Carousel
-                    opts={{
-                      align: "start",
-                    }}
-                    className="w-full"
-                  >
+                <Carousel
+                  opts={{
+                    align: "start",
+                  }}
+                  className="w-full"
+                >
                     <CarouselContent className="-ml-4">
                       {trail.modules.map((module: ModuleWithContents, moduleIndex: number) => (
                         <CarouselItem key={module.id} className="pl-4 basis-full sm:basis-[300px] lg:basis-[350px]">
@@ -404,12 +404,12 @@ export default function MontanhaAmanhaPage() {
                               </div>
                             </div>
                           </div>
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                  </Carousel>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                </Carousel>
                 )}
-              </div>
+            </div>
             ))
           )}
         </div>

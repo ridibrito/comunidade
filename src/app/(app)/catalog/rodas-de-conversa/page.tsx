@@ -181,7 +181,7 @@ export default function RodasDeConversaPage() {
             </div>
           </div>
         ) : (
-          <div className="space-y-12">
+        <div className="space-y-12">
             {trails.map((trail) => (
               <div key={trail.id} className="space-y-6">
                 <div className="text-left">
@@ -208,16 +208,16 @@ export default function RodasDeConversaPage() {
                                 <h3 className="text-white font-semibold text-lg leading-tight">
                                   {module.title}
                                 </h3>
-                              </div>
-                            </div>
+            </div>
+          </div>
                             <div className="p-4 flex-1 flex flex-col justify-between">
                               <p className="text-sm text-light-muted dark:text-dark-muted line-clamp-2">
                                 {module.description}
                               </p>
                               <div className="mt-2 text-xs text-light-muted dark:text-dark-muted">
                                 {module.contents.length} {module.contents.length === 1 ? 'sessão' : 'sessões'}
-                              </div>
-                            </div>
+              </div>
+            </div>
                           </Card>
                     </CarouselItem>
                   ))}

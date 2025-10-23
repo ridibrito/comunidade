@@ -784,8 +784,8 @@ export default function WatchClient({ slug }: { slug: string }) {
                             />
                           </div>
                         </div>
-                      )}
-                    </div>
+            )}
+          </div>
                   </div>
                 </button>
               ))}
@@ -800,8 +800,8 @@ export default function WatchClient({ slug }: { slug: string }) {
               )}
             </div>
           </div>
+            </div>
         </div>
-      </div>
         </div>
   );
 }
