@@ -34,7 +34,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Gerar link de reset de senha
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://app.aldeiasingular.com.br';
+    // Em API routes, use variáveis sem NEXT_PUBLIC_ ou force a URL de produção
+    const siteUrl = process.env.SITE_URL || 
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+      'https://app.aldeiasingular.com.br';
+    
+    console.log('🔗 URL de redirecionamento configurada:', siteUrl);
+    console.log('🔧 Variáveis disponíveis:', {
+      SITE_URL: process.env.SITE_URL,
+      VERCEL_URL: process.env.VERCEL_URL,
+      NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL
+    });
+    
     const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink({
       type: 'recovery',
       email: email,
