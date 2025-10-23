@@ -243,13 +243,68 @@ Deno.serve(async (req) => {
 </html>
     `;
 
-    // Enviar email usando Resend (se configurado) ou outro serviço
-    // Por enquanto, vamos apenas retornar o HTML para debug
+    // Enviar email usando Resend
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    
+    if (!resendApiKey) {
+      console.warn('⚠️  RESEND_API_KEY não configurada. Email não será enviado.');
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'RESEND_API_KEY não configurada',
+          emailHTML: emailHTML,
+          credentials: {
+            email: email,
+            name: name,
+            tempPassword: tempPassword
+          }
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Enviar email via Resend API
+    const resendResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'Aldeia Singular <onboarding@resend.dev>',
+        to: [email],
+        subject: 'Bem-vindo à Aldeia Singular!',
+        html: emailHTML,
+      }),
+    });
+
+    const resendData = await resendResponse.json();
+
+    if (!resendResponse.ok) {
+      console.error('❌ Erro ao enviar email via Resend:', resendData);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Erro ao enviar email',
+          error: resendData,
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    console.log('✅ Email enviado com sucesso via Resend:', resendData);
+
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Email preparado com sucesso',
-        emailHTML: emailHTML,
+        message: 'Email enviado com sucesso',
+        emailId: resendData.id,
         credentials: {
           email: email,
           name: name,
