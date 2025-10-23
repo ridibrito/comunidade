@@ -208,7 +208,7 @@ Deno.serve(async (req) => {
             </div>
             
             <div style="text-align: center;">
-                <a href="http://localhost:3000/auth/login" class="login-button">
+                <a href="https://app.aldeiasingular.com.br/auth/login" class="login-button">
                     🚀 Acessar a Aldeia Singular
                 </a>
             </div>
