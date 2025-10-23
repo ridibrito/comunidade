@@ -34,11 +34,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Gerar link de reset de senha
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://app.aldeiasingular.com.br';
     const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink({
       type: 'recovery',
       email: email,
       options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/reset?email=${encodeURIComponent(email)}`
+        redirectTo: `${siteUrl}/auth/reset?email=${encodeURIComponent(email)}`
       }
     });
 

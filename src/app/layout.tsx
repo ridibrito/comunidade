@@ -67,11 +67,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: '/favicon.ico', sizes: 'any' },
       { url: '/Coruja-colorida.png', sizes: '32x32', type: 'image/png' },
       { url: '/Coruja-colorida.png', sizes: '16x16', type: 'image/png' },
     ],
     apple: '/Coruja-colorida.png',
-    shortcut: '/Coruja-colorida.png',
+    shortcut: '/favicon.ico',
   },
   manifest: '/manifest.json',
   robots: {
