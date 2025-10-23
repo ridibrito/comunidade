@@ -11,16 +11,27 @@ import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import Modal from "@/components/ui/Modal";
-import { Plus, Edit, Trash2, BookOpen, Users, Play } from "lucide-react";
+import ConfirmModal from "@/components/ui/ConfirmModal";
+import { Plus, Edit, Trash2, BookOpen, Users, Play, AlertTriangle } from "lucide-react";
+
+interface Page {
+  id: string;
+  title: string;
+  description: string;
+  slug: string;
+  icon: string;
+  color: string;
+}
 
 interface Trail {
   id: string;
   title: string;
   description: string;
   slug: string;
-  mountain_id: string;
+  page_id: string;
   position: number;
   modules?: Module[];
+  pages?: Page;
 }
 
 interface Module {
@@ -30,16 +41,17 @@ interface Module {
   description: string;
   slug: string;
   position: number;
-  lessons?: Lesson[];
+  contents?: Content[];
 }
 
-interface Lesson {
+interface Content {
   id: string;
   module_id: string;
   title: string;
   description: string;
   slug: string;
-  video_url?: string;
+  content_type: string;
+  duration: number;
   position: number;
 }
 
@@ -47,37 +59,61 @@ export default function AdminTrailsPage() {
   const supabase = getBrowserSupabaseClient();
   const { push } = useToast();
   
+  const [pages, setPages] = useState<Page[]>([]);
   const [trails, setTrails] = useState<Trail[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [editingTrail, setEditingTrail] = useState<Trail | null>(null);
   const [selectedTrail, setSelectedTrail] = useState<Trail | null>(null);
+  const [trailToDelete, setTrailToDelete] = useState<Trail | null>(null);
 
   // Form states
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    slug: ""
+    slug: "",
+    page_id: "",
+    position: 0
   });
 
   useEffect(() => {
-    loadTrails();
+    loadData();
   }, []);
 
-  async function loadTrails() {
+  async function loadData() {
     setLoading(true);
     
     try {
-      // Buscar trilhas do Supabase
-      const { data: trailsData, error: trailsError } = await supabase
-        .from('trails')
-        .select('*');
-      
-      if (trailsError) {
-        console.error('Erro ao carregar trilhas:', trailsError);
-        push('Erro ao carregar trilhas', 'error');
-        return;
-      }
+      // Carregar páginas
+      const { data: pagesData, error: pagesError } = await supabase
+        .from('pages')
+        .select('*')
+        .order('position');
+
+      if (pagesError) throw pagesError;
+      setPages(pagesData || []);
+
+      // Carregar trilhas da página "Montanha do Amanhã"
+      const { data: pageData, error: pageError } = await supabase
+        .from('pages')
+        .select('id')
+        .eq('slug', 'montanha-do-amanha')
+        .single();
+
+      if (pageError) throw pageError;
+
+      if (pageData) {
+        const { data: trailsData, error: trailsError } = await supabase
+          .from('trails')
+          .select('*')
+          .eq('page_id', pageData.id);
+        
+        if (trailsError) {
+          console.error('Erro ao carregar trilhas:', trailsError);
+          push('Erro ao carregar trilhas', 'error');
+          return;
+        }
       
       // Para cada trilha, buscar seus módulos
       const trailsWithModules = await Promise.all(
@@ -92,34 +128,35 @@ export default function AdminTrailsPage() {
             return { ...trail, modules: [] };
           }
           
-          // Para cada módulo, buscar suas aulas
-          const modulesWithLessons = await Promise.all(
+          // Para cada módulo, buscar seus conteúdos
+          const modulesWithContents = await Promise.all(
             (modulesData || []).map(async (module) => {
-              const { data: lessonsData, error: lessonsError } = await supabase
-                .from('lessons')
+              const { data: contentsData, error: contentsError } = await supabase
+                .from('contents')
                 .select('*')
                 .eq('module_id', module.id);
               
-              if (lessonsError) {
-                console.error('Erro ao carregar aulas:', lessonsError);
-                return { ...module, lessons: [] };
+              if (contentsError) {
+                console.error('Erro ao carregar conteúdos:', contentsError);
+                return { ...module, contents: [] };
               }
               
               return {
                 ...module,
-                lessons: lessonsData || []
+                contents: contentsData || []
               };
             })
           );
           
           return {
             ...trail,
-            modules: modulesWithLessons
+            modules: modulesWithContents
           };
         })
       );
       
-      setTrails(trailsWithModules);
+        setTrails(trailsWithModules);
+      }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
       push('Erro ao carregar dados', 'error');
@@ -133,7 +170,9 @@ export default function AdminTrailsPage() {
     setFormData({
       title: trail.title,
       description: trail.description,
-      slug: trail.slug
+      slug: trail.slug,
+      page_id: trail.page_id,
+      position: trail.position
     });
     setShowModal(true);
   }
@@ -142,7 +181,9 @@ export default function AdminTrailsPage() {
     setFormData({
       title: "",
       description: "",
-      slug: ""
+      slug: "",
+      page_id: "",
+      position: 0
     });
   }
 
@@ -159,19 +200,6 @@ export default function AdminTrailsPage() {
         return;
       }
 
-      // Buscar montanha existente para vincular a trilha
-      const { data: mountains, error: mountainsError } = await supabase
-        .from('mountains')
-        .select('id')
-        .limit(1);
-      
-      if (mountainsError || !mountains || mountains.length === 0) {
-        push('Erro ao buscar montanha para vincular a trilha', 'error');
-        return;
-      }
-
-      const mountainId = mountains[0].id;
-
       if (editingTrail) {
         // Atualizar trilha existente
         const { error } = await supabase
@@ -180,7 +208,8 @@ export default function AdminTrailsPage() {
             title: formData.title,
             description: formData.description,
             slug: formData.slug,
-            mountain_id: mountainId
+            page_id: formData.page_id,
+            position: formData.position
           })
           .eq('id', editingTrail.id);
 
@@ -199,7 +228,8 @@ export default function AdminTrailsPage() {
             title: formData.title,
             description: formData.description,
             slug: formData.slug,
-            mountain_id: mountainId
+            page_id: formData.page_id,
+            position: formData.position
           });
 
         if (error) {
@@ -212,7 +242,7 @@ export default function AdminTrailsPage() {
       }
 
       // Recarregar dados
-      await loadTrails();
+      await loadData();
       setShowModal(false);
       resetForm();
     } catch (error) {
@@ -221,23 +251,39 @@ export default function AdminTrailsPage() {
     }
   }
 
-  async function deleteTrail(trailId: string) {
+  function openDeleteModal(trail: Trail) {
+    console.log('🔍 Abrindo modal de exclusão para trilha:', trail.title, 'ID:', trail.id);
+    setTrailToDelete(trail);
+    setShowConfirmModal(true);
+  }
+
+  async function confirmDeleteTrail() {
+    if (!trailToDelete) {
+      console.log('❌ Nenhuma trilha selecionada para exclusão');
+      return;
+    }
+
+    console.log('🗑️ Iniciando exclusão da trilha:', trailToDelete.title, 'ID:', trailToDelete.id);
+
     try {
       const { error } = await supabase
         .from('trails')
         .delete()
-        .eq('id', trailId);
+        .eq('id', trailToDelete.id);
 
       if (error) {
-        console.error('Erro ao deletar trilha:', error);
+        console.error('❌ Erro ao deletar trilha:', error);
         push('Erro ao deletar trilha', 'error');
         return;
       }
 
+      console.log('✅ Trilha deletada com sucesso!');
       push('Trilha deletada com sucesso!', 'success');
-      await loadTrails();
+      await loadData();
+      setShowConfirmModal(false);
+      setTrailToDelete(null);
     } catch (error) {
-      console.error('Erro ao deletar trilha:', error);
+      console.error('❌ Erro ao deletar trilha:', error);
       push('Erro ao deletar trilha', 'error');
     }
   }
@@ -296,7 +342,7 @@ export default function AdminTrailsPage() {
                           {trail.title}
                         </h3>
                         <span className="px-2 py-1 text-xs font-medium bg-brand-accent/10 text-brand-accent rounded-full">
-                          {trail.type}
+                          Trilha
                         </span>
                       </div>
                       
@@ -328,7 +374,7 @@ export default function AdminTrailsPage() {
                                     {module.title}
                                   </div>
                                   <div className="text-xs text-light-muted dark:text-dark-muted">
-                                    {module.instructor} • {module.duration} • {module.difficulty}
+                                    {module.description}
                                   </div>
                                 </div>
                                 <div className="text-xs text-light-muted dark:text-dark-muted">
@@ -359,7 +405,7 @@ export default function AdminTrailsPage() {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => deleteTrail(trail.id)}
+                        onClick={() => openDeleteModal(trail)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -419,20 +465,6 @@ export default function AdminTrailsPage() {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="type">Tipo</Label>
-                <select
-                  id="type"
-                  value={formData.type}
-                  onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg bg-light-surface dark:bg-dark-surface border border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-2 focus:ring-brand-accent/20"
-                >
-                  <option value="montanha">Montanha</option>
-                  <option value="acervo">Acervo Digital</option>
-                  <option value="rodas">Rodas de Conversa</option>
-                  <option value="plantao">Plantão de Dúvidas</option>
-                </select>
-              </div>
             </div>
 
             <div className="flex gap-3 pt-4">
@@ -452,6 +484,42 @@ export default function AdminTrailsPage() {
             </div>
           </div>
         </Modal>
+
+        {/* Modal de confirmação de exclusão */}
+        <ConfirmModal
+          open={showConfirmModal}
+          onClose={() => {
+            setShowConfirmModal(false);
+            setTrailToDelete(null);
+          }}
+          onConfirm={confirmDeleteTrail}
+          title="Excluir Trilha"
+          description="Tem certeza que deseja excluir esta trilha? Esta ação irá excluir todos os módulos e aulas associados."
+          confirmText="Excluir Trilha"
+          cancelText="Cancelar"
+          variant="danger"
+        >
+          {trailToDelete && (
+            <div className="mt-3 p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium text-red-800 dark:text-red-200">
+                    Trilha: {trailToDelete.title}
+                  </p>
+                  <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                    Esta ação irá excluir permanentemente:
+                  </p>
+                  <ul className="text-sm text-red-700 dark:text-red-300 mt-1 ml-4 list-disc">
+                    <li>Todos os módulos da trilha</li>
+                    <li>Todas as aulas dos módulos</li>
+                    <li>Todo o progresso dos usuários</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+        </ConfirmModal>
       </Section>
     </Container>
   );

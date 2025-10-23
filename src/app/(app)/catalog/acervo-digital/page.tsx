@@ -1,232 +1,234 @@
-'use client';
+"use client";
 
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
-import Badge from "@/components/ui/Badge";
-import { CardLivro, CardPDF } from "@/components/ui/CardModels";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/CarouselNew";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/CarouselNew";
+import Card from "@/components/ui/Card";
+import { createClient } from "@/lib/supabase";
+
+interface Page {
+  id: string;
+  title: string;
+  description: string;
+  slug: string;
+}
+
+interface Trail {
+  id: string;
+  title: string;
+  description: string;
+  slug: string;
+  position: number;
+  modules: Module[];
+}
+
+interface Module {
+  id: string;
+  title: string;
+  description: string;
+  slug: string;
+  position: number;
+  contents: Content[];
+}
+
+interface Content {
+  id: string;
+  title: string;
+  description: string;
+  content_type: string;
+  duration: number;
+}
 
 export default function AcervoDigitalPage() {
-  // ========================================
-  // ACERVO DIGITAL - VISUALIZAÇÃO PARA ALUNOS
-  // ========================================
-  // As coleções e recursos são gerenciados pela área administrativa
-  // ========================================
-  
-  const collections = [
-    {
-      id: "guias-fundamentais",
-      title: "Guias Fundamentais",
-      description: "Manuais essenciais sobre AHSD e desenvolvimento infantil",
-      badge: "Essencial",
-      badgeVariant: "brand" as const,
-      order: 1,
-      resources: [
-        {
-          title: "Guia Completo AHSD",
-          description: "Manual abrangente sobre Altas Habilidades/Superdotação",
-          type: "PDF",
-          pages: 156,
-          rating: 4.9,
-          downloads: 1247,
-          image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=1600&auto=format&fit=crop",
-          fileUrl: "/files/guia-completo-ahsd.pdf",
-          isFeatured: true,
-          isNew: false
-        },
-        {
-          title: "Estratégias Educacionais",
-          description: "Métodos práticos para desenvolvimento cognitivo",
-          type: "PDF",
-          pages: 89,
-          rating: 4.7,
-          downloads: 892,
-          image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=1600&auto=format&fit=crop",
-          fileUrl: "/files/estrategias-educacionais.pdf"
-        },
-        {
-          title: "Manual de Rotinas",
-          description: "Organização e estruturação do dia a dia",
-          type: "PDF",
-          pages: 67,
-          rating: 4.6,
-          downloads: 743,
-          image: "https://images.unsplash.com/photo-1523246191891-9a054b0db644?q=80&w=1600&auto=format&fit=crop",
-          fileUrl: "/files/manual-rotinas.pdf"
-        }
-      ]
-    },
-    {
-      id: "serie-desenvolvimento",
-      title: "Série Desenvolvimento Infantil",
-      description: "Coleção completa sobre aspectos do desenvolvimento",
-      badge: "Série",
-      badgeVariant: "info" as const,
-      order: 2,
-      resources: [
-        {
-          title: "Desenvolvimento Motor",
-          description: "Exercícios para coordenação e habilidades físicas",
-          type: "PDF",
-          pages: 134,
-          rating: 4.5,
-          downloads: 634,
-          image: "https://images.unsplash.com/photo-1559703248-dcaaec9fab78?q=80&w=1600&auto=format&fit=crop",
-          fileUrl: "/files/desenvolvimento-motor.pdf",
-          series: "Desenvolvimento Infantil",
-          seriesOrder: 1
-        },
-        {
-          title: "Desenvolvimento Cognitivo",
-          description: "Fundamentos do pensamento e raciocínio",
-          type: "PDF",
-          pages: 178,
-          rating: 4.8,
-          downloads: 892,
-          image: "https://images.unsplash.com/photo-1537832816519-689ad163238b?q=80&w=1600&auto=format&fit=crop",
-          fileUrl: "/files/desenvolvimento-cognitivo.pdf",
-          series: "Desenvolvimento Infantil",
-          seriesOrder: 2
-        },
-        {
-          title: "Desenvolvimento Socioemocional",
-          description: "Inteligência emocional e relacionamentos",
-          type: "PDF",
-          pages: 145,
-          rating: 4.7,
-          downloads: 756,
-          image: "https://images.unsplash.com/photo-1544776193-352d25ca82cd?q=80&w=1600&auto=format&fit=crop",
-          fileUrl: "/files/desenvolvimento-socioemocional.pdf",
-          series: "Desenvolvimento Infantil",
-          seriesOrder: 3
-        }
-      ]
-    },
-    {
-      id: "atividades-praticas",
-      title: "Atividades Práticas",
-      description: "Exercícios e atividades para aplicar em casa",
-      badge: "Prático",
-      badgeVariant: "success" as const,
-      order: 3,
-      resources: [
-        {
-          title: "Atividades Criativas",
-          description: "Coleção de exercícios para estimular criatividade",
-          type: "PDF",
-          pages: 203,
-          rating: 4.8,
-          downloads: 1156,
-          image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop",
-          fileUrl: "/files/atividades-criativas.pdf",
-          isNew: true
-        },
-        {
-          title: "Jogos Educativos",
-          description: "Jogos e brincadeiras para desenvolvimento",
-          type: "PDF",
-          pages: 98,
-          rating: 4.6,
-          downloads: 567,
-          image: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?q=80&w=1600&auto=format&fit=crop",
-          fileUrl: "/files/jogos-educativos.pdf"
-        }
-      ]
-    }
-  ];
+  const [pageData, setPageData] = useState<Page | null>(null);
+  const [trails, setTrails] = useState<Trail[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
+  useEffect(() => {
+    loadPageData();
+  }, []);
+
+  // Recarregar dados quando a página ganha foco (volta do admin)
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('🔄 Página ganhou foco, recarregando dados...');
+      loadPageData();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
+  async function loadPageData() {
+    try {
+      setLoading(true);
+      const supabase = createClient();
+      
+      // Buscar dados da página
+      const { data: pageData, error: pageError } = await supabase
+        .from('pages')
+        .select('*')
+        .eq('slug', 'acervo-digital')
+        .single();
+
+      if (pageError || !pageData) {
+        console.error('Erro ao carregar página:', pageError);
+        return;
+      }
+
+      setPageData(pageData);
+
+      // Buscar trilhas da página
+      const { data: trailsData, error: trailsError } = await supabase
+        .from('trails')
+        .select('*')
+        .eq('page_id', pageData.id)
+        .order('position');
+
+      if (trailsError) {
+        console.error('Erro ao carregar trilhas:', trailsError);
+        return;
+      }
+
+      // Para cada trilha, buscar seus módulos
+      const trailsWithModules = await Promise.all(
+        (trailsData || []).map(async (trail) => {
+          const { data: modulesData, error: modulesError } = await supabase
+            .from('modules')
+            .select('*')
+            .eq('trail_id', trail.id)
+            .order('position');
+
+          if (modulesError) {
+            console.error('Erro ao carregar módulos:', modulesError);
+            return { ...trail, modules: [] };
+          }
+
+          // Para cada módulo, buscar seus conteúdos
+          const modulesWithContents = await Promise.all(
+            (modulesData || []).map(async (module) => {
+              const { data: contentsData, error: contentsError } = await supabase
+                .from('contents')
+                .select('*')
+                .eq('module_id', module.id)
+                .order('position');
+
+              if (contentsError) {
+                console.error('Erro ao carregar conteúdos:', contentsError);
+                return { ...module, contents: [] };
+              }
+
+              return { ...module, contents: contentsData || [] };
+            })
+          );
+
+          return { ...trail, modules: modulesWithContents };
+        })
+      );
+
+      setTrails(trailsWithModules);
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleModuleClick = (moduleSlug: string) => {
+    router.push(`/catalog/modulo/${moduleSlug}`);
+  };
+
+  if (loading) {
+    return (
+      <Container fullWidth>
+        <Section>
+          <PageHeader title="Acervo Digital" subtitle="Carregando..." />
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+          </div>
+        </Section>
+      </Container>
+    );
+  }
+
+  if (!pageData) {
+    return (
+      <Container fullWidth>
+        <Section>
+          <PageHeader title="Acervo Digital" subtitle="Página não encontrada" />
+        </Section>
+      </Container>
+    );
+  }
 
   return (
     <Container fullWidth>
       <Section>
-        <PageHeader title="Acervo digital" />
+        <PageHeader 
+          title={pageData.title} 
+          subtitle={pageData.description} 
+        />
         
+        {trails.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-500 dark:text-dark-muted">
+              <h3 className="text-lg font-medium mb-2">Nenhum conteúdo disponível</h3>
+              <p className="text-sm">O acervo digital será atualizado em breve.</p>
+            </div>
+          </div>
+        ) : (
         <div className="space-y-12">
-          {/* Renderização dinâmica de todas as coleções */}
-          {collections
-            .sort((a, b) => a.order - b.order)
-            .map((collection, collectionIndex) => (
-            <div key={collection.id} className="space-y-6">
-              {/* Cabeçalho da coleção */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text">
-                    {collection.title}
+            {trails.map((trail) => (
+              <div key={trail.id} className="space-y-6">
+                <div className="text-left">
+                  <h2 className="text-2xl font-bold text-light-text dark:text-dark-text mb-2">
+                    {trail.title}
                   </h2>
-                  {collection.description && (
-                    <p className="text-sm text-gray-600 dark:text-dark-muted mt-1">
-                      {collection.description}
+                  <p className="text-light-muted dark:text-dark-muted">
+                    {trail.description}
                     </p>
-                  )}
-                </div>
-                <Badge variant={collection.badgeVariant} size="md">{collection.badge}</Badge>
               </div>
               
-              {/* Carrossel de recursos da coleção */}
-              <div className="relative pt-8 pb-0">
-                <Carousel
-                  opts={{
-                    align: "start",
-                    loop: false,
-                    slidesToScroll: 1,
-                    dragFree: true,
-                    containScroll: "trimSnaps",
-                  }}
-                  className="w-full"
-                >
-                  <CarouselContent className="-ml-2 sm:-ml-4">
-                    {collection.resources
-                      .sort((a, b) => ((a as any).seriesOrder || 0) - ((b as any).seriesOrder || 0))
-                      .map((resource, resourceIndex) => (
-                      <CarouselItem key={resourceIndex} className="pl-2 sm:pl-4 basis-[280px] sm:basis-[320px] lg:basis-[350px]">
-                        {resource.type === "Livro" ? (
-                          <CardLivro
-                            title={resource.title}
-                            author={(resource as any).author || "Autor"}
-                            description={resource.description}
-                            pages={resource.pages}
-                            rating={resource.rating}
-                            downloads={resource.downloads}
-                            isNew={(resource as any).isNew}
-                            isFeatured={(resource as any).isFeatured}
-                            image={resource.image}
-                            fileUrl={resource.fileUrl}
-                          />
-                        ) : (
-                          <CardPDF
-                            title={resource.title}
-                            description={resource.description}
-                            pages={resource.pages}
-                            rating={resource.rating}
-                            downloads={resource.downloads}
-                            isNew={(resource as any).isNew}
-                            isFeatured={(resource as any).isFeatured}
-                            series={(resource as any).series}
-                            seriesOrder={(resource as any).seriesOrder}
-                            image={resource.image}
-                            fileUrl={resource.fileUrl}
-                          />
-                        )}
+                {trail.modules.length > 0 && (
+                  <Carousel className="w-full">
+                    <CarouselContent className="-ml-4">
+                      {trail.modules.map((module) => (
+                        <CarouselItem key={module.id} className="pl-4 basis-full sm:basis-[300px] lg:basis-[350px]">
+                          <Card
+                            className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 h-96 flex flex-col"
+                            onClick={() => handleModuleClick(module.slug)}
+                          >
+                            <div className="flex-1 bg-gradient-to-br from-blue-500 to-blue-600 rounded-t-lg relative overflow-hidden">
+                              <div className="absolute inset-0 bg-black/20"></div>
+                              <div className="absolute bottom-4 left-4 right-4">
+                                <h3 className="text-white font-semibold text-lg leading-tight">
+                                  {module.title}
+                                </h3>
+                              </div>
+                            </div>
+                            <div className="p-4 flex-1 flex flex-col justify-between">
+                              <p className="text-sm text-light-muted dark:text-dark-muted line-clamp-2">
+                                {module.description}
+                              </p>
+                              <div className="mt-2 text-xs text-light-muted dark:text-dark-muted">
+                                {module.contents.length} {module.contents.length === 1 ? 'item' : 'itens'}
+                              </div>
+                            </div>
+                          </Card>
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  <CarouselPrevious />
-                  <CarouselNext />
                 </Carousel>
-              </div>
+                )}
             </div>
           ))}
         </div>
+        )}
       </Section>
     </Container>
   );
 }
-
-

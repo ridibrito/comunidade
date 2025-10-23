@@ -439,10 +439,10 @@ export default function TrailManager({ trails, onUpdateTrails }: TrailManagerPro
     totalTrails: trails.length,
     totalModules: trails.reduce((acc, trail) => acc + trail.modules.length, 0),
     totalLessons: trails.reduce((acc, trail) => 
-      acc + trail.modules.reduce((moduleAcc, module) => moduleAcc + module.lessons.length, 0), 0),
+      acc + trail.modules.reduce((moduleAcc, module) => moduleAcc + (module.contents?.length || 0), 0), 0),
     publishedLessons: trails.reduce((acc, trail) => 
       acc + trail.modules.reduce((moduleAcc, module) => 
-        moduleAcc + module.lessons.filter(lesson => lesson.status === "published").length, 0), 0)
+        moduleAcc + (module.contents?.filter(content => content.status === "published").length || 0), 0), 0)
   };
 
   return (
@@ -657,4 +657,35 @@ export default function TrailManager({ trails, onUpdateTrails }: TrailManagerPro
       />
     </div>
   );
+}
+
+// Interface para o tipo Trail
+export interface Trail {
+  id: string;
+  title: string;
+  description?: string;
+  type: string;
+  order: number;
+  isExpanded: boolean;
+  modules: Module[];
+}
+
+export interface Module {
+  id: string;
+  title: string;
+  description?: string;
+  trail_id: string;
+  position: number;
+  contents?: Content[];
+}
+
+export interface Content {
+  id: string;
+  title: string;
+  description?: string;
+  module_id: string;
+  content_type: string;
+  duration: number;
+  status: string;
+  position: number;
 }

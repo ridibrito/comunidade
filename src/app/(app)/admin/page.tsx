@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { getBrowserSupabaseClient } from "@/lib/supabase";
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
@@ -59,40 +61,113 @@ import {
   YAxis,
   CartesianGrid
 } from "recharts";
-import { useState } from "react";
 
 export default function AdminPage() {
+  const supabase = getBrowserSupabaseClient();
   const [timeRange, setTimeRange] = useState("30d");
   const [selectedMetric, setSelectedMetric] = useState("users");
+  const [loading, setLoading] = useState(true);
+  
+  // Estados para dados reais
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalLessons: 0,
+    totalModules: 0,
+    totalTrails: 0,
+    completionRate: 0,
+    aiInteractions: 0
+  });
+  
+  const [userGrowthData, setUserGrowthData] = useState([]);
+  const [completionData, setCompletionData] = useState([]);
+  const [activityData, setActivityData] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
 
-  // Dados para gráficos
-  const userGrowthData = [
-    { month: "Jan", users: 1200, sessions: 3200 },
-    { month: "Fev", users: 1350, sessions: 3800 },
-    { month: "Mar", users: 1480, sessions: 4200 },
-    { month: "Abr", users: 1620, sessions: 4800 },
-    { month: "Mai", users: 1750, sessions: 5200 },
-    { month: "Jun", users: 1900, sessions: 5800 },
-  ];
+  useEffect(() => {
+    loadDashboardData();
+  }, [timeRange]);
 
-  const completionData = [
-    { name: "Identificação", value: 75, color: "#43085E" },
-    { name: "Desenvolvimento", value: 65, color: "#6B46C1" },
-    { name: "Avaliação", value: 45, color: "#8B5CF6" },
-    { name: "Intervenção", value: 35, color: "#A855F7" },
-    { name: "Acompanhamento", value: 25, color: "#C084FC" },
-    { name: "Finalização", value: 15, color: "#DDD6FE" },
-  ];
+  async function loadDashboardData() {
+    setLoading(true);
+    
+    try {
+      // Carregar estatísticas básicas
+      const [trailsResult, modulesResult, lessonsResult, usersResult] = await Promise.all([
+        supabase.from('trails').select('id', { count: 'exact' }),
+        supabase.from('modules').select('id', { count: 'exact' }),
+        supabase.from('lessons').select('id', { count: 'exact' }),
+        supabase.from('profiles').select('id', { count: 'exact' })
+      ]);
 
-  const activityData = [
-    { day: "Seg", lessons: 120, users: 85 },
-    { day: "Ter", lessons: 150, users: 95 },
-    { day: "Qua", lessons: 180, users: 110 },
-    { day: "Qui", lessons: 160, users: 100 },
-    { day: "Sex", lessons: 140, users: 90 },
-    { day: "Sáb", lessons: 80, users: 60 },
-    { day: "Dom", lessons: 100, users: 70 },
-  ];
+      setStats({
+        totalUsers: usersResult.count || 0,
+        totalLessons: lessonsResult.count || 0,
+        totalModules: modulesResult.count || 0,
+        totalTrails: trailsResult.count || 0,
+        completionRate: 68, // Mock por enquanto
+        aiInteractions: 4317 // Mock por enquanto
+      });
+
+      // Carregar dados de conclusão por trilha
+      const { data: trails } = await supabase
+        .from('trails')
+        .select('id, title');
+      
+      if (trails) {
+        const completionPromises = trails.map(async (trail) => {
+          const { count } = await supabase
+            .from('user_progress')
+            .select('*', { count: 'exact' })
+            .eq('trail_id', trail.id)
+            .eq('progress_type', 'completed');
+          
+          return {
+            name: trail.title,
+            value: Math.floor(Math.random() * 100), // Mock por enquanto
+            color: `#${Math.floor(Math.random()*16777215).toString(16)}`
+          };
+        });
+        
+        const completionResults = await Promise.all(completionPromises);
+        setCompletionData(completionResults);
+      }
+
+      // Carregar atividades recentes
+      const { data: activities } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      setRecentActivities(activities || []);
+
+      // Dados de crescimento (mock por enquanto)
+      setUserGrowthData([
+        { month: "Jan", users: 1200, sessions: 3200 },
+        { month: "Fev", users: 1350, sessions: 3800 },
+        { month: "Mar", users: 1480, sessions: 4200 },
+        { month: "Abr", users: 1620, sessions: 4800 },
+        { month: "Mai", users: 1750, sessions: 5200 },
+        { month: "Jun", users: 1900, sessions: 5800 },
+      ]);
+
+      // Dados de atividade semanal (mock por enquanto)
+      setActivityData([
+        { day: "Seg", lessons: 120, users: 85 },
+        { day: "Ter", lessons: 150, users: 95 },
+        { day: "Qua", lessons: 180, users: 110 },
+        { day: "Qui", lessons: 160, users: 100 },
+        { day: "Sex", lessons: 140, users: 90 },
+        { day: "Sáb", lessons: 80, users: 60 },
+        { day: "Dom", lessons: 100, users: 70 },
+      ]);
+
+    } catch (error) {
+      console.error('Erro ao carregar dados do dashboard:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const chartConfig = {
     users: {
@@ -149,8 +224,8 @@ export default function AdminPage() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
           <MetricCard
             title="Usuários ativos"
-            value="1,284"
-            description="+8% vs período anterior"
+            value={loading ? "..." : stats.totalUsers.toLocaleString()}
+            description="Usuários cadastrados"
             icon={<Users className="w-5 h-5" />}
             variant="default"
             trend={{
@@ -160,9 +235,9 @@ export default function AdminPage() {
             }}
           />
           <MetricCard
-            title="Aulas assistidas"
-            value="18,902"
-            description="Média 26 min por aula"
+            title="Aulas disponíveis"
+            value={loading ? "..." : stats.totalLessons.toLocaleString()}
+            description={`${stats.totalModules} módulos`}
             icon={<PlayCircle className="w-5 h-5" />}
             variant="success"
             trend={{
@@ -173,7 +248,7 @@ export default function AdminPage() {
           />
           <MetricCard
             title="Taxa de conclusão"
-            value="68%"
+            value={loading ? "..." : `${stats.completionRate}%`}
             description="+5% vs período anterior"
             icon={<TrendingUp className="w-5 h-5" />}
             variant="info"
@@ -185,7 +260,7 @@ export default function AdminPage() {
           />
           <MetricCard
             title="Interações IA"
-            value="4,317"
+            value={loading ? "..." : stats.aiInteractions.toLocaleString()}
             description="Satisfação 92%"
             icon={<Bot className="w-5 h-5" />}
             variant="brand"
@@ -342,28 +417,42 @@ export default function AdminPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {[
-                { date: "2025-01-16 14:15", user: "admin@singulari", action: "Atualizou aula", details: "Módulo 2 / Aula 1", status: "success" },
-                { date: "2025-01-16 14:12", user: "maria@exemplo.com", action: "Concluiu trilha", details: "Identificação - 100%", status: "success" },
-                { date: "2025-01-16 14:08", user: "joao@exemplo.com", action: "Iniciou módulo", details: "Desenvolvimento", status: "info" },
-                { date: "2025-01-16 14:05", user: "ana@exemplo.com", action: "Baixou material", details: "Guia Completo AHSD", status: "info" },
-                { date: "2025-01-16 14:01", user: "carlos@exemplo.com", action: "Erro no login", details: "Tentativa falhou", status: "error" },
-              ].map((activity, i) => (
-                <TableRow key={i}>
-                  <TableCell className="font-medium">{activity.date}</TableCell>
-                  <TableCell>{activity.user}</TableCell>
-                  <TableCell>{activity.action}</TableCell>
-                  <TableCell>{activity.details}</TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={activity.status === "success" ? "success" : activity.status === "error" ? "error" : "info"} 
-                      size="sm"
-                    >
-                      {activity.status === "success" ? "Sucesso" : activity.status === "error" ? "Erro" : "Info"}
-                    </Badge>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-brand-accent border-t-transparent rounded-full animate-spin"></div>
+                      <span>Carregando atividades...</span>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : recentActivities.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-light-muted dark:text-dark-muted">
+                    Nenhuma atividade recente
+                  </TableCell>
+                </TableRow>
+              ) : (
+                recentActivities.map((activity, i) => (
+                  <TableRow key={activity.id || i}>
+                    <TableCell className="font-medium">
+                      {new Date(activity.created_at).toLocaleString('pt-BR')}
+                    </TableCell>
+                    <TableCell>
+                      {activity.user_id ? `Usuário ${activity.user_id.slice(0, 8)}...` : 'Sistema'}
+                    </TableCell>
+                    <TableCell>{activity.action}</TableCell>
+                    <TableCell>
+                      {activity.resource_type ? `${activity.resource_type}: ${activity.resource_id?.slice(0, 8)}...` : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="info" size="sm">
+                        Info
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </ModernCard>

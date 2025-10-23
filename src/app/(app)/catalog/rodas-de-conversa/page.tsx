@@ -1,243 +1,234 @@
-'use client';
+"use client";
 
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
-import Badge from "@/components/ui/Badge";
-import { CardAulaAoVivo } from "@/components/ui/CardModels";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/CarouselNew";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/CarouselNew";
+import Card from "@/components/ui/Card";
+import { createClient } from "@/lib/supabase";
+
+interface Page {
+  id: string;
+  title: string;
+  description: string;
+  slug: string;
+}
+
+interface Trail {
+  id: string;
+  title: string;
+  description: string;
+  slug: string;
+  position: number;
+  modules: Module[];
+}
+
+interface Module {
+  id: string;
+  title: string;
+  description: string;
+  slug: string;
+  position: number;
+  contents: Content[];
+}
+
+interface Content {
+  id: string;
+  title: string;
+  description: string;
+  content_type: string;
+  duration: number;
+}
 
 export default function RodasDeConversaPage() {
-  // Próximos eventos (ao vivo via Zoom)
-  const upcomingEvents = [
-    {
-      title: "Desafios da Educação AHSD",
-      description: "Compartilhe experiências sobre educação de crianças superdotadas",
-      facilitator: "Maria Eduarda",
-      date: "2024-01-16",
-      time: "19:30",
-      participants: 15,
-      maxParticipants: 20,
-      status: "Aberta",
-      topic: "Educação",
-      image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?q=80&w=1600&auto=format&fit=crop",
-      zoomLink: "https://zoom.us/j/123456789"
-    },
-    {
-      title: "Rotinas e Organização Familiar",
-      description: "Como estruturar o dia a dia com crianças AHSD",
-      facilitator: "Ana Paula",
-      date: "2024-01-19",
-      time: "20:00",
-      participants: 12,
-      maxParticipants: 15,
-      status: "Aberta",
-      topic: "Família",
-      image: "https://images.unsplash.com/photo-1523246191891-9a054b0db644?q=80&w=1600&auto=format&fit=crop",
-      zoomLink: "https://zoom.us/j/987654321"
-    },
-    {
-      title: "Criatividade e Inovação",
-      description: "Desenvolvendo o potencial criativo das crianças",
-      facilitator: "Roberta Silva",
-      date: "2024-01-21",
-      originalTime: "19:00",
-      participants: 8,
-      maxParticipants: 12,
-      status: "Aberta",
-      topic: "Criatividade",
-      image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop",
-      zoomLink: "https://zoom.us/j/456789123"
-    }
-  ];
+  const [pageData, setPageData] = useState<Page | null>(null);
+  const [trails, setTrails] = useState<Trail[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  // Eventos passados (com gravações disponíveis)
-  const pastEvents = [
-    {
-      title: "Desenvolvimento Socioemocional",
-      description: "Conversa sobre inteligência emocional e relacionamentos",
-      facilitator: "Carlos Mendes",
-      date: "2024-01-14",
-      time: "18:30",
-      participants: 20,
-      maxParticipants: 20,
-      status: "Realizada",
-      topic: "Desenvolvimento",
-      image: "https://images.unsplash.com/photo-1544776193-352d25ca82cd?q=80&w=1600&auto=format&fit=crop",
-      recordingUrl: "/recordings/desenvolvimento-socioemocional.mp4",
-      duration: "1h 25min"
-    },
-    {
-      title: "Atividades Extracurriculares",
-      description: "Explorando hobbies e interesses específicos",
-      facilitator: "João Pedro",
-      date: "2024-01-10",
-      time: "18:00",
-      participants: 16,
-      maxParticipants: 20,
-      status: "Realizada",
-      topic: "Atividades",
-      image: "https://images.unsplash.com/photo-1559703248-dcaaec9fab78?q=80&w=1600&auto=format&fit=crop",
-      recordingUrl: "/recordings/atividades-extracurriculares.mp4",
-      duration: "1h 15min"
-    },
-    {
-      title: "Primeiros Passos com AHSD",
-      description: "Introdução para famílias recém-diagnosticadas",
-      instructor: "Dr. Ana Costa",
-      originalDate: "2024-01-07",
-      originalTime: "19:00",
-      participants: 25,
-      maxParticipants: 25,
-      status: "Realizada",
-      topic: "Introdução",
-      image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?q=80&w=1600&auto=format&fit=crop",
-      recordingUrl: "/recordings/primeiros-passos-ahsd.mp4",
-      duration: "1h 45min",
-      progress: 0,
-      rating: 4.8
-    }
-  ];
+  useEffect(() => {
+    loadPageData();
+  }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Aberta": return "success";
-      case "Lotada": return "warning";
-      case "Realizada": return "info";
-      case "Encerrada": return "default";
-      default: return "default";
+  // Recarregar dados quando a página ganha foco (volta do admin)
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('🔄 Página ganhou foco, recarregando dados...');
+      loadPageData();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
+  async function loadPageData() {
+    try {
+      setLoading(true);
+      const supabase = createClient();
+      
+      // Buscar dados da página
+      const { data: pageData, error: pageError } = await supabase
+        .from('pages')
+        .select('*')
+        .eq('slug', 'rodas-de-conversa')
+        .single();
+
+      if (pageError || !pageData) {
+        console.error('Erro ao carregar página:', pageError);
+        return;
+      }
+
+      setPageData(pageData);
+
+      // Buscar trilhas da página
+      const { data: trailsData, error: trailsError } = await supabase
+        .from('trails')
+        .select('*')
+        .eq('page_id', pageData.id)
+        .order('position');
+
+      if (trailsError) {
+        console.error('Erro ao carregar trilhas:', trailsError);
+        return;
+      }
+
+      // Para cada trilha, buscar seus módulos
+      const trailsWithModules = await Promise.all(
+        (trailsData || []).map(async (trail) => {
+          const { data: modulesData, error: modulesError } = await supabase
+            .from('modules')
+            .select('*')
+            .eq('trail_id', trail.id)
+            .order('position');
+
+          if (modulesError) {
+            console.error('Erro ao carregar módulos:', modulesError);
+            return { ...trail, modules: [] };
+          }
+
+          // Para cada módulo, buscar seus conteúdos
+          const modulesWithContents = await Promise.all(
+            (modulesData || []).map(async (module) => {
+              const { data: contentsData, error: contentsError } = await supabase
+                .from('contents')
+                .select('*')
+                .eq('module_id', module.id)
+                .order('position');
+
+              if (contentsError) {
+                console.error('Erro ao carregar conteúdos:', contentsError);
+                return { ...module, contents: [] };
+              }
+
+              return { ...module, contents: contentsData || [] };
+            })
+          );
+
+          return { ...trail, modules: modulesWithContents };
+        })
+      );
+
+      setTrails(trailsWithModules);
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+    } finally {
+      setLoading(false);
     }
+  }
+
+  const handleModuleClick = (moduleSlug: string) => {
+    router.push(`/catalog/modulo/${moduleSlug}`);
   };
 
-  const getTopicColor = (topic: string) => {
-    switch (topic) {
-      case "Educação": return "info";
-      case "Família": return "brand";
-      case "Desenvolvimento": return "success";
-      case "Criatividade": return "warning";
-      case "Atividades": return "default";
-      case "Introdução": return "brand";
-      default: return "default";
-    }
-  };
+  if (loading) {
+    return (
+      <Container fullWidth>
+        <Section>
+          <PageHeader title="Rodas de Conversa" subtitle="Carregando..." />
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+          </div>
+        </Section>
+      </Container>
+    );
+  }
+
+  if (!pageData) {
+    return (
+      <Container fullWidth>
+        <Section>
+          <PageHeader title="Rodas de Conversa" subtitle="Página não encontrada" />
+        </Section>
+      </Container>
+    );
+  }
 
   return (
     <Container fullWidth>
       <Section>
-        <PageHeader title="Rodas de conversa" />
+        <PageHeader 
+          title={pageData.title} 
+          subtitle={pageData.description} 
+        />
         
-        <div className="space-y-12">
-          {/* Próximos Eventos */}
-          <div>
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text">
-                  Próximos Eventos
+        {trails.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-500 dark:text-dark-muted">
+              <h3 className="text-lg font-medium mb-2">Nenhum evento disponível</h3>
+              <p className="text-sm">As rodas de conversa serão agendadas em breve.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-12">
+            {trails.map((trail) => (
+              <div key={trail.id} className="space-y-6">
+                <div className="text-left">
+                  <h2 className="text-2xl font-bold text-light-text dark:text-dark-text mb-2">
+                    {trail.title}
                 </h2>
-                <p className="text-sm text-gray-600 dark:text-dark-muted mt-1">
-                  Rodas de conversa com outros pais e especialistas
+                  <p className="text-light-muted dark:text-dark-muted">
+                    {trail.description}
                 </p>
-              </div>
-              <Badge variant="success" size="md">{upcomingEvents.length} eventos</Badge>
             </div>
             
-            <div className="relative pt-8 pb-0">
-              <Carousel
-                opts={{
-                  align: "start",
-                  loop: false,
-                  slidesToScroll: 1,
-                  dragFree: true,
-                  containScroll: "trimSnaps",
-                }}
-                className="w-full"
-              >
-                <CarouselContent className="-ml-2 sm:-ml-4">
-                  {upcomingEvents.map((event, idx) => (
-                    <CarouselItem key={idx} className="pl-2 sm:pl-4 basis-[280px] sm:basis-[320px] lg:basis-[350px]">
-                      <CardAulaAoVivo
-                        title={event.title}
-                        description={event.description}
-                        instructor={event.instructor || event.facilitator}
-                        originalDate={event.originalDate || event.date}
-                        originalTime={event.originalTime || event.time}
-                        duration={event.duration || "1h 30min"}
-                        participants={event.participants}
-                        maxParticipants={event.maxParticipants}
-                        progress={event.progress || 0}
-                        rating={event.rating}
-                        image={event.image}
-                        recordingUrl={event.recordingUrl || event.zoomLink}
-                      />
+                {trail.modules.length > 0 && (
+                  <Carousel className="w-full">
+                    <CarouselContent className="-ml-4">
+                      {trail.modules.map((module) => (
+                        <CarouselItem key={module.id} className="pl-4 basis-full sm:basis-[300px] lg:basis-[350px]">
+                          <Card
+                            className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 h-96 flex flex-col"
+                            onClick={() => handleModuleClick(module.slug)}
+                          >
+                            <div className="flex-1 bg-gradient-to-br from-green-500 to-green-600 rounded-t-lg relative overflow-hidden">
+                              <div className="absolute inset-0 bg-black/20"></div>
+                              <div className="absolute bottom-4 left-4 right-4">
+                                <h3 className="text-white font-semibold text-lg leading-tight">
+                                  {module.title}
+                                </h3>
+                              </div>
+                            </div>
+                            <div className="p-4 flex-1 flex flex-col justify-between">
+                              <p className="text-sm text-light-muted dark:text-dark-muted line-clamp-2">
+                                {module.description}
+                              </p>
+                              <div className="mt-2 text-xs text-light-muted dark:text-dark-muted">
+                                {module.contents.length} {module.contents.length === 1 ? 'sessão' : 'sessões'}
+                              </div>
+                            </div>
+                          </Card>
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
               </Carousel>
+                )}
             </div>
+            ))}
           </div>
-
-          {/* Eventos Passados */}
-          <div>
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text">
-                  Eventos Passados
-                </h2>
-                <p className="text-sm text-gray-600 dark:text-dark-muted mt-1">
-                  Gravações das rodas de conversa anteriores
-                </p>
-              </div>
-              <Badge variant="info" size="md">{pastEvents.length} gravações</Badge>
-            </div>
-            
-            <div className="relative pt-8 pb-0">
-              <Carousel
-                opts={{
-                  align: "start",
-                  loop: false,
-                  slidesToScroll: 1,
-                  dragFree: true,
-                  containScroll: "trimSnaps",
-                }}
-                className="w-full"
-              >
-                <CarouselContent className="-ml-2 sm:-ml-4">
-                  {pastEvents.map((event, idx) => (
-                    <CarouselItem key={idx} className="pl-2 sm:pl-4 basis-[280px] sm:basis-[320px] lg:basis-[350px]">
-                      <CardAulaAoVivo
-                        title={event.title}
-                        description={event.description}
-                        instructor={event.instructor || event.facilitator}
-                        originalDate={event.originalDate || event.date}
-                        originalTime={event.originalTime || event.time}
-                        duration={event.duration || "1h 30min"}
-                        participants={event.participants}
-                        maxParticipants={event.maxParticipants}
-                        progress={event.progress || 0}
-                        rating={event.rating}
-                        image={event.image}
-                        recordingUrl={event.recordingUrl}
-                      />
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
-            </div>
-          </div>
-        </div>
+        )}
       </Section>
     </Container>
   );
 }
-
-

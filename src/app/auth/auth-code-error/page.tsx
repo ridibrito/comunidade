@@ -1,8 +1,9 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function AuthCodeError() {
+function AuthCodeErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
@@ -37,5 +38,17 @@ export default function AuthCodeError() {
         </div>
       </div>
     </div>
-  )
+  );
+}
+
+export default function AuthCodeError() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    }>
+      <AuthCodeErrorContent />
+    </Suspense>
+  );
 }

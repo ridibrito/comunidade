@@ -19,7 +19,7 @@ export default function Button({
   
   const variantClasses = {
     default: "bg-brand-accent text-white hover:bg-brand-accent/90",
-    outline: "border border-border bg-transparent hover:bg-light-border/50 dark:hover:bg-dark-border/50 text-light-text dark:text-dark-text",
+    outline: "bg-transparent hover:bg-light-border/50 dark:hover:bg-dark-border/50 text-light-text dark:text-dark-text shadow-sm",
     ghost: "hover:bg-light-border/50 dark:hover:bg-dark-border/50 text-light-text dark:text-dark-text",
     destructive: "bg-red-500 text-white hover:bg-red-600"
   };

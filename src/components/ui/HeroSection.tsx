@@ -60,8 +60,12 @@ export default function HeroSection({ pageSlug, fallbackTitle = "Título da Pág
 
   if (loading) {
     return (
-      <div className="relative w-full h-[1080px] bg-gradient-to-br from-purple-900 via-purple-700 to-orange-500 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+      <div className="w-full py-6 sm:py-8 md:py-12 px-4 md:px-8">
+        <div className="mx-auto">
+          <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-purple-900 via-purple-700 to-orange-500 flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -78,26 +82,28 @@ export default function HeroSection({ pageSlug, fallbackTitle = "Título da Pág
   };
 
   return (
-    <div className="w-full py-12 px-4 md:px-8">
-      <div className=" mx-auto">
-        <div className="relative w-full h-[500px] rounded-2xl overflow-hidden shadow-2xl">
-          {data.hero_image_url ? (
+    <div className="w-full py-6 sm:py-8 md:py-12 px-4 md:px-8">
+      <div className="mx-auto">
+        {data.hero_image_url ? (
+          <div className="relative w-full rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl">
             <img 
               src={data.hero_image_url} 
               alt={data.title || "Hero Image"}
-              className="w-full h-full object-cover"
+              className="w-full h-auto object-contain"
             />
-          ) : (
+          </div>
+        ) : (
+          <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl">
             <div className={`w-full h-full bg-gradient-to-br ${data.background_gradient} flex items-center justify-center`}>
-              <div className="text-center text-white">
-                <h1 className="text-4xl font-bold mb-4">{data.title}</h1>
+              <div className="text-center text-white px-4">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4">{data.title}</h1>
                 {data.subtitle && (
-                  <p className="text-xl opacity-90">{data.subtitle}</p>
+                  <p className="text-sm sm:text-base md:text-lg lg:text-xl opacity-90">{data.subtitle}</p>
                 )}
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
