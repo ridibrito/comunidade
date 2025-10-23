@@ -1,0 +1,19 @@
+# Robots.txt para Aldeia Singular
+# https://app.aldeiasingular.com.br
+
+User-agent: *
+Allow: /
+
+# Páginas públicas
+Allow: /auth/login
+Allow: /auth/recover
+
+# Bloquear páginas privadas
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /profile/
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://app.aldeiasingular.com.br/sitemap.xml
+
