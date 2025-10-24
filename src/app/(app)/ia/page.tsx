@@ -229,7 +229,7 @@ export default function IAPage() {
   };
 
   return (
-    <div className="flex h-screen bg-light-surface dark:bg-dark-surface overflow-hidden">
+    <div className="flex h-screen bg-light-surface dark:bg-dark-surface overflow-hidden fixed inset-0">
       {/* Sidebar */}
       <div className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 bg-light-surface-secondary dark:bg-dark-surface-secondary border-r border-light-border dark:border-dark-border flex flex-col overflow-hidden`}>
         <div className="p-4 border-b border-light-border dark:border-dark-border">
@@ -284,7 +284,7 @@ export default function IAPage() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="p-4 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+        <div className="flex-shrink-0 p-4 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button
@@ -354,7 +354,7 @@ export default function IAPage() {
         </div>
 
         {/* Input */}
-        <div className="p-4 border-t border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+        <div className="flex-shrink-0 p-4 border-t border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
           <div className="flex gap-2">
             <textarea
               value={input}
