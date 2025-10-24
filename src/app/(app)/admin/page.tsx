@@ -95,7 +95,7 @@ export default function AdminPage() {
       const [trailsResult, modulesResult, lessonsResult, usersResult] = await Promise.all([
         supabase.from('trails').select('id', { count: 'exact' }),
         supabase.from('modules').select('id', { count: 'exact' }),
-        supabase.from('lessons').select('id', { count: 'exact' }),
+        supabase.from('contents').select('id', { count: 'exact' }),
         supabase.from('profiles').select('id', { count: 'exact' })
       ]);
 

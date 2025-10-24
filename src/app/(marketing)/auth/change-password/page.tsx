@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function ChangePasswordPage() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -12,6 +14,8 @@ export default function ChangePasswordPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const router = useRouter();
   const supabase = createClient();
@@ -97,10 +101,15 @@ export default function ChangePasswordPage() {
         await supabase
           .from('profiles')
           .update({
+            invite_status: 'accepted',
             last_login_at: new Date().toISOString(),
             login_count: 1
           })
           .eq('id', user.id);
+
+        try {
+          await fetch('/api/profile', { method: 'POST' });
+        } catch {}
       }
 
       setSuccess(true);
@@ -122,6 +131,9 @@ export default function ChangePasswordPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
         <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md text-center">
+          <div className="mb-6 flex justify-center">
+            <Image src="/logo_full.png" alt="Aldeia Singular" width={200} height={40} priority style={{ width: "auto", height: "auto" }} />
+          </div>
           <div className="mb-4">
             <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900">
               <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,7 +147,7 @@ export default function ChangePasswordPage() {
           <p className="text-gray-600 dark:text-gray-300 mb-6">
             Sua senha foi alterada com sucesso. Você será redirecionado para o dashboard em instantes.
           </p>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[##7C3AED] mx-auto"></div>
         </div>
       </div>
     );
@@ -144,6 +156,9 @@ export default function ChangePasswordPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md w-full">
+        <div className="mb-6 flex justify-center">
+          <Image src="/logo_full.png" alt="Aldeia Singular" width={200} height={40} priority style={{ width: "auto", height: "auto" }} />
+        </div>
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             Alterar Senha
@@ -163,7 +178,7 @@ export default function ChangePasswordPage() {
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[#7C3AED] focus:border-[#7C3AED] dark:bg-gray-700 dark:text-white"
               placeholder="Digite sua nova senha"
               required
               minLength={6}
@@ -179,7 +194,7 @@ export default function ChangePasswordPage() {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[#7C3AED] focus:border-[#7C3AED] dark:bg-gray-700 dark:text-white"
               placeholder="Confirme sua nova senha"
               required
               minLength={6}
@@ -195,7 +210,7 @@ export default function ChangePasswordPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7C3AED] hover:bg-[#6D28D9] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7C3AED] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <div className="flex items-center">

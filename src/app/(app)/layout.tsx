@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SidebarWrapper } from "./_components/SidebarWrapper";
 import { getServerUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { ToastProvider } from "@/components/providers/ToastProvider";
+import { NotificationProvider } from "@/components/ui/NotificationSystem";
 
 export default async function AppGroupLayout({
   children,
@@ -17,14 +19,18 @@ export default async function AppGroupLayout({
   }
   return (
     <ThemeProvider>
-      <section className="min-h-screen bg-light-bg dark:bg-dark-bg">
-        <Navbar />
-        <div className="flex gap-0 h-[calc(100vh-64px)] overflow-hidden">
-          <Rail />
-          <SidebarWrapper />
-          <div className="flex-1 overflow-auto h-full bg-light-bg dark:bg-dark-bg">{children}</div>
-        </div>
-      </section>
+      <ToastProvider>
+        <NotificationProvider>
+          <section className="min-h-screen bg-light-bg dark:bg-dark-bg">
+            <Navbar />
+            <div className="flex gap-0 h-[calc(100vh-64px)] overflow-hidden">
+              <Rail />
+              <SidebarWrapper />
+              <div className="flex-1 overflow-auto h-full bg-light-bg dark:bg-dark-bg">{children}</div>
+            </div>
+          </section>
+        </NotificationProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

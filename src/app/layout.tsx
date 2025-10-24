@@ -52,10 +52,10 @@ export const metadata: Metadata = {
     siteName: 'Aldeia Singular',
     images: [
       {
-        url: '/Coruja-colorida.png',
+        url: '/logo_full.png',
         width: 1200,
         height: 630,
-        alt: 'Aldeia Singular - Coruja Colorida',
+        alt: 'Aldeia Singular',
       }
     ],
   },
@@ -63,16 +63,16 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Aldeia Singular - Plataforma de Aprendizado',
     description: 'Plataforma completa de desenvolvimento e aprendizado para famílias com crianças AHSD.',
-    images: ['/Coruja-colorida.png'],
+    images: ['/logo_full.png'],
   },
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/Coruja-colorida.png', sizes: '32x32', type: 'image/png' },
-      { url: '/Coruja-colorida.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favico.ico', sizes: 'any' },
+      { url: '/logo.png', sizes: '32x32', type: 'image/png' },
+      { url: '/logo.png', sizes: '16x16', type: 'image/png' },
     ],
-    apple: '/Coruja-colorida.png',
-    shortcut: '/favicon.ico',
+    apple: '/logo.png',
+    shortcut: '/favico.ico',
   },
   manifest: '/manifest.json',
   robots: {

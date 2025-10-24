@@ -78,17 +78,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verificar se o usuário já existe
+    // Verificar se o usuário já existe (página única é suficiente para bases pequenas)
     const { data: usersData, error: usersError } = await supabase.auth.admin.listUsers();
-    
     if (usersError) {
       return NextResponse.json(
-        { error: "Erro ao verificar usuários existentes" },
+        { error: `Erro ao verificar usuários existentes: ${usersError.message}` },
         { status: 500 }
       );
     }
-    
-    const existingUser = usersData.users.find(user => user.email === email);
+    const existingUser = usersData.users?.find(user => user.email === email);
     if (existingUser) {
       return NextResponse.json(
         { error: "Usuário já existe com este email" },
@@ -114,7 +112,14 @@ export async function POST(req: NextRequest) {
     if (createError) {
       console.error("Erro ao criar usuário:", createError);
       return NextResponse.json(
-        { error: "Erro ao criar usuário" },
+        { error: `Erro ao criar usuário: ${createError.message}` },
+        { status: 500 }
+      );
+    }
+    if (!userData?.user?.id) {
+      console.error("Resposta inesperada de createUser:", userData);
+      return NextResponse.json(
+        { error: "Usuário criado mas resposta inválida do provedor" },
         { status: 500 }
       );
     }
@@ -241,10 +246,20 @@ export async function PATCH(req: NextRequest) {
     }
     
     if (action === "reset_password") {
-      // Enviar link de reset de senha (não gerar nova senha)
+      // Buscar e-mail pelo id e enviar link de reset
+      const { data: profileEmail, error: emailFetchError } = await supabase
+        .from('profiles')
+        .select('invite_email')
+        .eq('id', id)
+        .single();
+      const targetEmail = profileEmail?.invite_email;
+      if (!targetEmail || emailFetchError) {
+        return NextResponse.json({ ok: false, message: 'Email do usuário não encontrado' }, { status: 404 });
+      }
+
       const { error: resetError } = await supabase.auth.admin.generateLink({
         type: 'recovery',
-        email: id, // O ID é o email do usuário
+        email: targetEmail,
         options: {
           redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/change-password`
         }

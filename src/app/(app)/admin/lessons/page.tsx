@@ -195,16 +195,15 @@ export default function AdminLessonsPage() {
     }
   }
 
-  function editLesson(lesson: Lesson) {
-    setEditingLesson(lesson);
+  function editLesson(lesson: any) {
+    setEditingContent(lesson);
     setFormData({
       title: lesson.title,
       description: lesson.description || "",
       slug: lesson.slug,
       module_id: lesson.module_id,
       position: lesson.position,
-      video_url: lesson.video_url || "",
-      materials_url: lesson.materials_url || "",
+      content_type: lesson.content_type || "video",
       duration: lesson.duration || 15
     });
     setShowModal(true);
@@ -216,16 +215,15 @@ export default function AdminLessonsPage() {
       description: "",
       slug: "",
       module_id: selectedModule,
-      position: lessons.length + 1,
-      video_url: "",
-      materials_url: "",
+      position: contents.length + 1,
+      content_type: "video",
       duration: 15
     });
   }
 
   function openCreateModal() {
     resetForm();
-    setEditingLesson(null);
+    setEditingContent(null);
     setShowModal(true);
   }
 
@@ -236,21 +234,20 @@ export default function AdminLessonsPage() {
         return;
       }
 
-      if (editingLesson) {
+      if (editingContent) {
         // Atualizar aula existente
         const { error } = await supabase
-          .from('lessons')
+          .from('contents')
           .update({
             title: formData.title,
             description: formData.description,
             slug: formData.slug,
             module_id: formData.module_id,
             position: formData.position,
-            video_url: formData.video_url || null,
-            materials_url: formData.materials_url || null,
+            content_type: formData.content_type,
             duration: formData.duration
           })
-          .eq('id', editingLesson.id);
+          .eq('id', editingContent.id);
 
         if (error) {
           console.error('Erro ao atualizar aula:', error);
@@ -262,15 +259,14 @@ export default function AdminLessonsPage() {
       } else {
         // Criar nova aula
         const { error } = await supabase
-          .from('lessons')
+          .from('contents')
           .insert({
             title: formData.title,
             description: formData.description,
             slug: formData.slug,
             module_id: formData.module_id,
             position: formData.position,
-            video_url: formData.video_url || null,
-            materials_url: formData.materials_url || null,
+            content_type: formData.content_type,
             duration: formData.duration
           });
 
@@ -285,7 +281,7 @@ export default function AdminLessonsPage() {
 
       // Recarregar dados
       if (selectedModule) {
-        await loadLessons(selectedModule);
+        await loadContents(selectedModule);
       }
       setShowModal(false);
       resetForm();
@@ -303,7 +299,7 @@ export default function AdminLessonsPage() {
       }
 
       const { error } = await supabase
-        .from('lessons')
+        .from('contents')
         .delete()
         .eq('id', lessonId);
 
@@ -315,7 +311,7 @@ export default function AdminLessonsPage() {
 
       push('Aula deletada com sucesso!', 'success');
       if (selectedModule) {
-        await loadLessons(selectedModule);
+        await loadContents(selectedModule);
       }
     } catch (error) {
       console.error('Erro ao deletar aula:', error);

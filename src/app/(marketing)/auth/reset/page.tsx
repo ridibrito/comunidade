@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
@@ -13,6 +15,8 @@ export default function ResetPasswordPage() {
   const [email, setEmail] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -74,6 +78,11 @@ export default function ResetPasswordPage() {
             login_count: 1
           })
           .eq('id', user.id);
+
+        // Confirma via endpoint server-side (service role) para garantir consistência
+        try {
+          await fetch('/api/profile', { method: 'POST' });
+        } catch {}
       }
 
       setSuccess(true);
@@ -93,10 +102,20 @@ export default function ResetPasswordPage() {
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">Verificando autenticação...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-dark-bg p-4">
+        <div className="bg-dark-surface shadow-lg rounded-lg p-8 max-w-md text-center">
+          <div className="mb-4 flex justify-center">
+            <Image 
+              src="/logo_full.png" 
+              alt="Aldeia Singular" 
+              width={200} 
+              height={40}
+              priority
+              style={{ width: "auto", height: "auto" }}
+            />
+          </div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-accent mx-auto mb-4"></div>
+          <p className="text-dark-text">Verificando autenticação...</p>
         </div>
       </div>
     );
@@ -104,24 +123,34 @@ export default function ResetPasswordPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-dark-bg p-4">
+        <div className="bg-dark-surface shadow-lg rounded-lg p-8 max-w-md text-center">
+          <div className="mb-4 flex justify-center">
+            <Image 
+              src="/logo_full.png" 
+              alt="Aldeia Singular" 
+              width={200} 
+              height={40}
+              priority
+              style={{ width: "auto", height: "auto" }}
+            />
+          </div>
           <div className="mb-4">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900">
-              <svg className="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-900">
+              <svg className="h-6 w-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-2xl font-bold text-dark-text mb-4">
             Acesso Negado
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
+          <p className="text-dark-muted mb-6">
             {error || "Você precisa estar logado para redefinir sua senha. Verifique o link do email."}
           </p>
           <a
             href="/auth/login"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-brand-accent hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent"
           >
             Ir para Login
           </a>
@@ -132,82 +161,128 @@ export default function ResetPasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-dark-bg p-4">
+        <div className="bg-dark-surface shadow-lg rounded-lg p-8 max-w-md text-center">
+          <div className="mb-4 flex justify-center">
+            <Image 
+              src="/logo_full.png" 
+              alt="Aldeia Singular" 
+              width={200} 
+              height={40}
+              priority
+              style={{ width: "auto", height: "auto" }}
+            />
+          </div>
           <div className="mb-4">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900">
-              <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-900">
+              <svg className="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-2xl font-bold text-dark-text mb-4">
             Senha Redefinida com Sucesso!
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
+          <p className="text-dark-muted mb-6">
             Sua senha foi redefinida com sucesso. Você será redirecionado para o dashboard em instantes.
           </p>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-accent mx-auto"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-      <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md w-full">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-dark-bg p-4">
+      <div className="bg-dark-surface shadow-lg rounded-lg p-8 max-w-md w-full">
+        <div className="mb-4 flex justify-center">
+          <Image 
+            src="/logo_full.png" 
+            alt="Aldeia Singular" 
+            width={200} 
+            height={40}
+            priority
+            style={{ width: "auto", height: "auto" }}
+          />
+        </div>
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-2xl font-bold text-dark-text mb-2">
             Definir Nova Senha
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-dark-muted">
             {email ? `Para ${email}` : "Digite sua nova senha"}
           </p>
         </div>
 
         <form onSubmit={handleResetPassword} className="space-y-6">
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="password" className="block text-sm font-medium text-dark-text mb-2">
               Nova Senha
             </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Digite sua nova senha"
-              required
-              minLength={6}
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 pr-10 border border-dark-border rounded-xl bg-transparent text-dark-text placeholder-dark-muted focus:outline-none focus:ring-1 focus:ring-brand-accent focus:border-brand-accent"
+                placeholder="Digite sua nova senha"
+                required
+                minLength={6}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-dark-muted hover:text-dark-text transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-dark-text mb-2">
               Confirmar Senha
             </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Confirme sua nova senha"
-              required
-              minLength={6}
-            />
+            <div className="relative">
+              <input
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-3 py-2 pr-10 border border-dark-border rounded-xl bg-transparent text-dark-text placeholder-dark-muted focus:outline-none focus:ring-1 focus:ring-brand-accent focus:border-brand-accent"
+                placeholder="Confirme sua nova senha"
+                required
+                minLength={6}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-dark-muted hover:text-dark-text transition-colors"
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
 
           {error && (
-            <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-md p-3">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <div className="bg-red-900/20 border border-red-800 rounded-lg p-3">
+              <p className="text-sm text-red-400">{error}</p>
             </div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl text-sm font-medium text-white bg-brand-accent hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <div className="flex items-center">
@@ -221,9 +296,9 @@ export default function ResetPasswordPage() {
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-dark-muted">
             Lembrou da senha?{" "}
-            <a href="/auth/login" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
+            <a href="/auth/login" className="font-medium text-brand-accent hover:underline">
               Fazer login
             </a>
           </p>

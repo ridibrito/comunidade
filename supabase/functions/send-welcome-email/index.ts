@@ -12,9 +12,12 @@ Deno.serve(async (req) => {
   }
 
   try {
+    console.log('🚀 Edge Function iniciada');
     const { email, name, tempPassword } = await req.json();
+    console.log('📧 Dados recebidos:', { email, name, hasTempPassword: !!tempPassword });
 
     if (!email || !name || !tempPassword) {
+      console.error('❌ Dados incompletos:', { email, name, hasTempPassword: !!tempPassword });
       return new Response(
         JSON.stringify({ error: 'Email, nome e senha são obrigatórios' }),
         { 
@@ -244,7 +247,9 @@ Deno.serve(async (req) => {
     `;
 
     // Enviar email usando Resend
+    console.log('🔑 Verificando RESEND_API_KEY...');
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    console.log('🔑 RESEND_API_KEY presente:', !!resendApiKey);
     
     if (!resendApiKey) {
       console.warn('⚠️  RESEND_API_KEY não configurada. Email não será enviado.');
@@ -266,22 +271,29 @@ Deno.serve(async (req) => {
       );
     }
 
+    console.log('📮 Preparando envio via Resend API...');
+    const emailPayload = {
+      from: 'Aldeia Singular <onboarding@resend.dev>',
+      to: [email],
+      subject: 'Bem-vindo à Aldeia Singular!',
+      html: emailHTML,
+    };
+    console.log('📮 Payload preparado:', { from: emailPayload.from, to: emailPayload.to, subject: emailPayload.subject });
+
     // Enviar email via Resend API
+    console.log('🌐 Fazendo request para Resend...');
     const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${resendApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        from: 'Aldeia Singular <onboarding@resend.dev>',
-        to: [email],
-        subject: 'Bem-vindo à Aldeia Singular!',
-        html: emailHTML,
-      }),
+      body: JSON.stringify(emailPayload),
     });
 
+    console.log('📡 Resposta recebida do Resend. Status:', resendResponse.status);
     const resendData = await resendResponse.json();
+    console.log('📡 Dados da resposta:', resendData);
 
     if (!resendResponse.ok) {
       console.error('❌ Erro ao enviar email via Resend:', resendData);
@@ -318,9 +330,15 @@ Deno.serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Erro na Edge Function:', error);
+    console.error('💥 Erro na Edge Function:', error);
+    console.error('💥 Stack trace:', error.stack);
+    console.error('💥 Mensagem:', error.message);
     return new Response(
-      JSON.stringify({ error: 'Erro interno do servidor' }),
+      JSON.stringify({ 
+        error: 'Erro interno do servidor',
+        message: error.message,
+        stack: error.stack 
+      }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

@@ -19,7 +19,7 @@ import { MoreVertical, Plus, Trash2, Pencil, Users, Mail, Shield, TrendingUp, Ac
 import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-import { useToast } from "@/components/ui/ToastProvider";
+import { useToastContext } from "@/components/providers/ToastProvider";
 import { useMockUsers } from "@/components/ui/MockUsers";
 
 type Role = "admin" | "aluno" | "profissional";
@@ -40,7 +40,7 @@ interface User {
 
 export default function AdminUsersPage() {
   const supabase = getBrowserSupabaseClient();
-  const { push } = useToast();
+  const { success, error, warning, info } = useToastContext();
   const { confirm } = useConfirm();
   
   // Estados para dados reais do Supabase
@@ -97,19 +97,15 @@ export default function AdminUsersPage() {
         setDbError(error instanceof Error ? error.message : "Erro desconhecido");
         setUseMockData(true);
         
-        push({ 
-          title: "Usando dados de demonstração", 
-          message: "Não foi possível conectar com o banco de dados. Exibindo dados mockados.", 
-          variant: "warning" 
-        });
+        warning("Usando dados de demonstração", "Não foi possível conectar com o banco de dados. Exibindo dados mockados.");
       } finally {
         setLoading(false);
       }
     })();
-  }, [push]);
+  }, [warning]);
 
   async function createUser() {
-    if (!email) { push({ title: "Informe o e‑mail", message: "Campo e‑mail é obrigatório.", variant: "error" }); return; }
+    if (!email) { error("Informe o e‑mail", "Campo e‑mail é obrigatório."); return; }
     
     if (useMockData) {
       // Usar dados mockados
@@ -133,13 +129,9 @@ export default function AdminUsersPage() {
             `\n\n🔑 Credenciais Geradas:\nEmail: ${result.credentials.email}\nSenha: ${result.credentials.tempPassword}` : 
             "";
           
-          push({ 
-            title: "Usuário criado com sucesso", 
-            message: `${result.message}\n\n${emailStatus}${credentials}\n\nO usuário receberá um email com as credenciais e poderá fazer login imediatamente.`,
-            variant: "success"
-          });
+          success("Usuário criado com sucesso", `${result.message}\n\n${emailStatus}${credentials}\n\nO usuário receberá um email com as credenciais e poderá fazer login imediatamente.`);
         } else {
-          push({ title: "Erro", message: result.error || "Erro ao criar usuário", variant: "error" });
+          error("Erro", result.error || "Erro ao criar usuário");
         }
       setEmail(""); setName(""); setRole("aluno"); setOpenAdd(false);
       // refresh lista
@@ -148,7 +140,7 @@ export default function AdminUsersPage() {
       setRealUsers(json.users ?? []);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      push({ title: "Erro", message: msg, variant: "error" });
+      error("Erro", msg);
     } finally {
       setLoading(false);
     }
@@ -169,10 +161,10 @@ export default function AdminUsersPage() {
       const resp = await fetch(`/api/admin/users?id=${id}`, { method: "DELETE" });
       if (!resp.ok) throw new Error(await resp.text());
       setRealUsers((prev) => prev.filter((u) => u.id !== id));
-      push({ title: "Usuário removido", message: "Registro excluído com sucesso." });
+      success("Usuário removido", "Registro excluído com sucesso.");
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      push({ title: "Erro ao excluir", message: msg, variant: "error" });
+      error("Erro ao excluir", msg);
     }
   }
 
@@ -256,10 +248,10 @@ export default function AdminUsersPage() {
       const listResp = await fetch("/api/admin/users");
       const json = await listResp.json();
       setRealUsers(json.users ?? []);
-      push({ title: "Usuário excluído", message: "Usuário removido com sucesso." });
+      success("Usuário excluído", "Usuário removido com sucesso.");
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      push({ title: "Erro ao excluir", message: msg, variant: "error" });
+      error("Erro ao excluir", msg);
     }
   }
 
@@ -285,14 +277,10 @@ export default function AdminUsersPage() {
       const json = await listResp.json();
       setRealUsers(json.users ?? []);
       
-      push({ 
-        title: result.message, 
-        message: `Usuário ${result.is_active ? 'ativado' : 'desativado'} com sucesso.`,
-        variant: "success"
-      });
+      success(result.message, `Usuário ${result.is_active ? 'ativado' : 'desativado'} com sucesso.`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      push({ title: "Erro ao alterar status", message: msg, variant: "error" });
+      error("Erro ao alterar status", msg);
     }
   }
 
@@ -313,29 +301,21 @@ export default function AdminUsersPage() {
       const result = await resp.json();
       
       if (result.ok) {
-        push({ 
-          title: result.message, 
-          message: "Link de reset de senha enviado por email para o usuário.",
-          variant: "success"
-        });
+        success(result.message, "Link de reset de senha enviado por email para o usuário.");
       } else {
-        push({ 
-          title: "Erro", 
-          message: result.message || "Erro ao enviar link de reset",
-          variant: "error"
-        });
+        error("Erro ao enviar link de reset", result.message || "Não foi possível enviar o link de reset de senha.");
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      push({ title: "Erro ao resetar senha", message: msg, variant: "error" });
+      error("Erro ao resetar senha", msg);
     }
   }
 
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text).then(() => {
-      push({ title: "Copiado", message: "Senha copiada para a área de transferência.", variant: "success" });
+      success("Copiado", "Senha copiada para a área de transferência.");
     }).catch(() => {
-      push({ title: "Erro", message: "Não foi possível copiar a senha.", variant: "error" });
+      error("Erro", "Não foi possível copiar a senha.");
     });
   }
 
@@ -650,10 +630,10 @@ export default function AdminUsersPage() {
                     const listResp = await fetch("/api/admin/users");
                     const json = await listResp.json();
                     setRealUsers(json.users ?? []);
-                    push({ title: "Usuário atualizado", message: "Alterações salvas." });
+                    success("Usuário atualizado", "Alterações salvas.");
                   } catch (e) {
                     const msg = e instanceof Error ? e.message : String(e);
-                    push({ title: "Erro ao atualizar", message: msg, variant: "error" });
+                    error("Erro ao atualizar", msg);
                   }
                 }} 
                 className="h-10 px-4 rounded-lg bg-brand-accent text-white hover:bg-brand-accent/90 transition-colors"

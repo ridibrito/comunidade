@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { UserMenu } from "./UserMenu";
 import ThemeToggle from "@/components/ui/ThemeToggle";
-import { Calendar, Bell } from "lucide-react";
+import { Calendar } from "lucide-react";
+import { NotificationBell } from "@/components/ui/NotificationSystem";
 import { cn } from "@/lib/utils";
 export function Navbar() {
   return (
@@ -15,18 +16,17 @@ export function Navbar() {
           </Link>
         </div>
         <nav className="flex items-center gap-3 pr-1">
-          {/* Ícone de Calendário com Notificações */}
+          {/* Ícone de Calendário */}
           <Link 
             href="/calendar" 
-            className="relative inline-flex items-center justify-center w-10 h-10 rounded-lg hover:bg-light-surface dark:hover:bg-dark-border/50 transition-colors group cursor-pointer"
+            className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors cursor-pointer hover-brand-subtle text-light-muted dark:text-dark-muted"
             title="Calendário de Eventos"
           >
-            <Calendar className="w-5 h-5 text-light-text dark:text-dark-text" />
-            {/* Badge de Notificação */}
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium animate-pulse">
-              3
-            </span>
+            <Calendar size={18} />
           </Link>
+          
+          {/* Sistema de Notificações */}
+          <NotificationBell />
           
           <ThemeToggle />
           <UserMenu />
