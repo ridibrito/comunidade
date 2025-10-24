@@ -53,28 +53,13 @@ export default function AdminIAPage() {
 
   const loadPrompts = async () => {
     try {
-      // Simular carregamento de prompts
-      const mockPrompts: IAPrompt[] = [
-        {
-          id: '1',
-          name: 'Prompt Principal',
-          content: `Você é um assistente especializado em Altas Habilidades/Superdotação (AHSD) e desenvolvimento infantil. 
-
-Sua missão é ajudar famílias com crianças AHSD fornecendo:
-- Orientação educacional especializada
-- Estratégias de desenvolvimento
-- Suporte emocional para pais e cuidadores
-- Informações sobre recursos e oportunidades
-- Dicas para estimular o potencial das crianças
-
-Sempre responda em português brasileiro, seja empático, acolhedor e forneça informações precisas e úteis.
-Se não souber algo específico, seja honesto e sugira onde buscar mais informações.`,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
-      setPrompts(mockPrompts);
+      const response = await fetch('/api/ia/prompts');
+      if (response.ok) {
+        const data = await response.json();
+        setPrompts(data);
+      } else {
+        console.error('Erro ao carregar prompts');
+      }
     } catch (error) {
       console.error('Erro ao carregar prompts:', error);
     }
@@ -98,17 +83,25 @@ Se não souber algo específico, seja honesto e sugira onde buscar mais informa�
   const handleCreatePrompt = async () => {
     if (!newPrompt.name || !newPrompt.content) return;
 
-    const prompt: IAPrompt = {
-      id: Date.now().toString(),
-      name: newPrompt.name,
-      content: newPrompt.content,
-      isActive: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    try {
+      const response = await fetch('/api/ia/prompts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newPrompt),
+      });
 
-    setPrompts(prev => [...prev, prompt]);
-    setNewPrompt({ name: '', content: '' });
+      if (response.ok) {
+        const createdPrompt = await response.json();
+        setPrompts(prev => [...prev, createdPrompt]);
+        setNewPrompt({ name: '', content: '' });
+      } else {
+        console.error('Erro ao criar prompt');
+      }
+    } catch (error) {
+      console.error('Erro ao criar prompt:', error);
+    }
   };
 
   const handleEditPrompt = (prompt: IAPrompt) => {
@@ -119,29 +112,70 @@ Se não souber algo específico, seja honesto e sugira onde buscar mais informa�
   const handleSavePrompt = async () => {
     if (!currentPrompt) return;
 
-    setPrompts(prev => prev.map(p => 
-      p.id === currentPrompt.id ? { ...currentPrompt, updatedAt: new Date().toISOString() } : p
-    ));
-    setCurrentPrompt(null);
-    setIsEditing(false);
+    try {
+      const response = await fetch(`/api/ia/prompts/${currentPrompt.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: currentPrompt.name,
+          content: currentPrompt.content,
+        }),
+      });
+
+      if (response.ok) {
+        const updatedPrompt = await response.json();
+        setPrompts(prev => prev.map(p => 
+          p.id === currentPrompt.id ? updatedPrompt : p
+        ));
+        setCurrentPrompt(null);
+        setIsEditing(false);
+      } else {
+        console.error('Erro ao atualizar prompt');
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar prompt:', error);
+    }
   };
 
   const handleActivatePrompt = async (promptId: string) => {
-    setPrompts(prev => prev.map(p => ({
-      ...p,
-      isActive: p.id === promptId
-    })));
-    
-    // Salvar prompt ativo no localStorage para a API acessar
-    const activePrompt = prompts.find(p => p.id === promptId);
-    if (activePrompt) {
-      localStorage.setItem('activePrompt', JSON.stringify(activePrompt));
-      console.log('Prompt ativo salvo:', activePrompt.name);
+    try {
+      const response = await fetch('/api/ia/prompts/activate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: promptId }),
+      });
+
+      if (response.ok) {
+        // Recarregar prompts para refletir mudanças
+        await loadPrompts();
+        console.log('Prompt ativado com sucesso');
+      } else {
+        console.error('Erro ao ativar prompt');
+      }
+    } catch (error) {
+      console.error('Erro ao ativar prompt:', error);
     }
   };
 
   const handleDeletePrompt = async (promptId: string) => {
-    setPrompts(prev => prev.filter(p => p.id !== promptId));
+    try {
+      const response = await fetch(`/api/ia/prompts/${promptId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setPrompts(prev => prev.filter(p => p.id !== promptId));
+        console.log('Prompt excluído com sucesso');
+      } else {
+        console.error('Erro ao excluir prompt');
+      }
+    } catch (error) {
+      console.error('Erro ao excluir prompt:', error);
+    }
   };
 
   return (
