@@ -5,8 +5,7 @@ import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
 import ModernCard from "@/components/ui/ModernCard";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
 import { Bot, Send, User, Loader2 } from "lucide-react";
 
 interface Message {
@@ -17,7 +16,14 @@ interface Message {
 }
 
 export default function IAPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 'welcome',
+      role: 'assistant',
+      content: 'Olá! Sou seu assistente especializado em Altas Habilidades/Superdotação (AHSD) e desenvolvimento infantil. Como posso ajudá-lo hoje?',
+      timestamp: new Date()
+    }
+  ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -47,7 +53,7 @@ export default function IAPage() {
     try {
       console.log('Enviando mensagem:', input.trim());
       
-      const response = await fetch('/api/ia/simple', {
+      const response = await fetch('/api/ia/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -91,7 +97,7 @@ export default function IAPage() {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
@@ -99,7 +105,14 @@ export default function IAPage() {
   };
 
   const clearChat = () => {
-    setMessages([]);
+    setMessages([
+      {
+        id: 'welcome',
+        role: 'assistant',
+        content: 'Olá! Sou seu assistente especializado em Altas Habilidades/Superdotação (AHSD) e desenvolvimento infantil. Como posso ajudá-lo hoje?',
+        timestamp: new Date()
+      }
+    ]);
   };
 
   return (
@@ -215,20 +228,26 @@ export default function IAPage() {
             {/* Input */}
             <div className="p-4 border-t border-light-border dark:border-dark-border">
               <div className="flex gap-2">
-                <Input
+                <textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Digite sua mensagem..."
+                  onKeyDown={handleKeyDown}
+                  placeholder="Digite sua mensagem... (Enter para enviar, Shift+Enter para nova linha)"
                   disabled={isLoading}
-                  className="flex-1"
+                  className="flex-1 min-h-[40px] max-h-[120px] px-3 py-2 border border-light-border dark:border-dark-border rounded-md bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text placeholder-light-muted dark:placeholder-dark-muted focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent resize-none"
+                  rows={1}
                 />
                 <Button
                   onClick={sendMessage}
                   disabled={!input.trim() || isLoading}
                   size="sm"
+                  className="self-end"
                 >
-                  <Send className="w-4 h-4" />
+                  {isLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
                 </Button>
               </div>
             </div>

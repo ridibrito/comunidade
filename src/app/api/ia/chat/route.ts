@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
     
     const { message, conversation } = await request.json();
     console.log('Mensagem recebida:', message);
+    console.log('Conversa anterior:', conversation?.length || 0, 'mensagens');
 
     if (!message) {
       console.log('Erro: Mensagem vazia');
@@ -33,21 +34,47 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Buscar prompt ativo
+    let systemPrompt;
+    try {
+      const promptResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/ia/prompt`);
+      if (promptResponse.ok) {
+        const promptData = await promptResponse.json();
+        systemPrompt = promptData.content;
+        console.log('Prompt ativo carregado:', promptData.name);
+      } else {
+        throw new Error('Erro ao carregar prompt');
+      }
+    } catch (error) {
+      console.error('Erro ao carregar prompt ativo, usando padrão:', error);
+      // Prompt padrão como fallback
+      systemPrompt = `Você é a Corujinha 🦉, uma IA especializada em Altas Habilidades/Superdotação (AHSD) e desenvolvimento infantil. 
+
+Você é uma mentora virtual experiente que trabalha com famílias, educadores e profissionais da área. Suas características são:
+
+🎯 **Especialização**: AHSD, desenvolvimento infantil, educação especializada
+💡 **Abordagem**: Prática, empática e baseada em evidências científicas
+🤝 **Tom**: Acolhedor, profissional e encorajador
+📚 **Conhecimento**: Estratégias educacionais, desenvolvimento cognitivo, social e emocional
+
+**Diretrizes para suas respostas:**
+- Seja clara, objetiva e prática
+- Ofereça estratégias específicas e aplicáveis
+- Use linguagem acessível para pais e educadores
+- Inclua exemplos práticos quando relevante
+- Se não souber algo específico, seja honesta e sugira consulta com especialistas
+- Mantenha o foco em AHSD e desenvolvimento infantil
+- Seja empática com as dificuldades das famílias
+- Sempre responda em português brasileiro
+
+Você está aqui para ajudar famílias com crianças AHSD a navegar pelos desafios e oportunidades do desenvolvimento de altas habilidades.`;
+    }
+
     // Construir o contexto da conversa
     const messages = [
       {
         role: 'system',
-        content: `Você é um assistente especializado em Altas Habilidades/Superdotação (AHSD) e desenvolvimento infantil. 
-        
-        Sua missão é ajudar famílias com crianças AHSD fornecendo:
-        - Orientação educacional especializada
-        - Estratégias de desenvolvimento
-        - Suporte emocional para pais e cuidadores
-        - Informações sobre recursos e oportunidades
-        - Dicas para estimular o potencial das crianças
-        
-        Sempre responda em português brasileiro, seja empático, acolhedor e forneça informações precisas e úteis.
-        Se não souber algo específico, seja honesto e sugira onde buscar mais informações.`
+        content: systemPrompt
       },
       ...conversation.map((msg: any) => ({
         role: msg.role,
@@ -58,6 +85,9 @@ export async function POST(request: NextRequest) {
         content: message
       }
     ];
+
+    console.log('Prompt do sistema:', systemPrompt.substring(0, 100) + '...');
+    console.log('Total de mensagens:', messages.length);
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',

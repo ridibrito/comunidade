@@ -99,6 +99,7 @@ export function Sidebar() {
                 {item("/admin/users", "Usuários", pathname.startsWith("/admin/users"), UsersRound)}
                 {item("/admin/mountains", "Conteúdos", pathname.startsWith("/admin/mountains"), BookOpen)}
                 {item("/admin/heroes", "Heroes", pathname.startsWith("/admin/heroes"), ImageIcon)}
+                {item("/admin/ia", "IA", pathname.startsWith("/admin/ia"), Bot)}
                 {item("/admin/notifications", "Notificações", pathname.startsWith("/admin/notifications"), Bell)}
                 {item("/admin/permissions", "Permissões", pathname.startsWith("/admin/permissions"), Shield)}
                 {item("/admin/bulk-operations", "Operações em Lote", pathname.startsWith("/admin/bulk-operations"), Upload)}

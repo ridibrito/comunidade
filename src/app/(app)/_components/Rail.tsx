@@ -74,13 +74,13 @@ export function Rail() {
       {item("/dashboard", "Início", <Home size={18} />)}
       {item("/community", "Comunidade", <MessagesSquare size={18} />)}
       {item("/catalog/montanha-do-amanha", "Conteúdos", <BookOpen size={18} />)}
-      <Tooltip label="Corujinha (IA)">
+      <Tooltip label="Assistente IA">
         <Link
-          href="/ai"
+          href="/ia"
           className={cn(
             "relative flex h-10 w-10 items-center justify-center rounded-xl transition-all cursor-pointer",
             "bg-gradient-to-br from-purple-600 via-purple-700 to-purple-800 hover:from-purple-500 hover:via-purple-600 hover:to-purple-700 text-white shadow-lg",
-            isActive("/ai") ? "ring-2 ring-white/30 scale-105" : "ring-0"
+            isActive("/ia") ? "ring-2 ring-white/30 scale-105" : "ring-0"
           )}
           style={{ 
             boxShadow: "0 8px 25px rgba(147, 51, 234, 0.4), 0 4px 12px rgba(147, 51, 234, 0.2)",
