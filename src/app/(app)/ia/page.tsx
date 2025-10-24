@@ -229,9 +229,9 @@ export default function IAPage() {
   };
 
   return (
-    <div className="flex h-screen bg-light-surface dark:bg-dark-surface">
+    <div className="flex h-screen bg-light-surface dark:bg-dark-surface overflow-hidden">
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 bg-light-surface-secondary dark:bg-dark-surface-secondary border-r border-light-border dark:border-dark-border overflow-hidden`}>
+      <div className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 bg-light-surface-secondary dark:bg-dark-surface-secondary border-r border-light-border dark:border-dark-border flex flex-col overflow-hidden`}>
         <div className="p-4 border-b border-light-border dark:border-dark-border">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-light-text dark:text-dark-text">Conversas</h2>
@@ -245,7 +245,7 @@ export default function IAPage() {
           </div>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-2">
+        <div className="flex-1 overflow-y-auto p-2 min-h-0">
           {conversations.map((conversation) => (
             <div
               key={conversation.id}
@@ -282,7 +282,7 @@ export default function IAPage() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="p-4 border-b border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
           <div className="flex items-center justify-between">
@@ -307,7 +307,7 @@ export default function IAPage() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
           {messages.map((msg) => (
             <div
               key={msg.id}
