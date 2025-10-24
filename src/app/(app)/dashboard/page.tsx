@@ -85,6 +85,33 @@ export default function DashboardPage() {
   };
   
   const progressPct = Math.round((mockProgress.completed / mockProgress.totalLessons) * 100);
+  
+  // Dados de eventos mockados temporariamente
+  const mockEvents = [
+    {
+      title: "Workshop de AHSD",
+      date: "25 de Outubro, 2024",
+      time: "14:00"
+    }
+  ];
+  
+  // Dados de trilhas mockados temporariamente
+  const mockTrails = [
+    {
+      title: "Montanha do Amanhã",
+      description: "Trilha completa de desenvolvimento",
+      progress: 75,
+      lessons: 12,
+      completed: 9
+    },
+    {
+      title: "Acervo Digital",
+      description: "Biblioteca de recursos educacionais",
+      progress: 40,
+      lessons: 8,
+      completed: 3
+    }
+  ];
 
   // Funções determinísticas para evitar hydration mismatch (sem Math.random no render)
   function hashStringToInt(input: string, seed = 0): number {
