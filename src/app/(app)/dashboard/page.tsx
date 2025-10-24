@@ -77,6 +77,13 @@ export default function DashboardPage() {
       }
     })();
   }, []);
+  
+  // Dados de progresso mockados temporariamente
+  const mockProgress = {
+    completed: 12,
+    totalLessons: 20
+  };
+  
   const progressPct = Math.round((mockProgress.completed / mockProgress.totalLessons) * 100);
 
   // Funções determinísticas para evitar hydration mismatch (sem Math.random no render)
