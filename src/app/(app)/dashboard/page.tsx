@@ -1,6 +1,6 @@
 "use client";
 
-import { mockUser, mockTrails, mockEvents, mockProgress } from "@/data/mock/data";
+// Dados mockados removidos - usando dados reais do Supabase
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
@@ -18,7 +18,7 @@ import { useToast } from "@/components/ui/ToastProvider";
 
 export default function DashboardPage() {
   const { push } = useToast();
-  const [displayName, setDisplayName] = useState<string>(mockUser.name);
+  const [displayName, setDisplayName] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [partnerName, setPartnerName] = useState<string | null>(null);
   const [partnerAvatarUrl, setPartnerAvatarUrl] = useState<string | null>(null);

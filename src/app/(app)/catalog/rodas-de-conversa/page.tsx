@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/CarouselNew";
+import ContentCarousel from "@/components/ui/ContentCarousel";
 import Card from "@/components/ui/Card";
 import { createClient } from "@/lib/supabase";
 
@@ -194,35 +194,32 @@ export default function RodasDeConversaPage() {
             </div>
             
                 {trail.modules.length > 0 && (
-                  <Carousel className="w-full">
-                    <CarouselContent className="-ml-4">
-                      {trail.modules.map((module) => (
-                        <CarouselItem key={module.id} className="pl-4 basis-full sm:basis-[300px] lg:basis-[350px]">
-                          <Card
-                            className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 h-96 flex flex-col"
-                            onClick={() => handleModuleClick(module.slug)}
-                          >
-                            <div className="flex-1 bg-gradient-to-br from-green-500 to-green-600 rounded-t-lg relative overflow-hidden">
-                              <div className="absolute inset-0 bg-black/20"></div>
-                              <div className="absolute bottom-4 left-4 right-4">
-                                <h3 className="text-white font-semibold text-lg leading-tight">
-                                  {module.title}
-                                </h3>
-            </div>
-          </div>
-                            <div className="p-4 flex-1 flex flex-col justify-between">
-                              <p className="text-sm text-light-muted dark:text-dark-muted line-clamp-2">
-                                {module.description}
-                              </p>
-                              <div className="mt-2 text-xs text-light-muted dark:text-dark-muted">
-                                {module.contents.length} {module.contents.length === 1 ? 'sessão' : 'sessões'}
-              </div>
-            </div>
-                          </Card>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-              </Carousel>
+                  <ContentCarousel>
+                    {trail.modules.map((module) => (
+                      <Card
+                        key={module.id}
+                        className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 h-96 flex flex-col"
+                        onClick={() => handleModuleClick(module.slug)}
+                      >
+                        <div className="flex-1 bg-gradient-to-br from-green-500 to-green-600 rounded-t-lg relative overflow-hidden">
+                          <div className="absolute inset-0 bg-black/20"></div>
+                          <div className="absolute bottom-4 left-4 right-4">
+                            <h3 className="text-white font-semibold text-lg leading-tight">
+                              {module.title}
+                            </h3>
+                          </div>
+                        </div>
+                        <div className="p-4 flex-1 flex flex-col justify-between">
+                          <p className="text-sm text-light-muted dark:text-dark-muted line-clamp-2">
+                            {module.description}
+                          </p>
+                          <div className="mt-2 text-xs text-light-muted dark:text-dark-muted">
+                            {module.contents.length} {module.contents.length === 1 ? 'sessão' : 'sessões'}
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </ContentCarousel>
                 )}
             </div>
             ))}

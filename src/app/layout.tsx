@@ -67,12 +67,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favico.ico', sizes: 'any' },
-      { url: '/logo.png', sizes: '32x32', type: 'image/png' },
-      { url: '/logo.png', sizes: '16x16', type: 'image/png' },
+      { url: '/icone.png', sizes: 'any' },
+      { url: '/icone.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icone.png', sizes: '16x16', type: 'image/png' },
     ],
-    apple: '/logo.png',
-    shortcut: '/favico.ico',
+    apple: '/icone.png',
+    shortcut: '/icone.png',
   },
   manifest: '/manifest.json',
   robots: {

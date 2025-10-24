@@ -7,13 +7,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import Badge from "@/components/ui/Badge";
 import { CardVideoAula } from "@/components/ui/CardModels";
 import HeroSection from "@/components/ui/HeroSection";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/CarouselNew";
+import ContentCarousel from "@/components/ui/ContentCarousel";
 import Card from "@/components/ui/Card";
 import { Play, Clock, Users, BookOpen } from "lucide-react";
 import { createClient } from "@/lib/supabase";
@@ -357,57 +351,49 @@ export default function MontanhaAmanhaPage() {
               
                 {/* Carrossel de Módulos */}
                 {trail.modules.length > 0 && (
-                <Carousel
-                  opts={{
-                    align: "start",
-                  }}
-                  className="w-full"
-                >
-                    <CarouselContent className="-ml-4">
-                      {trail.modules.map((module: ModuleWithContents, moduleIndex: number) => (
-                        <CarouselItem key={module.id} className="pl-4 basis-full sm:basis-[300px] lg:basis-[350px]">
-                          <div 
-                            className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 relative overflow-hidden rounded-lg"
-                            onClick={() => handleModuleClick(module.slug)}
-                          >
-                            {/* Imagem de fundo - CARD VERTICAL RESPONSIVO */}
-                            <div className="relative w-full h-96 bg-gradient-to-br from-orange-500 to-orange-600">
-                              <img 
-                                src={module.image_url || module.image} 
-                                alt={module.title}
-                                className="w-full h-full object-cover"
-                              />
-                              {/* Overlay escuro para legibilidade do texto */}
-                              <div className="absolute inset-0 bg-black/40"></div>
-                              
-                              {/* Título do módulo e progresso no overlay */}
-                              <div className="absolute bottom-4 left-4 right-4">
-                                <h3 className="text-white font-semibold text-lg leading-tight mb-2">
-                                  {module.title}
-                                </h3>
-                                
-                                {/* Barra de progresso do módulo */}
-                                {modulesProgress[module.id] && (
-                                  <div className="mt-2">
-                                    <div className="flex justify-between text-xs text-white/90 mb-1">
-                                      <span>{modulesProgress[module.id].completed}/{modulesProgress[module.id].total} concluídas</span>
-                                      <span>{modulesProgress[module.id].percentage}%</span>
-                                    </div>
-                                    <div className="w-full bg-white/20 backdrop-blur-sm rounded-full h-1.5 overflow-hidden">
-                                      <div 
-                                        className="bg-white h-full transition-all duration-300 shadow-lg"
-                                        style={{ width: `${modulesProgress[module.id].percentage}%` }}
-                                      />
-                                    </div>
-                                  </div>
-                                )}
+                  <ContentCarousel>
+                    {trail.modules.map((module: ModuleWithContents, moduleIndex: number) => (
+                      <div 
+                        key={module.id}
+                        className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 relative overflow-hidden rounded-lg"
+                        onClick={() => handleModuleClick(module.slug)}
+                      >
+                        {/* Imagem de fundo - CARD VERTICAL RESPONSIVO */}
+                        <div className="relative w-full h-96 bg-gradient-to-br from-orange-500 to-orange-600">
+                          <img 
+                            src={module.image_url || module.image} 
+                            alt={module.title}
+                            className="w-full h-full object-cover"
+                          />
+                          {/* Overlay escuro para legibilidade do texto */}
+                          <div className="absolute inset-0 bg-black/40"></div>
+                          
+                          {/* Título do módulo e progresso no overlay */}
+                          <div className="absolute bottom-4 left-4 right-4">
+                            <h3 className="text-white font-semibold text-lg leading-tight mb-2">
+                              {module.title}
+                            </h3>
+                            
+                            {/* Barra de progresso do módulo */}
+                            {modulesProgress[module.id] && (
+                              <div className="mt-2">
+                                <div className="flex justify-between text-xs text-white/90 mb-1">
+                                  <span>{modulesProgress[module.id].completed}/{modulesProgress[module.id].total} concluídas</span>
+                                  <span>{modulesProgress[module.id].percentage}%</span>
+                                </div>
+                                <div className="w-full bg-white/20 backdrop-blur-sm rounded-full h-1.5 overflow-hidden">
+                                  <div 
+                                    className="bg-white h-full transition-all duration-300 shadow-lg"
+                                    style={{ width: `${modulesProgress[module.id].percentage}%` }}
+                                  />
+                                </div>
                               </div>
-                            </div>
+                            )}
                           </div>
-                      </CarouselItem>
+                        </div>
+                      </div>
                     ))}
-                  </CarouselContent>
-                </Carousel>
+                  </ContentCarousel>
                 )}
             </div>
             ))

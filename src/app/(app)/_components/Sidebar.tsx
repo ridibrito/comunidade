@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, BookOpen, Library, UsersRound, PlayCircle, Mountain, HelpCircle, ShieldCheck, Settings, BarChart3, ImageIcon } from "lucide-react";
+import { CalendarDays, BookOpen, Library, UsersRound, PlayCircle, Mountain, HelpCircle, ShieldCheck, Settings, BarChart3, ImageIcon, Bell, Shield, Upload, History, Link as LinkIcon, Database } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -96,9 +96,14 @@ export function Sidebar() {
               <>
                 {item("/admin", "Dashboard", pathname === "/admin", BarChart3)}
                 {item("/admin/users", "Usuários", pathname.startsWith("/admin/users"), UsersRound)}
-                {item("/admin/mountains", "Montanhas", pathname.startsWith("/admin/mountains"), Mountain)}
+                {item("/admin/mountains", "Conteúdos", pathname.startsWith("/admin/mountains"), BookOpen)}
                 {item("/admin/heroes", "Heroes", pathname.startsWith("/admin/heroes"), ImageIcon)}
-                {item("/admin/settings", "Configurações", pathname.startsWith("/admin/settings"), Settings)}
+                {item("/admin/notifications", "Notificações", pathname.startsWith("/admin/notifications"), Bell)}
+                {item("/admin/permissions", "Permissões", pathname.startsWith("/admin/permissions"), Shield)}
+                {item("/admin/bulk-operations", "Operações em Lote", pathname.startsWith("/admin/bulk-operations"), Upload)}
+                {item("/admin/audit-logs", "Logs de Auditoria", pathname.startsWith("/admin/audit-logs"), History)}
+                {item("/admin/integrations", "Integrações", pathname.startsWith("/admin/integrations"), LinkIcon)}
+                {item("/admin/backup", "Backup & Restore", pathname.startsWith("/admin/backup"), Database)}
               </>
             )}
           </ul>

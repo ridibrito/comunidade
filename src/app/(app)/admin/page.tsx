@@ -99,13 +99,39 @@ export default function AdminPage() {
         supabase.from('profiles').select('id', { count: 'exact' })
       ]);
 
+      // Calcular taxa de conclusão real
+      const { data: completedLessons } = await supabase
+        .from('user_progress')
+        .select('*', { count: 'exact' })
+        .eq('is_completed', true);
+      
+      const { data: totalProgress } = await supabase
+        .from('user_progress')
+        .select('*', { count: 'exact' });
+      
+      const completionRate = totalProgress && totalProgress.count > 0 
+        ? Math.round((completedLessons?.count || 0) / totalProgress.count * 100)
+        : 0;
+
+      // Contar interações com IA (se houver tabela de logs de IA)
+      let aiInteractions = 0;
+      try {
+        const { data: aiLogs } = await supabase
+          .from('ai_interactions')
+          .select('*', { count: 'exact' });
+        aiInteractions = aiLogs?.count || 0;
+      } catch (error) {
+        // Tabela não existe, usar valor padrão
+        aiInteractions = 0;
+      }
+
       setStats({
         totalUsers: usersResult.count || 0,
         totalLessons: lessonsResult.count || 0,
         totalModules: modulesResult.count || 0,
         totalTrails: trailsResult.count || 0,
-        completionRate: 68, // Mock por enquanto
-        aiInteractions: 4317 // Mock por enquanto
+        completionRate: completionRate,
+        aiInteractions: aiInteractions
       });
 
       // Carregar dados de conclusão por trilha
@@ -115,15 +141,22 @@ export default function AdminPage() {
       
       if (trails) {
         const completionPromises = trails.map(async (trail) => {
-          const { count } = await supabase
+          const { count: completed } = await supabase
             .from('user_progress')
             .select('*', { count: 'exact' })
             .eq('trail_id', trail.id)
-            .eq('progress_type', 'completed');
+            .eq('is_completed', true);
+          
+          const { count: total } = await supabase
+            .from('user_progress')
+            .select('*', { count: 'exact' })
+            .eq('trail_id', trail.id);
+          
+          const percentage = total && total > 0 ? Math.round((completed || 0) / total * 100) : 0;
           
           return {
             name: trail.title,
-            value: Math.floor(Math.random() * 100), // Mock por enquanto
+            value: percentage,
             color: `#${Math.floor(Math.random()*16777215).toString(16)}`
           };
         });
@@ -141,26 +174,41 @@ export default function AdminPage() {
       
       setRecentActivities(activities || []);
 
-      // Dados de crescimento (mock por enquanto)
-      setUserGrowthData([
-        { month: "Jan", users: 1200, sessions: 3200 },
-        { month: "Fev", users: 1350, sessions: 3800 },
-        { month: "Mar", users: 1480, sessions: 4200 },
-        { month: "Abr", users: 1620, sessions: 4800 },
-        { month: "Mai", users: 1750, sessions: 5200 },
-        { month: "Jun", users: 1900, sessions: 5800 },
-      ]);
+      // Carregar dados de crescimento reais
+      try {
+        const { data: userGrowth } = await supabase
+          .from('user_growth_stats')
+          .select('*')
+          .order('month');
+        
+        if (userGrowth && userGrowth.length > 0) {
+          setUserGrowthData(userGrowth);
+        } else {
+          // Se não houver dados, mostrar dados vazios
+          setUserGrowthData([]);
+        }
+      } catch (error) {
+        // Tabela não existe, mostrar dados vazios
+        setUserGrowthData([]);
+      }
 
-      // Dados de atividade semanal (mock por enquanto)
-      setActivityData([
-        { day: "Seg", lessons: 120, users: 85 },
-        { day: "Ter", lessons: 150, users: 95 },
-        { day: "Qua", lessons: 180, users: 110 },
-        { day: "Qui", lessons: 160, users: 100 },
-        { day: "Sex", lessons: 140, users: 90 },
-        { day: "Sáb", lessons: 80, users: 60 },
-        { day: "Dom", lessons: 100, users: 70 },
-      ]);
+      // Carregar dados de atividade semanal reais
+      try {
+        const { data: weeklyActivity } = await supabase
+          .from('weekly_activity_stats')
+          .select('*')
+          .order('day_of_week');
+        
+        if (weeklyActivity && weeklyActivity.length > 0) {
+          setActivityData(weeklyActivity);
+        } else {
+          // Se não houver dados, mostrar dados vazios
+          setActivityData([]);
+        }
+      } catch (error) {
+        // Tabela não existe, mostrar dados vazios
+        setActivityData([]);
+      }
 
     } catch (error) {
       console.error('Erro ao carregar dados do dashboard:', error);
@@ -283,7 +331,7 @@ export default function AdminPage() {
               </div>
               <Badge variant="outline" size="sm">Últimos 6 meses</Badge>
             </div>
-            <ChartContainer config={chartConfig}>
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
               <AreaChart data={userGrowthData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
@@ -318,7 +366,7 @@ export default function AdminPage() {
               </div>
               <Badge variant="outline" size="sm">Taxa de conclusão</Badge>
             </div>
-            <ChartContainer config={chartConfig}>
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
               <PieChart>
                 <Pie
                   data={completionData}
@@ -349,7 +397,7 @@ export default function AdminPage() {
               </div>
               <Badge variant="outline" size="sm">Última semana</Badge>
             </div>
-            <ChartContainer config={chartConfig}>
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
               <BarChart data={activityData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="day" />

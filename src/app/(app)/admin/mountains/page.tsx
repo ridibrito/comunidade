@@ -5,7 +5,7 @@ import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
-import { Mountain, BookOpen, Users, HelpCircle, Plus, Edit, Trash2, ChevronDown, ChevronRight, Upload, Link as LinkIcon } from "lucide-react";
+import { Mountain, BookOpen, Users, HelpCircle, Plus, Edit, Trash2, ChevronDown, ChevronRight, Upload, Link as LinkIcon, Paperclip, FileDown } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import Button from "@/components/ui/Button";
@@ -48,15 +48,27 @@ interface Module {
 
 interface Content {
   id: string;
-  module_id: string;
+  module_id: string | null;
+  trail_id?: string | null;
   title: string;
   description: string;
   slug: string;
   content_type: string;
   duration: number;
   video_url?: string;
+  image_url?: string;
   position: number;
   status: string;
+}
+
+interface ContentAsset {
+  id: string;
+  content_id: string;
+  title: string | null;
+  file_url: string;
+  file_type: string | null;
+  file_size: number | null;
+  created_at: string;
 }
 
 export default function AdminMountainsPage() {
@@ -81,6 +93,7 @@ export default function AdminMountainsPage() {
   const [deleteTarget, setDeleteTarget] = useState<{type: 'trail' | 'module' | 'content', id: string, title: string} | null>(null);
   const [selectedTrailId, setSelectedTrailId] = useState<string>("");
   const [selectedModuleId, setSelectedModuleId] = useState<string>("");
+  const [selectedTrailForDirectContent, setSelectedTrailForDirectContent] = useState<string>("");
   
   // Form data
   const [trailForm, setTrailForm] = useState({
@@ -106,11 +119,27 @@ export default function AdminMountainsPage() {
     title: "",
     description: "",
     slug: "",
-    content_type: "video",
+    content_type: "video", // video | file | text | quiz
     duration: 0,
     video_url: "",
+    image_url: "",
     position: 0,
     status: "draft"
+  });
+
+  // assets state
+  const [assets, setAssets] = useState<ContentAsset[]>([]);
+  const [assetUploading, setAssetUploading] = useState(false);
+  
+  // Book upload modal state
+  const [bookUploadModal, setBookUploadModal] = useState(false);
+  const [bookForm, setBookForm] = useState({
+    title: "",
+    author: "",
+    description: "",
+    pages: 0,
+    file: null as File | null,
+    cover: null as File | null
   });
 
   // Função para buscar duração do vídeo do Vimeo
@@ -227,10 +256,18 @@ export default function AdminMountainsPage() {
               };
             })
           );
+          // também buscar conteúdos diretos da trilha (sem módulo)
+          const { data: directContents } = await supabase
+            .from('contents')
+            .select('*')
+            .eq('trail_id', trail.id)
+            .is('module_id', null)
+            .order('position');
           
           return {
             ...trail,
             modules: modulesWithContents,
+            directContents: directContents || [],
             isExpanded: false
           };
         })
@@ -307,6 +344,20 @@ export default function AdminMountainsPage() {
     }
   }
 
+  // Book upload modal
+  function openBookUploadModal(trailId: string) {
+    setSelectedTrailForDirectContent(trailId);
+    setBookForm({
+      title: "",
+      author: "",
+      description: "",
+      pages: 0,
+      file: null,
+      cover: null
+    });
+    setBookUploadModal(true);
+  }
+
   // Module CRUD
   function openModuleModal(trailId: string, module?: Module) {
     setSelectedTrailId(trailId);
@@ -377,8 +428,9 @@ export default function AdminMountainsPage() {
   }
 
   // Content CRUD
-  function openContentModal(moduleId: string, content?: Content) {
-    setSelectedModuleId(moduleId);
+  function openContentModal(moduleId: string | null, content?: Content, trailIdForDirect?: string) {
+    setSelectedModuleId(moduleId || "");
+    setSelectedTrailForDirectContent(trailIdForDirect || "");
     
     if (content) {
       setEditingContent(content);
@@ -389,15 +441,21 @@ export default function AdminMountainsPage() {
         content_type: content.content_type,
         duration: content.duration,
         video_url: content.video_url || "",
+        image_url: content.image_url || "",
         position: content.position,
         status: content.status
       });
+      void loadAssets(content.id);
     } else {
       setEditingContent(null);
-      // Encontrar quantos conteúdos já existem no módulo
-      const module = trails
-        .flatMap(t => t.modules || [])
-        .find(m => m.id === moduleId);
+      // Encontrar quantos conteúdos já existem no módulo ou na trilha
+      const module = moduleId
+        ? trails.flatMap(t => t.modules || []).find(m => m.id === moduleId)
+        : null;
+      const trail = trailIdForDirect
+        ? trails.find(t => t.id === trailIdForDirect)
+        : null;
+      const directCount = trail && (trail as any).directContents ? (trail as any).directContents.length : 0;
       
       setContentForm({
         title: "",
@@ -406,15 +464,17 @@ export default function AdminMountainsPage() {
         content_type: "video",
         duration: 0,
         video_url: "",
-        position: module?.contents?.length || 0,
+        image_url: "",
+        position: module ? (module.contents?.length || 0) : directCount,
         status: "draft"
       });
+      setAssets([]);
     }
     setShowContentModal(true);
   }
 
   async function saveContent() {
-    if (!selectedModuleId) return;
+    if (!selectedModuleId && !selectedTrailForDirectContent) return;
     
     try {
       if (editingContent) {
@@ -427,6 +487,7 @@ export default function AdminMountainsPage() {
             content_type: contentForm.content_type,
             duration: contentForm.duration,
             video_url: contentForm.video_url,
+            image_url: contentForm.image_url,
             position: contentForm.position,
             status: contentForm.status
           })
@@ -444,7 +505,9 @@ export default function AdminMountainsPage() {
             content_type: contentForm.content_type,
             duration: contentForm.duration,
             video_url: contentForm.video_url,
-            module_id: selectedModuleId,
+            image_url: contentForm.image_url,
+            module_id: selectedModuleId || null,
+            trail_id: selectedModuleId ? null : selectedTrailForDirectContent,
             position: contentForm.position,
             status: contentForm.status
           });
@@ -458,6 +521,118 @@ export default function AdminMountainsPage() {
     } catch (error) {
       console.error('Erro ao salvar aula:', error);
       push('Erro ao salvar aula', 'error');
+    }
+  }
+
+  async function saveBook() {
+    if (!selectedTrailForDirectContent || !bookForm.file) return;
+    
+    try {
+      // Upload do arquivo PDF
+      const fileExt = bookForm.file.name.split('.').pop();
+      const filePath = `books/${Date.now()}_${bookForm.title.replace(/[^a-z0-9]/gi, '_')}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('content-assets')
+        .upload(filePath, bookForm.file);
+      
+      if (uploadError) throw uploadError;
+      
+      const { data: fileData } = supabase.storage
+        .from('content-assets')
+        .getPublicUrl(filePath);
+      
+      // Upload da capa (se fornecida)
+      let coverUrl = "";
+      if (bookForm.cover) {
+        const coverExt = bookForm.cover.name.split('.').pop();
+        const coverPath = `book-covers/${Date.now()}_${bookForm.title.replace(/[^a-z0-9]/gi, '_')}.${coverExt}`;
+        
+        const { error: coverError } = await supabase.storage
+          .from('book-covers')
+          .upload(coverPath, bookForm.cover);
+        
+        if (!coverError) {
+          const { data: coverData } = supabase.storage
+            .from('book-covers')
+            .getPublicUrl(coverPath);
+          coverUrl = coverData.publicUrl;
+        }
+      }
+      
+      // Criar o conteúdo do livro
+      const { error } = await supabase
+        .from('contents')
+        .insert({
+          title: bookForm.title,
+          description: bookForm.description,
+          slug: bookForm.title.toLowerCase().replace(/[^a-z0-9]/gi, '-'),
+          content_type: 'book',
+          file_url: fileData.publicUrl,
+          image_url: coverUrl,
+          duration: bookForm.pages, // Usar páginas como duração
+          trail_id: selectedTrailForDirectContent,
+          position: 0,
+          status: 'published'
+        });
+
+      if (error) throw error;
+      push('Livro enviado com sucesso!', 'success');
+      
+      setBookUploadModal(false);
+      await loadPageData(activeTab);
+    } catch (error) {
+      console.error('Erro ao enviar livro:', error);
+      push('Erro ao enviar livro', 'error');
+    }
+  }
+
+  async function loadAssets(contentId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('content_assets')
+        .select('*')
+        .eq('content_id', contentId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setAssets((data || []) as unknown as ContentAsset[]);
+    } catch (e) {
+      console.error('Erro ao carregar anexos:', e);
+    }
+  }
+
+  async function handleAssetUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !editingContent) return;
+    setAssetUploading(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `content/${editingContent.id}/${Date.now()}_${file.name}`;
+      const { error: upErr } = await supabase.storage
+        .from('content-assets')
+        .upload(path, file, { upsert: false });
+      if (upErr) throw upErr;
+      const { data: pub } = await supabase.storage
+        .from('content-assets')
+        .getPublicUrl(path);
+      const { error: insErr } = await supabase
+        .from('content_assets')
+        .insert({
+          content_id: editingContent.id,
+          title: file.name,
+          file_url: pub.publicUrl,
+          file_type: file.type,
+          file_size: file.size
+        });
+      if (insErr) throw insErr;
+      await loadAssets(editingContent.id);
+      push('Anexo enviado com sucesso!', 'success');
+    } catch (err) {
+      console.error('Erro ao enviar anexo:', err);
+      push('Erro ao enviar anexo', 'error');
+    } finally {
+      setAssetUploading(false);
+      (e.target as HTMLInputElement).value = '';
     }
   }
 
@@ -662,6 +837,23 @@ export default function AdminMountainsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => openContentModal(null, undefined, trail.id)}
+                          >
+                            <Plus className="w-4 h-4 mr-1" />
+                            Conteúdo direto
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openBookUploadModal(trail.id)}
+                            className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30"
+                          >
+                            <Upload className="w-4 h-4 mr-1" />
+                            Upload Livro
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => openTrailModal(trail)}
                           >
                             <Edit className="w-4 h-4" />
@@ -676,6 +868,45 @@ export default function AdminMountainsPage() {
                           </Button>
             </div>
           </div>
+
+                      {/* Direct contents for this trail (no modules) */}
+                      {trail.isExpanded && (trail as any).directContents && (trail as any).directContents.length > 0 && (
+                        <div className="mt-4 ml-8 space-y-2">
+                          <div className="text-sm text-light-muted dark:text-dark-muted">Conteúdos diretos</div>
+                          {(trail as any).directContents.map((content: Content) => (
+                            <div
+                              key={content.id}
+                              className="flex items-center justify-between p-3 bg-light-surface dark:bg-dark-surface rounded-lg shadow-sm"
+                            >
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-light-text dark:text-dark-text">
+                                  {content.title}
+                                </p>
+                                <p className="text-xs text-light-muted dark:text-dark-muted">
+                                  {content.duration} min • {content.content_type} • {content.status}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openContentModal(null, content, trail.id)}
+                                >
+                                  <Edit className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openDeleteModal('content', content.id, content.title)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
 
                       {/* Modules List */}
                       {trail.isExpanded && trail.modules && trail.modules.length > 0 && (
@@ -948,82 +1179,232 @@ export default function AdminMountainsPage() {
 
         {/* Content Modal */}
         <Modal open={showContentModal} onClose={() => setShowContentModal(false)}>
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">
+          <div className="p-8 max-w-5xl w-full mx-auto">
+            <h3 className="text-2xl font-semibold text-light-text dark:text-dark-text mb-6">
               {editingContent ? 'Editar Aula' : 'Nova Aula'}
             </h3>
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Primeira coluna - Informações básicas */}
+              <div className="space-y-4">
+                <div>
+                  <Label>Título</Label>
+                  <Input
+                    value={contentForm.title}
+                    onChange={(e) => setContentForm({ ...contentForm, title: e.target.value })}
+                    placeholder="Nome da aula"
+                  />
+                </div>
+                <div>
+                  <Label>Descrição</Label>
+                  <textarea
+                    value={contentForm.description}
+                    onChange={(e) => setContentForm({ ...contentForm, description: e.target.value })}
+                    placeholder="Descrição da aula"
+                    className="w-full px-3 py-2 rounded-lg border"
+                    rows={4}
+                  />
+                </div>
+                <div>
+                  <Label>Slug</Label>
+                  <Input
+                    value={contentForm.slug}
+                    onChange={(e) => setContentForm({ ...contentForm, slug: e.target.value })}
+                    placeholder="slug-da-aula"
+                  />
+                </div>
+                <div>
+                  <Label>Tipo de conteúdo</Label>
+                  <select
+                    value={contentForm.content_type}
+                    onChange={(e) => setContentForm({ ...contentForm, content_type: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border"
+                  >
+                    <option value="video">Vídeo</option>
+                    <option value="file">Arquivo (PDF, etc.)</option>
+                    <option value="text">Texto</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Segunda coluna - Configurações específicas */}
+              <div className="space-y-4">
+                <div>
+                  <Label>URL do Vídeo (Vimeo)</Label>
+                  <Input
+                    value={contentForm.video_url}
+                    onChange={(e) => handleVideoUrlChange(e.target.value)}
+                    placeholder="https://vimeo.com/..."
+                  />
+                  <p className="text-xs text-light-muted dark:text-dark-muted mt-1">
+                    A duração será preenchida automaticamente ao colar a URL do Vimeo
+                  </p>
+                </div>
+                <div>
+                  <Label>Capa (URL da imagem)</Label>
+                  <Input
+                    value={contentForm.image_url}
+                    onChange={(e) => setContentForm({ ...contentForm, image_url: e.target.value })}
+                    placeholder="https://exemplo.com/capa.jpg"
+                  />
+                  <p className="text-xs text-light-muted dark:text-dark-muted mt-1">
+                    Recomendado para livros (proporção 3:4). Você também pode usar o Storage bucket "book-covers".
+                  </p>
+                  {contentForm.image_url && (
+                    <img src={contentForm.image_url} alt="Capa" className="mt-2 w-32 h-44 object-cover rounded" />
+                  )}
+                </div>
+                <div>
+                  <Label>Duração (minutos)</Label>
+                  <Input
+                    type="number"
+                    value={contentForm.duration}
+                    onChange={(e) => setContentForm({ ...contentForm, duration: parseInt(e.target.value) || 0 })}
+                    placeholder="30"
+                    disabled={contentForm.video_url.includes('vimeo.com')}
+                  />
+                  <p className="text-xs text-light-muted dark:text-dark-muted mt-1">
+                    {contentForm.video_url.includes('vimeo.com') 
+                      ? 'Duração carregada automaticamente do Vimeo' 
+                      : 'Ou insira manualmente'}
+                  </p>
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <select
+                    value={contentForm.status}
+                    onChange={(e) => setContentForm({ ...contentForm, status: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border"
+                  >
+                    <option value="draft">Rascunho</option>
+                    <option value="published">Publicado</option>
+                    <option value="archived">Arquivado</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            {/* Anexos: listar e enviar */}
+            {editingContent && (
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2 text-light-text dark:text-dark-text">
+                    <Paperclip className="w-5 h-5" />
+                    <span className="font-medium">Anexos</span>
+                  </div>
+                  <label className="inline-flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="file" className="hidden" onChange={handleAssetUpload} disabled={assetUploading} />
+                    <Button size="sm" variant="outline" disabled={assetUploading}>
+                      <Upload className="w-4 h-4 mr-2" /> {assetUploading ? 'Enviando...' : 'Enviar anexo'}
+                    </Button>
+                  </label>
+                </div>
+                {assets.length === 0 ? (
+                  <p className="text-sm text-light-muted dark:text-dark-muted text-center py-4">Nenhum anexo.</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {assets.map(a => (
+                      <div key={a.id} className="flex items-center justify-between bg-light-surface dark:bg-dark-surface rounded-lg p-3 border">
+                        <div className="flex items-center gap-3">
+                          <FileDown className="w-4 h-4 text-gray-500" />
+                          <a href={a.file_url} target="_blank" rel="noreferrer" className="text-sm text-brand-accent hover:underline font-medium">
+                            {a.title || 'arquivo'}
+                          </a>
+                        </div>
+                        <span className="text-xs text-light-muted dark:text-dark-muted">{a.file_type || ''}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <div className="flex gap-3 justify-end mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <Button variant="outline" onClick={() => setShowContentModal(false)} className="px-6">
+                Cancelar
+              </Button>
+              <Button onClick={saveContent} className="bg-orange-500 hover:bg-orange-600 px-6">
+                {editingContent ? 'Atualizar' : 'Criar'} Aula
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Book Upload Modal */}
+        <Modal open={bookUploadModal} onClose={() => setBookUploadModal(false)}>
+          <div className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Upload de Livro</h2>
+            <div className="space-y-4">
               <div>
-                <Label>Título</Label>
+                <Label>Título do Livro</Label>
                 <Input
-                  value={contentForm.title}
-                  onChange={(e) => setContentForm({ ...contentForm, title: e.target.value })}
-                  placeholder="Nome da aula"
+                  value={bookForm.title}
+                  onChange={(e) => setBookForm({ ...bookForm, title: e.target.value })}
+                  placeholder="Nome do livro"
+                />
+              </div>
+              <div>
+                <Label>Autor</Label>
+                <Input
+                  value={bookForm.author}
+                  onChange={(e) => setBookForm({ ...bookForm, author: e.target.value })}
+                  placeholder="Nome do autor"
                 />
               </div>
               <div>
                 <Label>Descrição</Label>
                 <textarea
-                  value={contentForm.description}
-                  onChange={(e) => setContentForm({ ...contentForm, description: e.target.value })}
-                  placeholder="Descrição da aula"
+                  value={bookForm.description}
+                  onChange={(e) => setBookForm({ ...bookForm, description: e.target.value })}
+                  placeholder="Descrição do livro"
                   className="w-full px-3 py-2 rounded-lg border"
                   rows={3}
                 />
               </div>
               <div>
-                <Label>Slug</Label>
-                <Input
-                  value={contentForm.slug}
-                  onChange={(e) => setContentForm({ ...contentForm, slug: e.target.value })}
-                  placeholder="slug-da-aula"
-                />
-              </div>
-              <div>
-                <Label>URL do Vídeo (Vimeo)</Label>
-                <Input
-                  value={contentForm.video_url}
-                  onChange={(e) => handleVideoUrlChange(e.target.value)}
-                  placeholder="https://vimeo.com/..."
-                />
-                <p className="text-xs text-light-muted dark:text-dark-muted mt-1">
-                  A duração será preenchida automaticamente ao colar a URL do Vimeo
-                </p>
-              </div>
-              <div>
-                <Label>Duração (minutos)</Label>
+                <Label>Número de Páginas</Label>
                 <Input
                   type="number"
-                  value={contentForm.duration}
-                  onChange={(e) => setContentForm({ ...contentForm, duration: parseInt(e.target.value) || 0 })}
-                  placeholder="30"
-                  disabled={contentForm.video_url.includes('vimeo.com')}
+                  value={bookForm.pages}
+                  onChange={(e) => setBookForm({ ...bookForm, pages: parseInt(e.target.value) || 0 })}
+                  placeholder="100"
                 />
-                <p className="text-xs text-light-muted dark:text-dark-muted mt-1">
-                  {contentForm.video_url.includes('vimeo.com') 
-                    ? 'Duração carregada automaticamente do Vimeo' 
-                    : 'Ou insira manualmente'}
-                </p>
               </div>
               <div>
-                <Label>Status</Label>
-                <select
-                  value={contentForm.status}
-                  onChange={(e) => setContentForm({ ...contentForm, status: e.target.value })}
+                <Label>Arquivo PDF</Label>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => setBookForm({ ...bookForm, file: e.target.files?.[0] || null })}
                   className="w-full px-3 py-2 rounded-lg border"
-                >
-                  <option value="draft">Rascunho</option>
-                  <option value="published">Publicado</option>
-                  <option value="archived">Arquivado</option>
-                </select>
+                />
+                {bookForm.file && (
+                  <p className="text-sm text-green-600 mt-1">✓ Arquivo selecionado: {bookForm.file.name}</p>
+                )}
+              </div>
+              <div>
+                <Label>Capa do Livro (opcional)</Label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setBookForm({ ...bookForm, cover: e.target.files?.[0] || null })}
+                  className="w-full px-3 py-2 rounded-lg border"
+                />
+                {bookForm.cover && (
+                  <p className="text-sm text-green-600 mt-1">✓ Capa selecionada: {bookForm.cover.name}</p>
+                )}
               </div>
             </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setShowContentModal(false)}>
+            <div className="flex gap-2 justify-end mt-6">
+              <Button variant="outline" onClick={() => setBookUploadModal(false)}>
                 Cancelar
               </Button>
-              <Button onClick={saveContent} className="bg-orange-500 hover:bg-orange-600">
-                Salvar
+              <Button 
+                onClick={saveBook} 
+                disabled={!bookForm.title || !bookForm.file}
+                className="bg-blue-500 hover:bg-blue-600"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Enviar Livro
               </Button>
             </div>
           </div>
@@ -1036,7 +1417,7 @@ export default function AdminMountainsPage() {
           onConfirm={confirmDelete}
           title="Confirmar Exclusão"
           description={`Tem certeza que deseja excluir "${deleteTarget?.title}"?`}
-          variant="danger"
+          variant="destructive"
           confirmText="Excluir"
           cancelText="Cancelar"
         >

@@ -292,6 +292,7 @@ interface CardLivroProps {
   isFeatured?: boolean;
   image: string;
   fileUrl: string;
+  id?: string;
   className?: string;
 }
 
@@ -306,12 +307,32 @@ export function CardLivro({
   isFeatured = false,
   image,
   fileUrl,
+  id,
   className = ""
 }: CardLivroProps) {
+  const handleDownload = async (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(fileUrl, { credentials: 'omit' });
+      const blob = await response.blob();
+      const url = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+      const a = document.createElement('a');
+      a.href = url;
+      const safeTitle = (title || 'livro').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+      a.download = `${safeTitle}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Erro ao baixar PDF:', err);
+      window.open(fileUrl, '_blank');
+    }
+  };
   return (
-    <ModernCard variant="elevated" className={`h-full space-y-4 ${className}`}>
+    <ModernCard variant="elevated" className={`h-full flex flex-col ${className}`}>
       <div className="relative">
-        <div className="aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-border">
+        <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-border">
           <img src={image} alt={title} className="w-full h-full object-cover" />
         </div>
         
@@ -335,11 +356,11 @@ export function CardLivro({
         </div>
       </div>
 
-      <div className="space-y-3 flex-1">
-        <div>
-          <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1">{title}</h3>
+      <div className="flex-1 flex flex-col p-4 space-y-3">
+        <div className="flex-1">
+          <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1 break-words text-wrap">{title}</h3>
           <p className="text-xs text-brand-accent font-medium mb-1">por {author}</p>
-          <p className="text-sm text-gray-600 dark:text-dark-muted">{description}</p>
+          <p className="text-sm text-gray-600 dark:text-dark-muted line-clamp-2">{description}</p>
         </div>
         
         <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-dark-muted">
@@ -355,25 +376,25 @@ export function CardLivro({
           )}
         </div>
         
-        <div className="flex items-center justify-between mt-auto">
-          <Badge variant="success" size="sm">Disponível</Badge>
+        <div className="flex items-center justify-end mt-auto pt-3">
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="text-gray-600 dark:text-dark-muted hover:text-gray-800 dark:hover:text-dark-text"
+            <button 
+              onClick={() => {
+                window.open(fileUrl, '_blank', 'noopener,noreferrer');
+              }}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border text-sm text-gray-600 dark:text-dark-muted hover:text-gray-800 dark:hover:text-dark-text border-light-border dark:border-dark-border"
             >
-              <Eye className="w-3 h-3 mr-1" />
+              <Eye className="w-3 h-3" />
               Ler
-            </Button>
-            <Button 
-              variant="default" 
-              size="sm" 
-              className="bg-brand-accent hover:bg-brand-accent/90 text-white transition-colors"
+            </button>
+            <a 
+              href={fileUrl}
+              onClick={handleDownload}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-brand-accent text-white text-sm hover:bg-brand-accent/90"
             >
-              <Download className="w-3 h-3 mr-1" />
+              <Download className="w-3 h-3" />
               Baixar
-            </Button>
+            </a>
           </div>
         </div>
       </div>

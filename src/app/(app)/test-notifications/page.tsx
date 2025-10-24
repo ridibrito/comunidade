@@ -1,385 +1,450 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useNotifications } from "@/components/ui/NotificationSystem";
-import { useToastContext } from "@/components/providers/ToastProvider";
-import { useNotificationSimulator } from "@/hooks/useNotificationSimulator";
+import { useState } from "react";
 import Button from "@/components/ui/Button";
-import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
-import { Label } from "@/components/ui/Label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
-import { Textarea } from "@/components/ui/Textarea";
-import { Switch } from "@/components/ui/Switch";
+import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
+import { 
+  AlertTriangle, 
+  CheckCircle, 
+  Info, 
+  X, 
+  Trash2, 
+  Save, 
+  Download,
+  Upload,
+  Settings,
+  User,
+  Shield,
+  Lock
+} from "lucide-react";
 
-export default function TestNotificationsPage() {
-  const { addNotification } = useNotifications();
-  const { success, error, warning, info, lessonCompleted, moduleCompleted, trailCompleted, videoError, contentBlocked, newUpdate, saveProgress, ratingSaved, loading, dismiss } = useToastContext();
-  
-  const [notificationTitle, setNotificationTitle] = useState("");
-  const [notificationMessage, setNotificationMessage] = useState("");
-  const [notificationType, setNotificationType] = useState<"info" | "success" | "warning" | "error">("info");
-  const [simulatorEnabled, setSimulatorEnabled] = useState(false);
-  
-  const { startSimulator, stopSimulator, isActive } = useNotificationSimulator();
-  
-  // Ativar/desativar simulador baseado no estado
-  useEffect(() => {
-    if (simulatorEnabled) {
-      startSimulator();
-    } else {
-      stopSimulator();
+// Componente de Modal de Confirmação inspirado no shadcn-ui
+interface ConfirmationModalProps {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  description: string;
+  variant?: "default" | "destructive" | "warning" | "success";
+  confirmText?: string;
+  cancelText?: string;
+  icon?: React.ReactNode;
+}
+
+function ConfirmationModal({
+  open,
+  onClose,
+  onConfirm,
+  title,
+  description,
+  variant = "default",
+  confirmText = "Confirmar",
+  cancelText = "Cancelar",
+  icon
+}: ConfirmationModalProps) {
+  if (!open) return null;
+
+  const getVariantStyles = () => {
+    switch (variant) {
+      case "destructive":
+        return {
+          iconBg: "bg-red-100 dark:bg-red-900/20",
+          iconColor: "text-red-600 dark:text-red-400",
+          confirmButton: "bg-red-600 hover:bg-red-700 text-white",
+          border: "border-red-200 dark:border-red-800"
+        };
+      case "warning":
+        return {
+          iconBg: "bg-yellow-100 dark:bg-yellow-900/20",
+          iconColor: "text-yellow-600 dark:text-yellow-400",
+          confirmButton: "bg-yellow-600 hover:bg-yellow-700 text-white",
+          border: "border-yellow-200 dark:border-yellow-800"
+        };
+      case "success":
+        return {
+          iconBg: "bg-green-100 dark:bg-green-900/20",
+          iconColor: "text-green-600 dark:text-green-400",
+          confirmButton: "bg-green-600 hover:bg-green-700 text-white",
+          border: "border-green-200 dark:border-green-800"
+        };
+      default:
+        return {
+          iconBg: "bg-blue-100 dark:bg-blue-900/20",
+          iconColor: "text-blue-600 dark:text-blue-400",
+          confirmButton: "bg-blue-600 hover:bg-blue-700 text-white",
+          border: "border-blue-200 dark:border-blue-800"
+        };
     }
-  }, [simulatorEnabled, startSimulator, stopSimulator]);
-
-  const handleAddNotification = () => {
-    if (!notificationTitle.trim()) return;
-    
-    addNotification({
-      title: notificationTitle,
-      message: notificationMessage,
-      type: notificationType,
-      actionUrl: "/catalog/montanha-do-amanha",
-      actionText: "Ver Conteúdo",
-    });
-    
-    setNotificationTitle("");
-    setNotificationMessage("");
   };
 
-  const handleAddToast = (type: "success" | "error" | "warning" | "info") => {
-    const messages = {
-      success: { title: "Sucesso!", description: "Operação realizada com sucesso." },
-      error: { title: "Erro!", description: "Algo deu errado. Tente novamente." },
-      warning: { title: "Atenção!", description: "Verifique os dados antes de continuar." },
-      info: { title: "Informação", description: "Nova atualização disponível." },
-    };
-    
-    const { title, description } = messages[type];
-    
-    if (type === "success") success(title, description);
-    else if (type === "error") error(title, description);
-    else if (type === "warning") warning(title, description);
-    else info(title, description);
-  };
+  const styles = getVariantStyles();
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          🎉 Sistema de Notificações Moderno
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Teste o sistema de notificações e toasts baseado no shadcn-ui
-        </p>
-        
-        {/* Banner de melhorias */}
-        <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
-            ✨ Novas Funcionalidades Implementadas
-          </h3>
-          <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 text-left">
-            <li>• <strong>Sonner Toast System</strong> - Toasts modernos com ícones coloridos</li>
-            <li>• <strong>NotificationCard Avançado</strong> - Com progresso visual e metadata</li>
-            <li>• <strong>Toasts Específicos</strong> - Métodos para aula, módulo, trilha concluídos</li>
-            <li>• <strong>Simulador Automático</strong> - Notificações automáticas para teste</li>
-            <li>• <strong>Design Responsivo</strong> - Baseado nos padrões do shadcn-ui</li>
-          </ul>
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Overlay */}
+      <div 
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      
+      {/* Modal */}
+      <div className="relative z-50 w-full max-w-md mx-4">
+        <Card className={`p-0 overflow-hidden ${styles.border}`}>
+          <div className="p-6">
+            {/* Header */}
+            <div className="flex items-start gap-4">
+              <div className={`flex-shrink-0 p-2 rounded-full ${styles.iconBg}`}>
+                <div className={`w-6 h-6 ${styles.iconColor}`}>
+                  {icon || (
+                    variant === "destructive" ? <AlertTriangle className="w-6 h-6" /> :
+                    variant === "warning" ? <AlertTriangle className="w-6 h-6" /> :
+                    variant === "success" ? <CheckCircle className="w-6 h-6" /> :
+                    <Info className="w-6 h-6" />
+                  )}
         </div>
       </div>
 
-      {/* Demonstração Visual */}
-      <Card>
-        <CardHeader>
-          <CardTitle>🎯 Demonstração Rápida</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <h4 className="font-semibold text-green-700 dark:text-green-400">✅ Toasts Modernos</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Clique nos botões abaixo para ver toasts com ícones coloridos e animações suaves
-              </p>
-              <div className="flex gap-2">
-                <Button 
-                  onClick={() => success("Sucesso!", "Operação realizada com sucesso")}
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  Sucesso
-                </Button>
-                <Button 
-                  onClick={() => error("Erro!", "Algo deu errado")}
-                  size="sm"
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  Erro
-                </Button>
-                <Button 
-                  onClick={() => warning("Atenção!", "Verifique os dados")}
-                  size="sm"
-                  className="bg-yellow-600 hover:bg-yellow-700"
-                >
-                  Aviso
-                </Button>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">
+                  {title}
+                </h3>
+                <p className="mt-2 text-sm text-light-muted dark:text-dark-muted">
+                  {description}
+                </p>
+              </div>
+              
+              <button
+                onClick={onClose}
+                className="flex-shrink-0 p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              </button>
+            </div>
+            
+            {/* Footer */}
+            <div className="flex flex-col-reverse gap-3 mt-6 sm:flex-row sm:justify-end">
+              <button
+                onClick={onClose}
+                className="w-full sm:w-auto px-4 py-2 rounded-md bg-gray-700 text-white hover:bg-gray-800 transition-colors"
+              >
+                {cancelText}
+              </button>
+              <button
+                onClick={onConfirm}
+                className={`w-full sm:w-auto px-4 py-2 rounded-md font-medium transition-colors ${styles.confirmButton}`}
+              >
+                {confirmText}
+              </button>
+            </div>
+          </div>
+      </Card>
+      </div>
+          </div>
+  );
+}
+
+export default function TestNotificationsPage() {
+  const [modals, setModals] = useState({
+    delete: false,
+    cancel: false,
+    warning: false,
+    safe: false,
+    success: false,
+    discard: false,
+    download: false,
+    preview: false,
+    upload: false,
+    cancelUpload: false,
+    settings: false,
+    reset: false
+  });
+
+  const openModal = (modal: keyof typeof modals) => {
+    setModals(prev => ({ ...prev, [modal]: true }));
+  };
+
+  const closeModal = (modal: keyof typeof modals) => {
+    setModals(prev => ({ ...prev, [modal]: false }));
+  };
+
+  const handleConfirm = (modal: keyof typeof modals) => {
+    console.log(`Confirmado: ${modal}`);
+    closeModal(modal);
+  };
+
+  return (
+    <div className="min-h-screen bg-light-bg dark:bg-dark-bg p-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-light-text dark:text-dark-text mb-2">
+            Teste de Modais de Confirmação
+        </h1>
+          <p className="text-light-muted dark:text-dark-muted">
+            Teste diferentes tipos de modais de confirmação com temas light e dark
+          </p>
+      </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Modal Destrutivo */}
+          <Card className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-100 dark:bg-red-900/20 rounded-lg">
+                <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-light-text dark:text-dark-text">Excluir</h3>
+                <p className="text-sm text-light-muted dark:text-dark-muted">Ação destrutiva</p>
               </div>
             </div>
-            
-            <div className="space-y-2">
-              <h4 className="font-semibold text-blue-700 dark:text-blue-400">🔔 Notificações Persistentes</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Adicione notificações que ficam salvas no sino do header
-              </p>
-              <Button 
-                onClick={() => addNotification({
-                  title: "Nova Notificação",
-                  message: "Esta é uma notificação de exemplo com design moderno",
-                  type: "info",
-                  actionUrl: "/catalog/montanha-do-amanha",
-                  actionText: "Ver Conteúdo"
-                })}
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                Adicionar Notificação
-              </Button>
+            <Button 
+              onClick={() => openModal('delete')}
+              className="w-full bg-red-600 hover:bg-red-700 text-white"
+            >
+              Excluir Item
+            </Button>
+          </Card>
+
+          {/* Modal de Aviso */}
+          <Card className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-light-text dark:text-dark-text">Aviso</h3>
+                <p className="text-sm text-light-muted dark:text-dark-muted">Ação com riscos</p>
+              </div>
             </div>
-          </div>
-        </CardContent>
+            <Button 
+              onClick={() => openModal('warning')}
+              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+            >
+              Continuar Mesmo Assim
+            </Button>
       </Card>
 
-      {/* Controle do Simulador */}
-      <Card>
-        <CardHeader>
-          <CardTitle>🤖 Simulador Automático</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-3">
-            <Switch
-              checked={simulatorEnabled}
-              onCheckedChange={setSimulatorEnabled}
-            />
-            <Label htmlFor="simulator">
-              {simulatorEnabled ? "Simulador Ativo" : "Ativar Simulador"}
-            </Label>
+          {/* Modal de Sucesso */}
+          <Card className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-light-text dark:text-dark-text">Salvar</h3>
+                <p className="text-sm text-light-muted dark:text-dark-muted">Confirmação positiva</p>
+              </div>
           </div>
-                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                   {simulatorEnabled 
-                     ? `Simulador ativo - Status: ${isActive() ? 'Rodando' : 'Parado'}`
-                     : "Ative para receber notificações automáticas de exemplo"
-                   }
-                 </p>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Teste de Notificações */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Notificações Persistentes</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Título</Label>
-              <Input
-                id="title"
-                value={notificationTitle}
-                onChange={(e) => setNotificationTitle(e.target.value)}
-                placeholder="Título da notificação"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="message">Mensagem</Label>
-              <Textarea
-                id="message"
-                value={notificationMessage}
-                onChange={(e) => setNotificationMessage(e.target.value)}
-                placeholder="Mensagem da notificação"
-                rows={3}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="type">Tipo</Label>
-              <Select value={notificationType} onValueChange={(value: any) => setNotificationType(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="info">Informação</SelectItem>
-                  <SelectItem value="success">Sucesso</SelectItem>
-                  <SelectItem value="warning">Aviso</SelectItem>
-                  <SelectItem value="error">Erro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <Button onClick={handleAddNotification} className="w-full">
-              Adicionar Notificação
+            <Button 
+              onClick={() => openModal('success')}
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+            >
+              Salvar Alterações
             </Button>
-          </CardContent>
         </Card>
 
-        {/* Teste de Toasts */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Toasts Temporários</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Button 
-                onClick={() => handleAddToast("success")}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                Toast Sucesso
-              </Button>
-              
-              <Button 
-                onClick={() => handleAddToast("error")}
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                Toast Erro
-              </Button>
-              
-              <Button 
-                onClick={() => handleAddToast("warning")}
-                className="bg-yellow-600 hover:bg-yellow-700 text-white"
-              >
-                Toast Aviso
-              </Button>
-              
-              <Button 
-                onClick={() => handleAddToast("info")}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Toast Info
-              </Button>
+          {/* Modal de Download */}
+          <Card className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                <Download className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-light-text dark:text-dark-text">Download</h3>
+                <p className="text-sm text-light-muted dark:text-dark-muted">Baixar arquivo</p>
+              </div>
             </div>
-          </CardContent>
+            <Button 
+              onClick={() => openModal('download')}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Baixar Arquivo
+            </Button>
+          </Card>
+
+          {/* Modal de Upload */}
+          <Card className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                <Upload className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-light-text dark:text-dark-text">Upload</h3>
+                <p className="text-sm text-light-muted dark:text-dark-muted">Enviar arquivo</p>
+              </div>
+            </div>
+            <Button 
+              onClick={() => openModal('upload')}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Enviar Arquivo
+            </Button>
         </Card>
 
-        {/* Notificações de Exemplo */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Notificações de Exemplo</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+          {/* Modal de Configurações */}
+          <Card className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-gray-100 dark:bg-gray-900/20 rounded-lg">
+                <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-light-text dark:text-dark-text">Configurações</h3>
+                <p className="text-sm text-light-muted dark:text-dark-muted">Alterar configurações</p>
+              </div>
+            </div>
             <Button 
-              onClick={() => addNotification({
-                title: "Nova Aula Disponível",
-                message: "Aula sobre Aspectos Cognitivos foi publicada",
-                type: "success",
-                actionUrl: "/catalog/modulo/aspectos-cognitivos",
-                actionText: "Assistir",
-              })}
-              className="w-full"
+              onClick={() => openModal('settings')}
+              className="w-full bg-gray-600 hover:bg-gray-700 text-white"
             >
-              Nova Aula
+              Aplicar Configurações
             </Button>
-            
-            <Button 
-              onClick={() => addNotification({
-                title: "Lembrete de Evento",
-                message: "Roda de Conversa amanhã às 19h",
-                type: "info",
-                actionUrl: "/calendar",
-                actionText: "Ver Calendário",
-              })}
-              className="w-full"
-            >
-              Lembrete de Evento
-            </Button>
-            
-            <Button 
-              onClick={() => addNotification({
-                title: "Sistema em Manutenção",
-                message: "Manutenção programada para domingo às 2h",
-                type: "warning",
-              })}
-              className="w-full"
-            >
-              Aviso de Manutenção
-            </Button>
-          </CardContent>
         </Card>
+        </div>
 
-        {/* Toasts de Exemplo */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Toasts de Exemplo</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button 
-              onClick={() => lessonCompleted("Aspectos Cognitivos - Aula 01")}
-              className="w-full"
-            >
-              Aula Concluída
-            </Button>
-            
-            <Button 
-              onClick={() => videoError("Erro de conexão com o servidor Vimeo")}
-              className="w-full"
-            >
-              Erro no Vídeo
-            </Button>
-            
-            <Button 
-              onClick={() => contentBlocked("Complete a aula anterior primeiro")}
-              className="w-full"
-            >
-              Conteúdo Bloqueado
-            </Button>
-            
-            <Button 
-              onClick={() => newUpdate("Novos recursos de IA disponíveis!")}
-              className="w-full"
-            >
-              Nova Atualização
-            </Button>
-            
-            <Button 
-              onClick={() => {
-                const loadingToast = loading("Carregando...", "Processando sua solicitação");
-                setTimeout(() => {
-                  dismiss(loadingToast);
-                  success("Processamento Concluído!", "Sua solicitação foi processada com sucesso.");
-                }, 3000);
-              }}
-              className="w-full"
-            >
-              Teste Loading
-            </Button>
-            
-            <Button 
-              onClick={() => moduleCompleted("Aspectos Cognitivos")}
-              className="w-full"
-            >
-              Módulo Concluído
-            </Button>
-            
-            <Button 
-              onClick={() => trailCompleted("Identificação")}
-              className="w-full"
-            >
-              Trilha Concluída
-            </Button>
-            
-            <Button 
-              onClick={() => saveProgress()}
-              className="w-full"
-            >
-              Progresso Salvo
-            </Button>
-            
-            <Button 
-              onClick={() => ratingSaved(5)}
-              className="w-full"
-            >
-              Avaliação Salva
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Modais */}
+        <ConfirmationModal
+          open={modals.delete}
+          onClose={() => closeModal('delete')}
+          onConfirm={() => handleConfirm('delete')}
+          title="Excluir Item"
+          description="Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita e todos os dados relacionados serão permanentemente removidos."
+          variant="destructive"
+          confirmText="Excluir"
+          cancelText="Cancelar"
+          icon={<Trash2 className="w-6 h-6" />}
+        />
+
+        <ConfirmationModal
+          open={modals.cancel}
+          onClose={() => closeModal('cancel')}
+          onConfirm={() => handleConfirm('cancel')}
+          title="Cancelar Ação"
+          description="Deseja realmente cancelar esta ação? Todas as alterações não salvas serão perdidas."
+          variant="default"
+          confirmText="Sim, Cancelar"
+          cancelText="Continuar"
+          icon={<X className="w-6 h-6" />}
+        />
+
+        <ConfirmationModal
+          open={modals.warning}
+          onClose={() => closeModal('warning')}
+          onConfirm={() => handleConfirm('warning')}
+          title="Ação Perigosa"
+          description="Esta ação pode ter consequências irreversíveis. Certifique-se de que você entende os riscos antes de continuar."
+          variant="warning"
+          confirmText="Continuar Mesmo Assim"
+          cancelText="Voltar"
+          icon={<AlertTriangle className="w-6 h-6" />}
+        />
+
+        <ConfirmationModal
+          open={modals.safe}
+          onClose={() => closeModal('safe')}
+          onConfirm={() => handleConfirm('safe')}
+          title="Fazer de Forma Segura"
+          description="Esta é a opção mais segura. O sistema irá criar um backup antes de prosseguir com a ação."
+          variant="success"
+          confirmText="Fazer Seguro"
+          cancelText="Cancelar"
+          icon={<Shield className="w-6 h-6" />}
+        />
+
+        <ConfirmationModal
+          open={modals.success}
+          onClose={() => closeModal('success')}
+          onConfirm={() => handleConfirm('success')}
+          title="Salvar Alterações"
+          description="Tem certeza que deseja salvar todas as alterações? As modificações serão aplicadas imediatamente."
+          variant="success"
+          confirmText="Salvar"
+          cancelText="Cancelar"
+          icon={<Save className="w-6 h-6" />}
+        />
+
+        <ConfirmationModal
+          open={modals.discard}
+          onClose={() => closeModal('discard')}
+          onConfirm={() => handleConfirm('discard')}
+          title="Descartar Alterações"
+          description="Tem certeza que deseja descartar todas as alterações? Esta ação não pode ser desfeita."
+          variant="destructive"
+          confirmText="Descartar"
+          cancelText="Manter"
+          icon={<Trash2 className="w-6 h-6" />}
+        />
+
+        <ConfirmationModal
+          open={modals.download}
+          onClose={() => closeModal('download')}
+          onConfirm={() => handleConfirm('download')}
+          title="Baixar Arquivo"
+          description="O arquivo será baixado para seu dispositivo. Certifique-se de que você tem espaço suficiente em disco."
+          variant="default"
+          confirmText="Baixar"
+          cancelText="Cancelar"
+          icon={<Download className="w-6 h-6" />}
+        />
+
+        <ConfirmationModal
+          open={modals.preview}
+          onClose={() => closeModal('preview')}
+          onConfirm={() => handleConfirm('preview')}
+          title="Visualizar Arquivo"
+          description="O arquivo será aberto em uma nova aba para visualização. Você pode baixá-lo depois se desejar."
+          variant="default"
+          confirmText="Visualizar"
+          cancelText="Cancelar"
+          icon={<Info className="w-6 h-6" />}
+        />
+
+        <ConfirmationModal
+          open={modals.upload}
+          onClose={() => closeModal('upload')}
+          onConfirm={() => handleConfirm('upload')}
+          title="Enviar Arquivo"
+          description="O arquivo será enviado para o servidor. Certifique-se de que o arquivo não contém informações sensíveis."
+          variant="default"
+          confirmText="Enviar"
+          cancelText="Cancelar"
+          icon={<Upload className="w-6 h-6" />}
+        />
+
+        <ConfirmationModal
+          open={modals.cancelUpload}
+          onClose={() => closeModal('cancelUpload')}
+          onConfirm={() => handleConfirm('cancelUpload')}
+          title="Cancelar Upload"
+          description="Deseja realmente cancelar o upload? O arquivo não será enviado para o servidor."
+          variant="destructive"
+          confirmText="Cancelar Upload"
+          cancelText="Continuar"
+          icon={<X className="w-6 h-6" />}
+        />
+
+        <ConfirmationModal
+          open={modals.settings}
+          onClose={() => closeModal('settings')}
+          onConfirm={() => handleConfirm('settings')}
+          title="Aplicar Configurações"
+          description="As alterações nas configurações serão aplicadas imediatamente. Algumas mudanças podem requerer reinicialização."
+          variant="default"
+          confirmText="Aplicar"
+          cancelText="Cancelar"
+          icon={<Settings className="w-6 h-6" />}
+        />
+
+        <ConfirmationModal
+          open={modals.reset}
+          onClose={() => closeModal('reset')}
+          onConfirm={() => handleConfirm('reset')}
+          title="Restaurar Configurações Padrão"
+          description="Todas as configurações serão restauradas para os valores padrão. Esta ação não pode ser desfeita."
+          variant="destructive"
+          confirmText="Restaurar"
+          cancelText="Cancelar"
+          icon={<Settings className="w-6 h-6" />}
+        />
       </div>
     </div>
   );

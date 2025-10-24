@@ -20,7 +20,6 @@ import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useToastContext } from "@/components/providers/ToastProvider";
-import { useMockUsers } from "@/components/ui/MockUsers";
 
 type Role = "admin" | "aluno" | "profissional";
 type InviteStatus = "pending" | "sent" | "accepted" | "expired";
@@ -317,6 +316,47 @@ export default function AdminUsersPage() {
     }).catch(() => {
       error("Erro", "Não foi possível copiar a senha.");
     });
+  }
+
+  async function removeUser(id: string) {
+    const user = list.find(u => u.id === id);
+    if (!user) return;
+
+    const confirmed = await confirm({
+      title: "Confirmar Exclusão",
+      message: `Tem certeza que deseja excluir "${user.full_name || user.email}"?`,
+      confirmText: "Excluir",
+      cancelText: "Cancelar",
+      variant: "destructive"
+    });
+
+    if (!confirmed) return;
+
+    try {
+      if (useMockData) {
+        // Usar dados mockados
+        await mockUsersHook.removeUser(id);
+        success("Usuário excluído", "Usuário removido com sucesso.");
+        return;
+      }
+
+      const resp = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
+      });
+
+      if (!resp.ok) throw new Error(await resp.text());
+
+      // Atualizar lista
+      const listResp = await fetch("/api/admin/users");
+      const json = await listResp.json();
+      setRealUsers(json.users ?? []);
+      success("Usuário excluído", "Usuário removido com sucesso.");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      error("Erro ao excluir", msg);
+    }
   }
 
   // Função para filtrar usuários por aba

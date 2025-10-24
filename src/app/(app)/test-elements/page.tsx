@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import ModernCard from '@/components/ui/ModernCard';
 import MetricCard from '@/components/ui/MetricCard';
 import ProgressCard from '@/components/ui/ProgressCard';
@@ -149,6 +149,17 @@ const Skeleton = ({ className, ...props }: React.ComponentProps<"div">) => (
 
 export default function TestElementsPage() {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const counterRef = useRef(1);
+  const nextId = () => counterRef.current++;
+
+  const ElementBox = ({ id, children }: { id: number; children: React.ReactNode }) => (
+    <div className="relative">
+      <span className="absolute -top-2 -left-2 z-10 inline-flex items-center justify-center w-6 h-6 rounded-full text-[11px] font-semibold bg-brand-accent text-white shadow">
+        {id}
+      </span>
+      {children}
+    </div>
+  );
 
   // Dados de exemplo para diferentes tipos de conteúdo
   const sampleModules = [
@@ -641,8 +652,8 @@ export default function TestElementsPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sampleModules.map((module, index) => (
+              <ElementBox key={index} id={nextId()}>
               <ModernCard 
-                key={index} 
                 variant="elevated" 
                 className={`h-full space-y-4 cursor-pointer transition-all ${
                   selectedCard === `module-${index}` ? 'ring-2 ring-brand-accent' : ''
@@ -720,6 +731,7 @@ export default function TestElementsPage() {
                   </div>
                 </div>
               </ModernCard>
+              </ElementBox>
             ))}
           </div>
         </section>
@@ -731,8 +743,8 @@ export default function TestElementsPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sampleResources.map((resource, index) => (
+              <ElementBox key={index} id={nextId()}>
               <ModernCard 
-                key={index} 
                 variant="default" 
                 className="h-full space-y-4 cursor-pointer hover:shadow-lg transition-all"
               >
@@ -787,6 +799,7 @@ export default function TestElementsPage() {
                   <ChevronRight className="w-3 h-3 ml-1" />
                 </Button>
               </ModernCard>
+              </ElementBox>
             ))}
           </div>
         </section>
@@ -798,8 +811,8 @@ export default function TestElementsPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {sampleDiscussions.map((discussion, index) => (
+              <ElementBox key={index} id={nextId()}>
               <ModernCard 
-                key={index} 
                 variant="default" 
                 className="h-full space-y-4 cursor-pointer hover:shadow-lg transition-all"
               >
@@ -839,6 +852,7 @@ export default function TestElementsPage() {
                   <ChevronRight className="w-3 h-3 ml-1" />
                 </Button>
               </ModernCard>
+              </ElementBox>
             ))}
           </div>
         </section>
@@ -850,8 +864,8 @@ export default function TestElementsPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {sampleQuestions.map((question, index) => (
+              <ElementBox key={index} id={nextId()}>
               <ModernCard 
-                key={index} 
                 variant="default" 
                 className="h-full space-y-4 cursor-pointer hover:shadow-lg transition-all"
               >
@@ -893,6 +907,7 @@ export default function TestElementsPage() {
                   </Button>
                 </div>
               </ModernCard>
+              </ElementBox>
             ))}
           </div>
         </section>
@@ -903,6 +918,7 @@ export default function TestElementsPage() {
             Metric Cards
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <ElementBox id={nextId()}>
             <MetricCard
               title="Módulos Completados"
               value="12"
@@ -911,6 +927,8 @@ export default function TestElementsPage() {
               icon={<Award className="w-8 h-8 text-yellow-500" />}
               variant="brand"
             />
+            </ElementBox>
+            <ElementBox id={nextId()}>
             <MetricCard
               title="Tempo de Estudo"
               value="45h"
@@ -919,6 +937,8 @@ export default function TestElementsPage() {
               icon={<Clock className="w-8 h-8 text-blue-500" />}
               variant="info"
             />
+            </ElementBox>
+            <ElementBox id={nextId()}>
             <MetricCard
               title="Recursos Baixados"
               value="28"
@@ -927,6 +947,8 @@ export default function TestElementsPage() {
               icon={<Download className="w-8 h-8 text-green-500" />}
               variant="success"
             />
+            </ElementBox>
+            <ElementBox id={nextId()}>
             <MetricCard
               title="Participações"
               value="156"
@@ -935,6 +957,7 @@ export default function TestElementsPage() {
               icon={<Users className="w-8 h-8 text-purple-500" />}
               variant="default"
             />
+            </ElementBox>
           </div>
         </section>
 
@@ -954,7 +977,8 @@ export default function TestElementsPage() {
           >
             <Carousel cardWidth={320} gap={24}>
               {sampleModules.map((module, index) => (
-                <ModernCard key={index} variant="elevated" className="h-full space-y-4">
+                <ElementBox key={index} id={nextId()}>
+                <ModernCard variant="elevated" className="h-full space-y-4">
                   <div className="relative">
                     <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-border">
                       <img src={module.img} alt={module.title} className="w-full h-full object-cover" />
@@ -982,6 +1006,7 @@ export default function TestElementsPage() {
                     </div>
                   </div>
                 </ModernCard>
+                </ElementBox>
               ))}
             </Carousel>
           </div>
@@ -1137,8 +1162,8 @@ export default function TestElementsPage() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {sampleVideoAulas.map((aula, index) => (
+                <ElementBox key={index} id={nextId()}>
                 <CardVideoAula
-                  key={index}
                   title={aula.title}
                   description={aula.description}
                   instructor={aula.instructor}
@@ -1151,6 +1176,7 @@ export default function TestElementsPage() {
                   image={aula.image}
                   slug={aula.slug}
                 />
+                </ElementBox>
               ))}
             </div>
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -1174,8 +1200,8 @@ export default function TestElementsPage() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {sampleAulasAoVivo.map((aula, index) => (
+                <ElementBox key={index} id={nextId()}>
                 <CardAulaAoVivo
-                  key={index}
                   title={aula.title}
                   description={aula.description}
                   instructor={aula.instructor}
@@ -1183,6 +1209,7 @@ export default function TestElementsPage() {
                   originalTime={aula.originalTime}
                   {...aula}
                 />
+                </ElementBox>
               ))}
             </div>
             <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
@@ -1206,8 +1233,8 @@ export default function TestElementsPage() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {sampleLivros.map((livro, index) => (
+                <ElementBox key={index} id={nextId()}>
                 <CardLivro
-                  key={index}
                   title={livro.title}
                   author={livro.author}
                   description={livro.description}
@@ -1219,6 +1246,7 @@ export default function TestElementsPage() {
                   image={livro.image}
                   fileUrl={livro.fileUrl}
                 />
+                </ElementBox>
               ))}
             </div>
             <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
@@ -1241,8 +1269,8 @@ export default function TestElementsPage() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {samplePDFs.map((pdf, index) => (
+                <ElementBox key={index} id={nextId()}>
                 <CardPDF
-                  key={index}
                   title={pdf.title}
                   description={pdf.description}
                   pages={pdf.pages}
@@ -1255,6 +1283,7 @@ export default function TestElementsPage() {
                   image={pdf.image}
                   fileUrl={pdf.fileUrl}
                 />
+                </ElementBox>
               ))}
             </div>
             <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
