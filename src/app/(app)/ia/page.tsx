@@ -20,7 +20,7 @@ export default function IAPage() {
     {
       id: 'welcome',
       role: 'assistant',
-      content: 'Olá! Sou seu assistente especializado em Altas Habilidades/Superdotação (AHSD) e desenvolvimento infantil. Como posso ajudá-lo hoje?',
+      content: 'Olá! Sou a Corujinha 🦉, sua mentora virtual especializada em Altas Habilidades/Superdotação (AHSD) e desenvolvimento infantil. Estou aqui para ajudar famílias como a sua a navegar pelos desafios e oportunidades do desenvolvimento de altas habilidades. Como posso ajudá-la hoje?',
       timestamp: new Date()
     }
   ]);
@@ -109,7 +109,7 @@ export default function IAPage() {
       {
         id: 'welcome',
         role: 'assistant',
-        content: 'Olá! Sou seu assistente especializado em Altas Habilidades/Superdotação (AHSD) e desenvolvimento infantil. Como posso ajudá-lo hoje?',
+        content: 'Olá! Sou a Corujinha 🦉, sua mentora virtual especializada em Altas Habilidades/Superdotação (AHSD) e desenvolvimento infantil. Estou aqui para ajudar famílias como a sua a navegar pelos desafios e oportunidades do desenvolvimento de altas habilidades. Como posso ajudá-la hoje?',
         timestamp: new Date()
       }
     ]);
