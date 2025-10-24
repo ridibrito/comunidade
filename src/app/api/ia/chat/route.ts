@@ -14,9 +14,10 @@ export async function POST(request: NextRequest) {
   try {
     console.log('API de IA chamada');
     
-    const { message, conversation } = await request.json();
+    const { message, conversation, conversationId } = await request.json();
     console.log('Mensagem recebida:', message);
     console.log('Conversa anterior:', conversation?.length || 0, 'mensagens');
+    console.log('ID da conversa:', conversationId);
 
     if (!message) {
       console.log('Erro: Mensagem vazia');
@@ -98,6 +99,37 @@ Você está aqui para ajudar famílias com crianças AHSD a navegar pelos desafi
 
         const response = completion.choices[0]?.message?.content || 'Desculpe, não consegui processar sua mensagem.';
         console.log('Resposta da OpenAI:', response);
+
+        // Salvar mensagens na conversa se conversationId for fornecido
+        if (conversationId) {
+          try {
+            // Salvar mensagem do usuário
+            await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/ia/messages`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                conversationId,
+                role: 'user',
+                content: message
+              })
+            });
+
+            // Salvar resposta da IA
+            await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/ia/messages`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                conversationId,
+                role: 'assistant',
+                content: response
+              })
+            });
+
+            console.log('Mensagens salvas na conversa:', conversationId);
+          } catch (error) {
+            console.error('Erro ao salvar mensagens:', error);
+          }
+        }
 
         // Registrar interação no banco de dados
         try {
