@@ -102,14 +102,23 @@ export default function DashboardPage() {
       description: "Trilha completa de desenvolvimento",
       progress: 75,
       lessons: 12,
-      completed: 9
+      completed: 9,
+      modules: [
+        { title: "Fundamentos", completed: true },
+        { title: "Desenvolvimento", completed: true },
+        { title: "Avançado", completed: false }
+      ]
     },
     {
       title: "Acervo Digital",
       description: "Biblioteca de recursos educacionais",
       progress: 40,
       lessons: 8,
-      completed: 3
+      completed: 3,
+      modules: [
+        { title: "Livros", completed: true },
+        { title: "Vídeos", completed: false }
+      ]
     }
   ];
 
