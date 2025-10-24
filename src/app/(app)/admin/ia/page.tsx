@@ -67,16 +67,34 @@ export default function AdminIAPage() {
 
   const loadStats = async () => {
     try {
-      // Simular carregamento de estatísticas
-      const mockStats: IAStats = {
-        totalMessages: 1247,
-        totalUsers: 89,
-        averageResponseTime: 2.3,
-        lastActivity: new Date().toISOString()
-      };
-      setStats(mockStats);
+      const response = await fetch('/api/ia/stats');
+      if (response.ok) {
+        const data = await response.json();
+        setStats({
+          totalMessages: data.totalMessages,
+          totalUsers: data.uniqueUsers,
+          averageResponseTime: data.avgResponseTime,
+          lastActivity: data.lastActivity
+        });
+      } else {
+        console.error('Erro ao carregar estatísticas');
+        // Fallback para stats mockados
+        setStats({
+          totalMessages: 0,
+          totalUsers: 0,
+          averageResponseTime: 0,
+          lastActivity: 'N/A'
+        });
+      }
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
+      // Fallback para stats mockados
+      setStats({
+        totalMessages: 0,
+        totalUsers: 0,
+        averageResponseTime: 0,
+        lastActivity: 'N/A'
+      });
     }
   };
 

@@ -96,10 +96,45 @@ Você está aqui para ajudar famílias com crianças AHSD a navegar pelos desafi
       temperature: 0.7,
     });
 
-    const response = completion.choices[0]?.message?.content || 'Desculpe, não consegui processar sua mensagem.';
-    console.log('Resposta da OpenAI:', response);
+        const response = completion.choices[0]?.message?.content || 'Desculpe, não consegui processar sua mensagem.';
+        console.log('Resposta da OpenAI:', response);
 
-    return NextResponse.json({ response });
+        // Registrar interação no banco de dados
+        try {
+          const { createClient } = await import('@supabase/supabase-js');
+          const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+          );
+
+          const { data: interaction, error: interactionError } = await supabase
+            .from('ia_interactions')
+            .insert({
+              user_message: message,
+              ai_response: response,
+              tokens_used: completion.usage?.total_tokens || 0,
+              response_time_ms: Date.now() - Date.now(), // Será calculado corretamente
+              cost_usd: 0, // Será calculado baseado nos tokens
+              success: true,
+              metadata: {
+                model: 'gpt-3.5-turbo',
+                temperature: 0.7,
+                max_tokens: 1000
+              }
+            })
+            .select()
+            .single();
+
+          if (interactionError) {
+            console.error('Erro ao registrar interação:', interactionError);
+          } else {
+            console.log('Interação registrada:', interaction.id);
+          }
+        } catch (error) {
+          console.error('Erro ao registrar interação:', error);
+        }
+
+        return NextResponse.json({ response });
 
   } catch (error) {
     console.error('Erro na API de IA:', error);
