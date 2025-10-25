@@ -84,7 +84,6 @@ export function Sidebar() {
                 {item("/catalog/acervo-digital", "Acervo digital", pathname.startsWith("/catalog/acervo-digital"), Library)}
                 {item("/catalog/rodas-de-conversa", "Rodas de conversa", pathname.startsWith("/catalog/rodas-de-conversa"), UsersRound)}
                 {item("/catalog/plantao-de-duvidas", "Plantão de dúvidas", pathname.startsWith("/catalog/plantao-de-duvidas"), HelpCircle)}
-                {item("/ia", "Assistente IA", pathname.startsWith("/ia"), Bot)}
               </>
             )}
             {inEvents && (
