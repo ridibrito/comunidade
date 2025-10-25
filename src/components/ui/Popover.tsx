@@ -96,7 +96,7 @@ export function Popover({
         <div
           ref={popoverRef}
           className={cn(
-            "absolute z-50 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg",
+            "absolute z-50 w-80 bg-light-surface dark:bg-dark-surface rounded-lg shadow-lg",
             getPositionClasses(),
             className
           )}

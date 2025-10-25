@@ -2,6 +2,7 @@
 
 // Dados mockados removidos - usando dados reais do Supabase
 import { getBrowserSupabaseClient } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase";
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
@@ -11,14 +12,30 @@ import MetricCard from "@/components/ui/MetricCard";
 import ProgressCard from "@/components/ui/ProgressCard";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
-import { BookOpen, Calendar, TrendingUp, CheckCircle, Clock } from "lucide-react";
+import { BookOpen, Calendar, TrendingUp, CheckCircle, Clock, Eye, Download, Play } from "lucide-react";
 
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/ToastProvider";
 import { HeroCarousel } from "@/components/HeroCarousel";
+import ContentCarousel from "@/components/ui/ContentCarousel";
+import Card from "@/components/ui/Card";
+import { CardVideoAula, CardLivro } from "@/components/ui/CardModels";
+import { MagicCard } from "@/components/ui/animations/MagicCard";
+import { BorderBeam } from "@/components/ui/animations/BorderBeam";
+import { Particles } from "@/components/ui/animations/Particles";
+import { useRouter } from "next/navigation";
+
+// Configuração de badges por página
+const PAGE_BADGE: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'brand' | 'success' | 'warning' | 'error' }> = {
+  'montanha-do-amanha': { label: 'Montanha do Amanhã', variant: 'brand' },
+  'acervo-digital': { label: 'Acervo Digital', variant: 'success' },
+  'plantao-de-duvidas': { label: 'Plantão de Dúvidas', variant: 'warning' },
+  'rodas-de-conversa': { label: 'Rodas de Conversa', variant: 'error' }
+};
 
 export default function DashboardPage() {
   const { push } = useToast();
+  const router = useRouter();
   const [displayName, setDisplayName] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [partnerName, setPartnerName] = useState<string | null>(null);
@@ -27,6 +44,10 @@ export default function DashboardPage() {
   const [children, setChildren] = useState<Kid[]>([]);
   const [selectedChild, setSelectedChild] = useState<Kid | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [latestContents, setLatestContents] = useState<any[]>([]);
+  const [loadingLatest, setLoadingLatest] = useState<boolean>(true);
+  const [continueContents, setContinueContents] = useState<any[]>([]);
+  const [loadingContinue, setLoadingContinue] = useState<boolean>(true);
   // Verificar se há erro de acesso negado
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -50,18 +71,18 @@ export default function DashboardPage() {
       const { data: userData } = await supabase.auth.getUser();
       const uid = userData.user?.id;
       if (!uid) return;
-      const { data: profile } = await supabase.from("profiles").select("full_name, avatar_url").eq("id", uid).maybeSingle();
+      const { data: profile } = await (supabase.from("profiles").select("full_name, avatar_url").eq("id", uid).maybeSingle() as unknown as { data: { full_name?: string; avatar_url?: string | null } | null });
       if (profile?.full_name) setDisplayName(profile.full_name);
       if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
       else if (userData.user?.user_metadata?.avatar_url) setAvatarUrl(userData.user.user_metadata.avatar_url);
 
       // parceiro(a): busca primeiro membro de família com relationship típico
-      const { data: fams } = await supabase
+      const { data: fams } = await (supabase
         .from("family_members")
         .select("name, relationship, avatar_url")
         .eq("user_id", uid)
         .order("created_at", { ascending: true })
-        .limit(1);
+        .limit(1) as unknown as { data: Array<{ name?: string | null; avatar_url?: string | null }> | null });
       if (fams && fams.length > 0) {
         setPartnerName(fams[0].name ?? null);
         setPartnerAvatarUrl(fams[0].avatar_url ?? null);
@@ -77,6 +98,203 @@ export default function DashboardPage() {
         setChildren(mapped);
       }
     })();
+  }, []);
+
+  // Conteúdos iniciados pelo usuário (para seção Continue de onde parou)
+  useEffect(() => {
+    const loadContinueContents = async () => {
+      try {
+        const supabase = createClient();
+        
+        // Buscar progresso real do usuário
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setContinueContents([]);
+          return;
+        }
+
+        // Buscar conteúdos com progresso iniciado (entre 1% e 99%)
+        const { data: progressData, error: progressError } = await supabase
+          .from('user_progress')
+          .select(`
+            content_id,
+            completion_percentage,
+            is_completed,
+            updated_at,
+            content:contents!content_id (
+              id,
+              title,
+              description,
+              duration,
+              content_type,
+              slug,
+              image_url,
+              file_url,
+              created_at,
+              module_id,
+              trail_id,
+              modules:modules (
+                id,
+                slug,
+                title,
+                trails:trails (
+                  id,
+                  slug,
+                  title,
+                  pages:pages (
+                    id,
+                    slug,
+                    title
+                  )
+                )
+              ),
+              trails:trails (
+                id,
+                slug,
+                title,
+                pages:pages (
+                  id,
+                  slug,
+                  title
+                )
+              )
+            )
+          `)
+          .eq('user_id', user.id)
+          .gt('completion_percentage', 0)
+          .lt('completion_percentage', 100)
+          .order('updated_at', { ascending: false })
+          .limit(8);
+
+        if (progressError) {
+          console.error('Erro ao carregar progresso:', progressError);
+          setContinueContents([]);
+          return;
+        }
+
+        const mapped = (progressData || [])
+          .filter((item: any) => item.content) // Filtrar apenas conteúdos válidos
+          .map((item: any) => {
+            const content = item.content;
+            const page = content?.modules?.trails?.pages || content?.trails?.pages;
+            const pageSlug: string | undefined = page?.slug;
+            const pageTitle: string | undefined = page?.title || content?.modules?.trails?.title || content?.trails?.title;
+            const badgeCfg = (pageSlug && PAGE_BADGE[pageSlug]) ? PAGE_BADGE[pageSlug] : { label: pageTitle || 'Conteúdo', variant: 'outline' as const };
+            const image = content.image_url || '/logo_full.png';
+            
+            return {
+              ...content,
+              image,
+              progress: item.completion_percentage,
+              lastWatched: item.updated_at,
+              origin: {
+                slug: pageSlug,
+                label: badgeCfg.label,
+                badge: badgeCfg
+              }
+            };
+          });
+
+        setContinueContents(mapped);
+      } catch (error) {
+        console.error('Erro ao carregar conteúdos para continuar:', error);
+        setContinueContents([]);
+      } finally {
+        setLoadingContinue(false);
+      }
+    };
+
+    loadContinueContents();
+  }, []);
+
+  // Últimos conteúdos publicados (para seção Novidades)
+  useEffect(() => {
+    const loadLatestContents = async () => {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('contents')
+          .select(`
+            id,
+            title,
+            description,
+            duration,
+            content_type,
+            slug,
+            image_url,
+            file_url,
+            created_at,
+            module_id,
+            trail_id,
+            modules:modules (
+              id,
+              slug,
+              title,
+              trails:trails (
+                id,
+                slug,
+                title,
+                pages:pages (
+                  id,
+                  slug,
+                  title
+                )
+              )
+            ),
+            trails:trails (
+              id,
+              slug,
+              title,
+              pages:pages (
+                id,
+                slug,
+                title
+              )
+            )
+          `)
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(12);
+
+        if (error) {
+          console.error('Erro ao carregar últimos conteúdos:', error);
+          setLatestContents([]);
+          return;
+        }
+
+        const PAGE_BADGE: Record<string, { label: string; variant: "info"|"success"|"warning"|"error"|"brand"|"outline"|"default" }> = {
+          'montanha-do-amanha': { label: 'Montanha do Amanhã', variant: 'brand' },
+          'rodas-de-conversa': { label: 'Rodas de Conversa', variant: 'success' },
+          'plantao-de-duvidas': { label: 'Plantão de Dúvidas', variant: 'warning' },
+          'acervo-digital': { label: 'Acervo Digital', variant: 'info' }
+        };
+
+        const mapped = (data || []).map((c: any) => {
+          const page = (c as any)?.modules?.trails?.pages || (c as any)?.trails?.pages;
+          const pageSlug: string | undefined = page?.slug;
+          const pageTitle: string | undefined = page?.title || (c as any)?.modules?.trails?.title || (c as any)?.trails?.title;
+          const badgeCfg = (pageSlug && PAGE_BADGE[pageSlug]) ? PAGE_BADGE[pageSlug] : { label: pageTitle || 'Conteúdo', variant: 'outline' as const };
+          const image = c.image_url || '/logo_full.png';
+          return {
+            ...c,
+            image,
+            origin: {
+              slug: pageSlug,
+              title: pageTitle,
+              badge: badgeCfg
+            }
+          };
+        });
+
+        setLatestContents(mapped);
+      } catch (err) {
+        console.error('Erro inesperado ao carregar últimos conteúdos:', err);
+      } finally {
+        setLoadingLatest(false);
+      }
+    };
+
+    loadLatestContents();
   }, []);
   
   // Dados de progresso mockados temporariamente
@@ -162,339 +380,137 @@ export default function DashboardPage() {
         <Section className="p-0">
 
         {/* Boas-vindas */}
-        <div className="px-6 pt-8 pb-8">
+        <div className="pt-8 pb-8">
           <h1 className="text-3xl font-bold text-light-text dark:text-dark-text mb-2">
             Bem-vindo, {displayName || 'Usuário'}!
           </h1>
           <p className="text-light-muted dark:text-dark-muted">
-            Visão geral da sua família e progresso.
+            Confira as últimas novidades da plataforma.
           </p>
         </div>
 
-        {/* Card da Família */}
-        <div className="px-6 pb-6">
-        <div className="grid-12">
-          <div className="col-span-12">
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-100 via-purple-50 to-white dark:from-purple-900/30 dark:via-purple-800/20 dark:to-dark-surface shadow-xl">
-              <div className="relative p-8">
-                <div className="grid gap-8 lg:grid-cols-2 items-center">
-                  {/* Lado Esquerdo - Família */}
-                  <div className="space-y-6">
-                    {/* Informações dos Pais */}
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center -space-x-4">
-                        <img src={avatarUrl ?? "/logo.png"} alt="Responsável" className="relative z-10 w-20 h-20 rounded-full object-cover border-3 border-white/90 dark:border-white/30 shadow-lg" />
-                        <img src={partnerAvatarUrl ?? "/logo.png"} alt="Parceiro(a)" className="relative z-0 w-20 h-20 rounded-full object-cover border-3 border-white/90 dark:border-white/30 shadow-lg" />
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold text-light-text dark:text-dark-text mb-1">
-                          {displayName.split(' ')[0]}{partnerName ? ` & ${partnerName.split(' ')[0]}` : ""}
-                        </div>
-                        <div className="text-base text-light-muted dark:text-dark-muted">Família • {children.length} filho(s)</div>
-                        <div className="mt-2 text-sm text-purple-600 dark:text-purple-400 font-medium">Jornada do Amanhã</div>
-                      </div>
-                    </div>
-                    
-                    {/* Informações dos Filhos */}
-                    <div className="space-y-3">
-                      <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">Filhos</h3>
-                      <div className="flex items-center gap-3">
-                        {children.map((child, index) => (
-                          <div 
-                            key={index} 
-                            onClick={() => openChildDetails(child)}
-                            className="relative cursor-pointer hover:scale-110 transition-transform duration-200"
-                          >
-                            <img 
-                              src={child.avatar ?? "/logo.png"} 
-                              alt={child.name} 
-                              className="w-16 h-16 rounded-full object-cover border-3 border-white/90 dark:border-white/30 shadow-lg" 
-                            />
-                            {/* Tooltip com nome */}
-                            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-[9999]">
-                              {child.name}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Lado Direito - Métricas */}
-                  <div className="flex items-center">
-                    {/* Métricas de Progresso */}
-                    <div className="space-y-3 w-full">
-                      <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">Métricas de Progresso</h3>
-                      <div className="space-y-3">
-                        <div className="p-3 bg-white/50 dark:bg-dark-surface/50 backdrop-blur-sm rounded-lg border border-light-border/5 dark:border-dark-border/5">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-                              <span className="text-sm font-medium text-light-text dark:text-dark-text">Anamnese</span>
-                            </div>
-                            <span className="text-lg font-bold text-green-600 dark:text-green-400">{avgAnamnese}%</span>
-                          </div>
-                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                            <div 
-                              className="bg-green-500 h-1.5 rounded-full transition-all duration-500"
-                              style={{ width: `${avgAnamnese}%` }}
-                            ></div>
-                          </div>
-                        </div>
-
-                        <div className="p-3 bg-white/50 dark:bg-dark-surface/50 backdrop-blur-sm rounded-lg border border-light-border/5 dark:border-dark-border/5">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                              <span className="text-sm font-medium text-light-text dark:text-dark-text">Rotina</span>
-                            </div>
-                            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{avgRoutine}%</span>
-                          </div>
-                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                            <div 
-                              className="bg-blue-500 h-1.5 rounded-full transition-all duration-500"
-                              style={{ width: `${avgRoutine}%` }}
-                            ></div>
-                          </div>
-                        </div>
-
-                        <div className="p-3 bg-white/50 dark:bg-dark-surface/50 backdrop-blur-sm rounded-lg border border-light-border/5 dark:border-dark-border/5">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <BookOpen className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                              <span className="text-sm font-medium text-light-text dark:text-dark-text">Diários</span>
-                            </div>
-                            <span className="text-lg font-bold text-purple-600 dark:text-purple-400">{diariesThisWeek}</span>
-                          </div>
-                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                            <div 
-                              className="bg-purple-500 h-1.5 rounded-full transition-all duration-500"
-                              style={{ width: `${Math.min(diariesThisWeek * 20, 100)}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+        {/* Novidades - últimos conteúdos publicados */}
+        <div className="section-spacing">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-1 h-8 bg-brand-accent rounded-full"></div>
+            <h2 className="text-2xl font-bold text-light-text dark:text-dark-text">Novidades</h2>
+          </div>
+          {loadingLatest ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-6 h-6 border-2 border-brand-accent border-t-transparent rounded-full animate-spin" />
               </div>
+          ) : latestContents.length === 0 ? (
+            <div className="text-center py-6 text-light-muted dark:text-dark-muted">Nenhum conteúdo recente</div>
+          ) : (
+            <ContentCarousel>
+              {latestContents.map((content: any) => {
+                // Card para livros usando componente existente
+                if (content.content_type === 'book') {
+                  return (
+                    <CardLivro
+                      key={content.id}
+                      title={content.title}
+                      author="Autor"
+                      description={content.description || ""}
+                      pages={content.duration || 0}
+                      image={content.image}
+                      fileUrl={content.file_url || "#"}
+                      id={content.id}
+                      className="w-full"
+                    />
+                  );
+                }
+
+                // Card para vídeos/aulas usando componente existente
+                return (
+                  <CardVideoAula
+                    key={content.id}
+                    title={content.title}
+                    description={content.description || ""}
+                    instructor="Instrutor"
+                    duration={`${content.duration || 0}min`}
+                    lessons={1}
+                    progress={0}
+                    image={content.image}
+                    slug={content.slug}
+                    className="w-full"
+                  />
+                );
+              })}
+            </ContentCarousel>
+          )}
+        </div>
+
+        {/* Seção Continue de onde parou - só aparece se houver progresso */}
+        {continueContents.length > 0 && (
+          <div className="py-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-brand-accent rounded-full flex items-center justify-center">
+                  <Play className="w-5 h-5 text-white ml-0.5" />
+                </div>
+                <h2 className="text-2xl font-bold text-light-text dark:text-dark-text">
+                  Continue de onde parou
+                </h2>
+              </div>
+              <button 
+                onClick={() => router.push('/dashboard/continue-assistindo')}
+                className="text-brand-accent hover:text-brand-accent/80 text-sm font-medium cursor-pointer"
+              >
+                ver todos
+              </button>
+            </div>
+
+            <div className="relative">
+              {loadingContinue ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="w-6 h-6 border-2 border-brand-accent border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : (
+                <ContentCarousel>
+                  {continueContents.map((content: any) => {
+                    // Card para livros usando componente existente
+                    if (content.content_type === 'book') {
+                      return (
+                        <CardLivro
+                          key={content.id}
+                          title={content.title}
+                          author="Autor"
+                          description={content.description || ""}
+                          pages={content.duration || 0}
+                          image={content.image}
+                          fileUrl={content.file_url || "#"}
+                          id={content.id}
+                          className="w-full"
+                        />
+                      );
+                    }
+
+                    // Card para vídeos/aulas usando componente existente
+                    return (
+                      <CardVideoAula
+                        key={content.id}
+                        title={content.title}
+                        description={content.description || ""}
+                        instructor="Instrutor"
+                        duration={`${content.duration || 0}min`}
+                        lessons={1}
+                        progress={content.progress}
+                        image={content.image}
+                        slug={content.slug}
+                        className="w-full"
+                      />
+                    );
+                  })}
+                </ContentCarousel>
+              )}
             </div>
           </div>
-        </div>
-        </div>
+      )}
 
-
-
-        {/* Progresso geral */}
-        <div className="section-spacing">
-          <h2 className="section-title">Progresso</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            <MetricCard
-              title="Aulas concluídas"
-              value={`${mockProgress.completed}/${mockProgress.totalLessons}`}
-              description={`${progressPct}% do total`}
-              icon={<BookOpen className="w-5 h-5" />}
-              variant="brand"
-              trend={{
-                value: 15,
-                label: "vs. mês passado",
-                positive: true
-              }}
-            />
-            
-            <ModernCard variant="gradient" className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-brand-accent" />
-                <h4 className="font-medium text-light-text dark:text-dark-text">Próximo evento</h4>
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">
-                  {mockEvents[0]?.title}
-                </h3>
-                <p className="text-sm text-light-muted dark:text-dark-muted">
-                  {mockEvents[0]?.date}
-                </p>
-                <Badge variant="info" size="sm">Próximo</Badge>
-              </div>
-            </ModernCard>
-            
-            <MetricCard
-              title="Trilhas disponíveis"
-              value={mockTrails.length}
-              description="Cursos ativos"
-              icon={<TrendingUp className="w-5 h-5" />}
-              variant="success"
-            />
-          </div>
-        </div>
-
-        {/* Trilhas de Aprendizado */}
-        <div className="section-spacing">
-          <h2 className="section-title">Trilhas de Aprendizado</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {mockTrails.map((trail, index) => (
-              <ModernCard key={index} variant="elevated" className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-brand-accent/10 flex items-center justify-center">
-                    <BookOpen className="w-5 h-5 text-brand-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-light-text dark:text-dark-text">{trail.title}</h3>
-                    <p className="text-sm text-light-muted dark:text-dark-muted">
-                      {trail.modules.length} módulos
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-light-muted dark:text-dark-muted">Progresso</span>
-                    <Badge variant="outline" size="sm">
-                      {deterministicPercent(trail.title, index)}%
-                    </Badge>
-                  </div>
-                  <div className="w-full bg-light-border/20 dark:bg-dark-border/20 rounded-full h-2 shadow-sm">
-                    <div 
-                      className="bg-brand-accent h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${deterministicPercent(trail.title + ':bar', index)}%` }}
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Badge variant="success" size="sm">Ativo</Badge>
-                  <Badge variant="outline" size="sm">
-                    {trail.modules.reduce((acc, module) => acc + module.lessons.length, 0)} aulas
-                  </Badge>
-                </div>
-              </ModernCard>
-            ))}
-          </div>
-        </div>
         </Section>
       </Container>
 
-      {/* Modal de Detalhes do Filho */}
-      {selectedChild && (
-        <Modal open={isModalOpen} onClose={closeModal}>
-          <div className="bg-white dark:bg-dark-surface p-6 rounded-lg">
-            <h2 className="text-xl font-bold text-light-text dark:text-dark-text mb-6">Detalhes - {selectedChild.name}</h2>
-            <div className="space-y-6">
-            {/* Header do Filho */}
-            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-orange-50 dark:from-blue-900/20 dark:to-orange-900/20 rounded-xl">
-              <img 
-                src={selectedChild.avatar ?? "/logo.png"} 
-                alt={selectedChild.name} 
-                className="w-16 h-16 rounded-full object-cover border-3 border-white dark:border-dark-border shadow-lg" 
-              />
-              <div>
-                <h3 className="text-xl font-bold text-light-text dark:text-dark-text">{selectedChild.name}</h3>
-                <p className="text-light-muted dark:text-dark-muted">Progresso e evolução</p>
-              </div>
-            </div>
-
-            {/* Métricas de Progresso */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ProgressCard
-                title="Anamnese"
-                progress={Math.round((selectedChild.anamnese ?? 0) * 100)}
-                color="success"
-                size="md"
-                showPercentage={true}
-                description="Formulários de avaliação completados"
-              />
-              
-              <ProgressCard
-                title="Rotina de Hoje"
-                progress={selectedChild.routineToday?.done ?? 0}
-                total={selectedChild.routineToday?.total ?? 0}
-                color="info"
-                size="md"
-                showPercentage={true}
-                description="Tarefas diárias concluídas"
-              />
-            </div>
-
-            {/* Estatísticas Detalhadas */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-xl shadow-md">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                    <BookOpen className="w-4 h-4 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-light-text dark:text-dark-text">Aulas Concluídas</div>
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">{selectedChild.lessonsDone || 0}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-xl shadow-md">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                    <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-light-text dark:text-dark-text">Último Diário</div>
-                    <div className="text-sm text-light-muted dark:text-dark-muted">{selectedChild.lastDiary || "Nenhum"}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-xl shadow-md">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-light-text dark:text-dark-text">Progresso Geral</div>
-                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                      {Math.round((((selectedChild.anamnese ?? 0) + ((selectedChild.routineToday?.done ?? 0) / Math.max(1, selectedChild.routineToday?.total ?? 1))) / 2) * 100)}%
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Histórico de Atividades */}
-            <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-xl shadow-md">
-              <h4 className="font-semibold text-light-text dark:text-dark-text mb-3">Atividades Recentes</h4>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-light-border/10 dark:bg-dark-border/10 rounded-lg">
-                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                    <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-light-text dark:text-dark-text">Anamnese atualizada</div>
-                    <div className="text-xs text-light-muted dark:text-dark-muted">Há 2 dias</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3 p-3 bg-light-border/10 dark:bg-dark-border/10 rounded-lg">
-                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-                    <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-light-text dark:text-dark-text">Aula concluída</div>
-                    <div className="text-xs text-light-muted dark:text-dark-muted">Ontem</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3 p-3 bg-light-border/10 dark:bg-dark-border/10 rounded-lg">
-                  <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
-                    <Calendar className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-light-text dark:text-dark-text">Rotina diária completada</div>
-                    <div className="text-xs text-light-muted dark:text-dark-muted">Hoje</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          </div>
-        </Modal>
-      )}
     </>
   );
 }

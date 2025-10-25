@@ -19,7 +19,7 @@ export function Tooltip({ label, children, side = "right" }: TooltipProps) {
     <div className="relative inline-flex items-center group">
       {children}
       <div
-        className={`pointer-events-none absolute whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-[9999] ${sideClasses[side]}`}
+        className={`pointer-events-none absolute whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-[99999] ${sideClasses[side]}`}
       >
         <div className="rounded-full bg-[#0A2540] text-white text-xs px-3 py-1 shadow-lg shadow-black/10">
           {label}

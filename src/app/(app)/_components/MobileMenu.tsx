@@ -163,9 +163,9 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             {/* Main Navigation */}
             <div className="space-y-1">
               <MenuItem href="/dashboard" label="Início" icon={Home} onClick={onClose} />
-              <MenuItem href="/community" label="Comunidade" icon={MessagesSquare} onClick={onClose} />
+              {/* <MenuItem href="/community" label="Comunidade" icon={MessagesSquare} onClick={onClose} /> */}
               <MenuItem href="/catalog/montanha-do-amanha" label="Conteúdos" icon={BookOpen} onClick={onClose} />
-              <MenuItem href="/ia" label="Assistente IA" icon={Bot} onClick={onClose} />
+              {/* <MenuItem href="/ia" label="Assistente IA" icon={Bot} onClick={onClose} /> */}
             </div>
 
             {/* Catalog Section */}

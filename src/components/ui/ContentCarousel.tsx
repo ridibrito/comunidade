@@ -15,11 +15,11 @@ export function ContentCarousel({
   itemClassName = "pl-4 basis-full sm:basis-[300px] lg:basis-[350px]"
 }: ContentCarouselProps) {
   return (
-    <div className="relative">
+    <div className="relative overflow-visible">
       <Carousel className={className}>
-        <CarouselContent className="-ml-4">
+        <CarouselContent className="-ml-4 overflow-visible">
           {React.Children.map(children, (child, index) => (
-            <CarouselItem key={index} className={itemClassName}>
+            <CarouselItem key={index} className={`${itemClassName} overflow-visible`}>
               {child}
             </CarouselItem>
           ))}

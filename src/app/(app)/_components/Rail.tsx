@@ -72,9 +72,9 @@ export function Rail() {
   return (
     <nav className="hidden md:flex w-[64px] shrink-0 flex-col items-center gap-2 py-3 bg-light-surface dark:bg-dark-surface shadow-md">
       {item("/dashboard", "Início", <Home size={18} />)}
-      {item("/community", "Comunidade", <MessagesSquare size={18} />)}
+      {/* {item("/community", "Comunidade", <MessagesSquare size={18} />)} */}
       {item("/catalog/montanha-do-amanha", "Conteúdos", <BookOpen size={18} />)}
-      <Tooltip label="Assistente IA">
+      {/* <Tooltip label="Assistente IA">
         <Link
           href="/ia"
           className={cn(
@@ -99,7 +99,7 @@ export function Rail() {
             }} 
           />
         </Link>
-      </Tooltip>
+      </Tooltip> */}
       <div className="flex-1" />
       {!loading && isAdmin && (
         <div className="w-full pt-2 mt-2 flex flex-col items-center">

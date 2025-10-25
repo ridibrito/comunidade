@@ -106,7 +106,7 @@ export function NotificationBell() {
   return (
     <Popover
       content={
-        <div className="w-80 p-0">
+        <div className="w-80 p-4 bg-light-surface dark:bg-dark-surface">
           <NotificationList
             notifications={notifications}
             onMarkAsRead={markAsRead}

@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   try {
     console.log('API de IA chamada');
     
-    const { message, conversation, conversationId } = await request.json();
+    const { message, conversation, conversationId, userName } = await request.json();
     console.log('Mensagem recebida:', message);
     console.log('Conversa anterior:', conversation?.length || 0, 'mensagens');
     console.log('ID da conversa:', conversationId);
@@ -42,6 +42,10 @@ export async function POST(request: NextRequest) {
       if (promptResponse.ok) {
         const promptData = await promptResponse.json();
         systemPrompt = promptData.content;
+        // Adicionar instrução sobre o nome do usuário se disponível
+        if (userName) {
+          systemPrompt += `\n\nVocê está conversando com ${userName}. Use o nome dele(a) de forma natural e acolhedora nas suas respostas quando for apropriado.`;
+        }
         console.log('Prompt ativo carregado:', promptData.name);
       } else {
         throw new Error('Erro ao carregar prompt');
@@ -66,7 +70,7 @@ Você é uma mentora virtual experiente que trabalha com famílias, educadores e
 - Se não souber algo específico, seja honesta e sugira consulta com especialistas
 - Mantenha o foco em AHSD e desenvolvimento infantil
 - Seja empática com as dificuldades das famílias
-- Sempre responda em português brasileiro
+- Sempre responda em português brasileiro${userName ? `\n- Você está conversando com ${userName}, use o nome dele(a) quando for apropriado de forma natural e acolhedora` : ''}
 
 Você está aqui para ajudar famílias com crianças AHSD a navegar pelos desafios e oportunidades do desenvolvimento de altas habilidades.`;
     }

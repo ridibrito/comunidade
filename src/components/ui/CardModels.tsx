@@ -5,6 +5,7 @@ import Link from "next/link";
 import ModernCard from "@/components/ui/ModernCard";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import { Tooltip } from "@/components/ui/Tooltip";
 import { 
   Play, 
   Clock, 
@@ -309,9 +310,9 @@ export function CardLivro({
     }
   };
   return (
-    <ModernCard variant="elevated" className={`h-full flex flex-col ${className}`}>
+    <ModernCard variant="elevated" className={`h-full flex flex-col overflow-visible ${className}`}>
       <div className="relative">
-        <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-border">
+        <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-border">
           <img src={image} alt={title} className="w-full h-full object-cover" />
         </div>
         
@@ -335,9 +336,11 @@ export function CardLivro({
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col p-4 space-y-3">
-        <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1 break-words text-wrap">{title}</h3>
+      <div className="flex-1 flex flex-col p-3 space-y-2 overflow-visible">
+        <div className="flex-1 overflow-visible">
+          <Tooltip label={title} side="top">
+            <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1 line-clamp-1 cursor-help">{title}</h3>
+          </Tooltip>
           <p className="text-xs text-brand-accent font-medium mb-1">por {author}</p>
           <p className="text-sm text-gray-600 dark:text-dark-muted line-clamp-2">{description}</p>
         </div>
@@ -355,7 +358,7 @@ export function CardLivro({
           )}
         </div>
         
-        <div className="flex items-center justify-end mt-auto pt-3">
+        <div className="flex items-center justify-end mt-auto pt-2">
           <div className="flex items-center gap-2">
             <button 
               onClick={() => {

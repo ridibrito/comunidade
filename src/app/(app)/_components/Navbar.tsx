@@ -49,13 +49,13 @@ export function Navbar() {
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-3">
               {/* Ícone de Calendário */}
-              <Link 
+              {/* <Link 
                 href="/calendar" 
                 className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors cursor-pointer hover-brand-subtle text-light-muted dark:text-dark-muted"
                 title="Calendário de Eventos"
               >
                 <Calendar size={18} />
-              </Link>
+              </Link> */}
               
               {/* Sistema de Notificações */}
               <NotificationBell />
