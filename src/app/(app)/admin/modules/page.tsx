@@ -9,7 +9,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Label } from "@/components/ui/Label";
+import Label from "@/components/ui/Label";
 import Modal from "@/components/ui/Modal";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { Plus, Edit, Trash2, BookOpen, Users, Play, ArrowLeft, AlertTriangle } from "lucide-react";

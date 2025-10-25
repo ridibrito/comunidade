@@ -52,6 +52,7 @@ export default function AcervoDigitalPage() {
   const [pageData, setPageData] = useState<Page | null>(null);
   const [trails, setTrails] = useState<Trail[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modulesProgress, setModulesProgress] = useState<{[key: string]: {percentage: number, completed: number, total: number}}>({});
   const router = useRouter();
 
   useEffect(() => {
@@ -68,6 +69,13 @@ export default function AcervoDigitalPage() {
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
+
+  // Função para recarregar dados manualmente
+  const reloadData = () => {
+    setLoading(true);
+    setTrails([]);
+    loadPageData();
+  };
 
   async function loadPageData() {
     try {
@@ -151,10 +159,67 @@ export default function AcervoDigitalPage() {
       );
 
       setTrails(trailsWithModules);
+      
+      // Carregar progresso dos módulos
+      await loadModulesProgress(trailsWithModules, supabase);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  // Função para carregar progresso de todos os módulos
+  async function loadModulesProgress(trails: Trail[], supabase: any) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Coletar todos os IDs de conteúdos de todos os módulos
+      const allContentIds: string[] = [];
+      const moduleContentsMap: {[moduleId: string]: string[]} = {};
+
+      trails.forEach(trail => {
+        trail.modules.forEach(module => {
+          const contentIds = module.contents.map(c => c.id);
+          moduleContentsMap[module.id] = contentIds;
+          allContentIds.push(...contentIds);
+        });
+      });
+
+      if (allContentIds.length === 0) return;
+
+      // Buscar progresso de todos os conteúdos de uma vez
+      const { data: progressData } = await supabase
+        .from('user_progress')
+        .select('content_id, completion_percentage, is_completed')
+        .eq('user_id', user.id)
+        .in('content_id', allContentIds);
+
+      if (progressData && progressData.length > 0) {
+        const progressMap: {[key: string]: {percentage: number, completed: number, total: number}} = {};
+
+        // Calcular progresso por módulo
+        Object.entries(moduleContentsMap).forEach(([moduleId, contentIds]) => {
+          const moduleProgress = progressData.filter((p: any) => contentIds.includes(p.content_id));
+          const completed = moduleProgress.filter((p: any) => p.is_completed).length;
+          const total = contentIds.length;
+          const avgPercentage = total > 0 
+            ? Math.floor(moduleProgress.reduce((sum: number, p: any) => sum + p.completion_percentage, 0) / total)
+            : 0;
+
+          progressMap[moduleId] = {
+            percentage: avgPercentage,
+            completed,
+            total
+          };
+        });
+
+        setModulesProgress(progressMap);
+        console.log('✅ Progresso dos módulos carregado:', progressMap);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar progresso dos módulos:', error);
     }
   }
 
@@ -197,7 +262,13 @@ export default function AcervoDigitalPage() {
           <div className="text-center py-12">
             <div className="text-gray-500 dark:text-dark-muted">
               <h3 className="text-lg font-medium mb-2">Nenhum conteúdo disponível</h3>
-              <p className="text-sm">O acervo digital será atualizado em breve.</p>
+              <p className="text-sm mb-4">O acervo digital será atualizado em breve.</p>
+              <button 
+                onClick={reloadData}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+              >
+                Atualizar Dados
+              </button>
             </div>
           </div>
         ) : (
@@ -277,28 +348,45 @@ export default function AcervoDigitalPage() {
                 {trail.modules.length > 0 && (
                   <ContentCarousel>
                     {trail.modules.map((module) => (
-                      <Card
+                      <div 
                         key={module.id}
-                        className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 h-96 flex flex-col"
+                        className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 relative overflow-hidden rounded-lg"
                         onClick={() => handleModuleClick(module.slug)}
                       >
-                        <div className="flex-1 bg-gradient-to-br from-blue-500 to-blue-600 rounded-t-lg relative overflow-hidden">
-                          <div className="absolute inset-0 bg-black/20"></div>
+                        {/* Imagem de fundo - CARD VERTICAL RESPONSIVO */}
+                        <div className="relative w-full h-96 bg-gradient-to-br from-orange-500 to-orange-600">
+                          <img 
+                            src={module.image_url || "/logo_full.png"} 
+                            alt={module.title}
+                            className="w-full h-full object-cover"
+                          />
+                          {/* Overlay escuro para legibilidade do texto */}
+                          <div className="absolute inset-0 bg-black/40"></div>
+                          
+                          {/* Título do módulo e progresso no overlay */}
                           <div className="absolute bottom-4 left-4 right-4">
-                            <h3 className="text-white font-semibold text-lg leading-tight">
+                            <h3 className="text-white font-semibold text-lg leading-tight mb-2">
                               {module.title}
                             </h3>
+                            
+                            {/* Barra de progresso do módulo */}
+                            {modulesProgress[module.id] && (
+                              <div className="mt-2">
+                                <div className="flex justify-between text-xs text-white/90 mb-1">
+                                  <span>{modulesProgress[module.id].completed}/{modulesProgress[module.id].total} concluídas</span>
+                                  <span>{modulesProgress[module.id].percentage}%</span>
+                                </div>
+                                <div className="w-full bg-white/20 backdrop-blur-sm rounded-full h-1.5 overflow-hidden">
+                                  <div 
+                                    className="bg-white h-full transition-all duration-300 shadow-lg"
+                                    style={{ width: `${modulesProgress[module.id].percentage}%` }}
+                                  />
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
-                        <div className="p-4 flex-1 flex flex-col justify-between">
-                          <p className="text-sm text-light-muted dark:text-dark-muted line-clamp-2">
-                            {module.description}
-                          </p>
-                          <div className="mt-2 text-xs text-light-muted dark:text-dark-muted">
-                            {module.contents.length} {module.contents.length === 1 ? 'item' : 'itens'}
-                          </div>
-                        </div>
-                      </Card>
+                      </div>
                     ))}
                   </ContentCarousel>
                 )}

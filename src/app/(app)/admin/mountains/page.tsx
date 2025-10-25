@@ -13,7 +13,7 @@ import Card from "@/components/ui/Card";
 import Modal from "@/components/ui/Modal";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { Input } from "@/components/ui/Input";
-import { Label } from "@/components/ui/Label";
+import Label from "@/components/ui/Label";
 import { useToast } from "@/components/ui/ToastProvider";
 
 // Interfaces

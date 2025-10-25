@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 import { Plus, UsersRound, Baby, UserCircle, ClipboardList, CalendarDays, BookOpen, Camera } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
-import { Label } from "@/components/ui/Label";
+import Label from "@/components/ui/Label";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useToast } from "@/components/ui/ToastProvider";
 

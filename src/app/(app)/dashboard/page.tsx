@@ -104,9 +104,9 @@ export default function DashboardPage() {
       lessons: 12,
       completed: 9,
       modules: [
-        { title: "Fundamentos", completed: true },
-        { title: "Desenvolvimento", completed: true },
-        { title: "Avançado", completed: false }
+        { title: "Fundamentos", completed: true, lessons: [{ title: "Aula 1" }, { title: "Aula 2" }] },
+        { title: "Desenvolvimento", completed: true, lessons: [{ title: "Aula 3" }, { title: "Aula 4" }] },
+        { title: "Avançado", completed: false, lessons: [{ title: "Aula 5" }] }
       ]
     },
     {
@@ -116,8 +116,8 @@ export default function DashboardPage() {
       lessons: 8,
       completed: 3,
       modules: [
-        { title: "Livros", completed: true },
-        { title: "Vídeos", completed: false }
+        { title: "Livros", completed: true, lessons: [{ title: "Livro 1" }, { title: "Livro 2" }] },
+        { title: "Vídeos", completed: false, lessons: [{ title: "Vídeo 1" }] }
       ]
     }
   ];
