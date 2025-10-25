@@ -15,7 +15,6 @@ import {
   BarChart3,
   Shield,
   Bell,
-  LogOut,
   MessagesSquare,
   CalendarDays,
   Library,
@@ -87,17 +86,6 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     checkAdminStatus();
   }, []);
 
-  const handleSignOut = async () => {
-    const supabase = getBrowserSupabaseClient();
-    if (!supabase) return;
-    
-    try {
-      await supabase.auth.signOut();
-      router.push("/auth/login");
-    } catch (error) {
-      console.error("Erro ao fazer logout:", error);
-    }
-  };
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -143,10 +131,10 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
       />
       
       {/* Menu */}
-      <div className="fixed inset-y-0 left-0 z-50 w-80 bg-light-bg dark:bg-dark-bg border-r border-light-border dark:border-dark-border lg:hidden">
+      <div className="fixed inset-y-0 left-0 z-50 w-80 bg-light-bg dark:bg-dark-bg lg:hidden">
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-light-border dark:border-dark-border">
+          <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
               <img src="/logo.png" alt="Singulari" width={120} height={20} />
             </div>
@@ -170,7 +158,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
             {/* Catalog Section */}
             {inCatalog && (
-              <div className="pt-4 mt-4 border-t border-light-border dark:border-dark-border">
+              <div className="pt-4 mt-4">
                 <div className="px-4 py-2">
                   <h3 className="text-xs font-semibold text-light-muted dark:text-dark-muted uppercase tracking-wider">
                     Conteúdos
@@ -187,7 +175,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
             {/* Events Section */}
             {inEvents && (
-              <div className="pt-4 mt-4 border-t border-light-border dark:border-dark-border">
+              <div className="pt-4 mt-4">
                 <div className="px-4 py-2">
                   <h3 className="text-xs font-semibold text-light-muted dark:text-dark-muted uppercase tracking-wider">
                     Eventos
@@ -202,7 +190,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
             {/* Admin Section */}
             {inAdmin && !loading && isAdmin && (
-              <div className="pt-4 mt-4 border-t border-light-border dark:border-dark-border">
+              <div className="pt-4 mt-4">
                 <div className="px-4 py-2">
                   <h3 className="text-xs font-semibold text-light-muted dark:text-dark-muted uppercase tracking-wider">
                     Administração
@@ -226,16 +214,6 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
           </nav>
 
-          {/* Footer */}
-          <div className="p-4 border-t border-light-border dark:border-dark-border">
-            <button
-              onClick={handleSignOut}
-              className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-            >
-              <LogOut size={20} />
-              Sair
-            </button>
-          </div>
         </div>
       </div>
     </>

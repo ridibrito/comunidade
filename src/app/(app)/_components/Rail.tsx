@@ -70,7 +70,7 @@ export function Rail() {
   );
 
   return (
-    <nav className="hidden md:flex w-[64px] shrink-0 flex-col items-center gap-2 py-3 bg-light-surface dark:bg-dark-surface shadow-md">
+    <nav className="hidden md:flex w-[64px] shrink-0 flex-col items-center gap-2 py-3 bg-light-surface dark:bg-dark-surface shadow-md border-r" style={{ borderColor: 'rgba(0, 0, 0, 0.08)' }}>
       {item("/dashboard", "Início", <Home size={18} />)}
       {/* {item("/community", "Comunidade", <MessagesSquare size={18} />)} */}
       {item("/catalog/montanha-do-amanha", "Conteúdos", <BookOpen size={18} />)}

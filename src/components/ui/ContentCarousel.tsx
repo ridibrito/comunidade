@@ -12,7 +12,7 @@ interface ContentCarouselProps {
 export function ContentCarousel({ 
   children, 
   className = "w-full",
-  itemClassName = "pl-4 basis-full sm:basis-[300px] lg:basis-[350px]"
+  itemClassName = "pl-4 basis-[280px] sm:basis-[300px] lg:basis-[350px]"
 }: ContentCarouselProps) {
   return (
     <div className="relative overflow-visible">
@@ -24,8 +24,8 @@ export function ContentCarousel({
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
+        <CarouselPrevious className="hidden sm:flex" />
+        <CarouselNext className="hidden sm:flex" />
       </Carousel>
     </div>
   );

@@ -77,7 +77,12 @@ export function Popover({
       end: side === "top" || side === "bottom" ? "right-0" : "bottom-0",
     };
 
-    return `${sideClasses[side]} ${alignClasses[align]}`;
+    // Para mobile, ajustar posicionamento para evitar corte
+    const mobileClasses = side === "top" || side === "bottom" 
+      ? "sm:left-1/2 sm:-translate-x-1/2 left-4 right-4 sm:left-auto sm:right-auto" 
+      : "";
+
+    return `${sideClasses[side]} ${alignClasses[align]} ${mobileClasses}`;
   };
 
   return (
@@ -96,7 +101,7 @@ export function Popover({
         <div
           ref={popoverRef}
           className={cn(
-            "absolute z-50 w-80 bg-light-surface dark:bg-dark-surface rounded-lg shadow-lg",
+            "absolute z-50 w-[calc(100vw-2rem)] sm:w-80 bg-light-surface dark:bg-dark-surface rounded-lg shadow-lg",
             getPositionClasses(),
             className
           )}

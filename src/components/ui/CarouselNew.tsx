@@ -55,6 +55,8 @@ function Carousel({
     {
       ...opts,
       axis: orientation === "horizontal" ? "x" : "y",
+      dragFree: true,
+      containScroll: "trimSnaps",
     },
     plugins
   )
@@ -141,7 +143,8 @@ function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
       style={{ 
         WebkitOverflowScrolling: 'touch',
         scrollbarWidth: 'none',
-        msOverflowStyle: 'none'
+        msOverflowStyle: 'none',
+        touchAction: 'pan-x'
       }}
     >
       <div
