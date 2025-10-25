@@ -229,9 +229,9 @@ export default function IAPage() {
   };
 
   return (
-    <div className="flex h-screen bg-light-surface dark:bg-dark-surface">
+    <div className="flex h-[calc(100vh-64px)] bg-light-surface dark:bg-dark-surface">
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 bg-light-surface-secondary dark:bg-dark-surface-secondary border-r border-light-border dark:border-dark-border`}>
+      <div className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 bg-light-surface-secondary dark:bg-dark-surface-secondary border-r border-light-border dark:border-dark-border hidden lg:block`}>
         <div className="p-4 border-b border-light-border dark:border-dark-border">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-light-text dark:text-dark-text">Conversas</h2>
@@ -291,6 +291,7 @@ export default function IAPage() {
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 variant="ghost"
                 size="sm"
+                className="lg:hidden"
               >
                 <MessageSquare className="w-4 h-4" />
               </Button>
@@ -303,11 +304,20 @@ export default function IAPage() {
                 </p>
               </div>
             </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={createNewConversation}
+                size="sm"
+                className="bg-brand-accent hover:bg-brand-accent/90 lg:hidden"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
           {messages.map((msg) => (
             <div
               key={msg.id}
@@ -321,7 +331,7 @@ export default function IAPage() {
                 </div>
               )}
               <div
-                className={`max-w-[70%] p-3 rounded-lg ${
+                className={`max-w-[85%] sm:max-w-[70%] p-3 rounded-lg ${
                   msg.role === 'user'
                     ? "bg-brand-accent text-white"
                     : "bg-light-surface-secondary dark:bg-dark-surface-secondary text-light-text dark:text-dark-text"
@@ -344,7 +354,7 @@ export default function IAPage() {
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-accent flex items-center justify-center text-white">
                 <Bot className="w-4 h-4" />
               </div>
-              <div className="max-w-[70%] p-3 rounded-lg bg-light-surface-secondary dark:bg-dark-surface-secondary text-light-text dark:text-dark-text">
+              <div className="max-w-[85%] sm:max-w-[70%] p-3 rounded-lg bg-light-surface-secondary dark:bg-dark-surface-secondary text-light-text dark:text-dark-text">
                 <Loader2 className="w-4 h-4 animate-spin" />
               </div>
             </div>
@@ -354,22 +364,22 @@ export default function IAPage() {
         </div>
 
         {/* Input */}
-        <div className="p-4 border-t border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+        <div className="p-3 sm:p-4 border-t border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
           <div className="flex gap-2">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Digite sua mensagem... (Enter para enviar, Shift+Enter para nova linha)"
+              placeholder="Digite sua mensagem..."
               disabled={isLoading}
-              className="flex-1 min-h-[40px] max-h-[120px] px-3 py-2 border border-light-border dark:border-dark-border rounded-md bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text placeholder-light-muted dark:placeholder-dark-muted focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent resize-none"
+              className="flex-1 min-h-[40px] max-h-[120px] px-3 py-2 border border-light-border dark:border-dark-border rounded-md bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text placeholder-light-muted dark:placeholder-dark-muted focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent resize-none text-sm"
               rows={1}
             />
             <Button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
               size="sm"
-              className="self-end bg-brand-accent hover:bg-brand-accent/90"
+              className="self-end bg-brand-accent hover:bg-brand-accent/90 flex-shrink-0"
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

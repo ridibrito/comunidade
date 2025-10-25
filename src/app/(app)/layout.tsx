@@ -1,7 +1,6 @@
 import { Navbar } from "./_components/Navbar";
 import { Sidebar } from "./_components/Sidebar";
 import { Rail } from "./_components/Rail";
-import { MobileBottomNav } from "./_components/MobileBottomNav";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SidebarWrapper } from "./_components/SidebarWrapper";
 import { getServerUser } from "@/lib/auth";
@@ -32,13 +31,10 @@ export default async function AppGroupLayout({
               </div>
               
               {/* Mobile/Desktop Content */}
-              <div className="flex-1 overflow-auto h-full bg-light-bg dark:bg-dark-bg pb-16 lg:pb-0">
+              <div className="flex-1 overflow-auto h-full bg-light-bg dark:bg-dark-bg">
                 {children}
               </div>
             </div>
-            
-            {/* Mobile Bottom Navigation */}
-            <MobileBottomNav />
           </section>
         </NotificationProvider>
       </ToastProvider>

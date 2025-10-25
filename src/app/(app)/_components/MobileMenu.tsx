@@ -15,7 +15,21 @@ import {
   BarChart3,
   Shield,
   Bell,
-  LogOut
+  LogOut,
+  MessagesSquare,
+  CalendarDays,
+  Library,
+  UsersRound,
+  PlayCircle,
+  Mountain,
+  HelpCircle,
+  Bot,
+  ImageIcon,
+  Upload,
+  History,
+  Link as LinkIcon,
+  Database,
+  ShieldCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
@@ -31,6 +45,11 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const router = useRouter();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Determine current section for dynamic menu
+  const inCatalog = pathname.startsWith("/catalog");
+  const inEvents = pathname.startsWith("/events");
+  const inAdmin = pathname.startsWith("/admin");
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -80,18 +99,6 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     }
   };
 
-  const menuItems = [
-    { href: "/", label: "Início", icon: Home },
-    { href: "/catalog", label: "Catálogo", icon: BookOpen },
-    { href: "/events", label: "Eventos", icon: Calendar },
-    { href: "/profile", label: "Perfil", icon: User },
-  ];
-
-  const adminItems = [
-    { href: "/admin", label: "Admin", icon: Shield },
-    { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
-  ];
-
   const isActive = (href: string) => {
     if (href === "/") {
       return pathname === "/";
@@ -116,7 +123,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
           : "text-light-text dark:text-dark-text"
       )}
     >
-      <Icon size={20} className={cn(
+      <Icon size={18} className={cn(
         isActive(href) 
           ? "text-brand-accent" 
           : "text-light-muted dark:text-dark-muted"
@@ -153,35 +160,70 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-4 space-y-2">
-            {menuItems.map((item) => (
-              <MenuItem
-                key={item.href}
-                href={item.href}
-                label={item.label}
-                icon={item.icon}
-                onClick={onClose}
-              />
-            ))}
+            {/* Main Navigation */}
+            <div className="space-y-1">
+              <MenuItem href="/dashboard" label="Início" icon={Home} onClick={onClose} />
+              <MenuItem href="/community" label="Comunidade" icon={MessagesSquare} onClick={onClose} />
+              <MenuItem href="/catalog/montanha-do-amanha" label="Conteúdos" icon={BookOpen} onClick={onClose} />
+              <MenuItem href="/ia" label="Assistente IA" icon={Bot} onClick={onClose} />
+            </div>
+
+            {/* Catalog Section */}
+            {inCatalog && (
+              <div className="pt-4 mt-4 border-t border-light-border dark:border-dark-border">
+                <div className="px-4 py-2">
+                  <h3 className="text-xs font-semibold text-light-muted dark:text-dark-muted uppercase tracking-wider">
+                    Conteúdos
+                  </h3>
+                </div>
+                <div className="space-y-1">
+                  <MenuItem href="/catalog/montanha-do-amanha" label="Montanha do amanhã" icon={Mountain} onClick={onClose} />
+                  <MenuItem href="/catalog/acervo-digital" label="Acervo digital" icon={Library} onClick={onClose} />
+                  <MenuItem href="/catalog/rodas-de-conversa" label="Rodas de conversa" icon={UsersRound} onClick={onClose} />
+                  <MenuItem href="/catalog/plantao-de-duvidas" label="Plantão de dúvidas" icon={HelpCircle} onClick={onClose} />
+                </div>
+              </div>
+            )}
+
+            {/* Events Section */}
+            {inEvents && (
+              <div className="pt-4 mt-4 border-t border-light-border dark:border-dark-border">
+                <div className="px-4 py-2">
+                  <h3 className="text-xs font-semibold text-light-muted dark:text-dark-muted uppercase tracking-wider">
+                    Eventos
+                  </h3>
+                </div>
+                <div className="space-y-1">
+                  <MenuItem href="/events/history" label="Lives realizadas" icon={PlayCircle} onClick={onClose} />
+                  <MenuItem href="/events/calendar" label="Calendário" icon={CalendarDays} onClick={onClose} />
+                </div>
+              </div>
+            )}
 
             {/* Admin Section */}
-            {!loading && isAdmin && (
+            {inAdmin && !loading && isAdmin && (
               <div className="pt-4 mt-4 border-t border-light-border dark:border-dark-border">
                 <div className="px-4 py-2">
                   <h3 className="text-xs font-semibold text-light-muted dark:text-dark-muted uppercase tracking-wider">
                     Administração
                   </h3>
                 </div>
-                {adminItems.map((item) => (
-                  <MenuItem
-                    key={item.href}
-                    href={item.href}
-                    label={item.label}
-                    icon={item.icon}
-                    onClick={onClose}
-                  />
-                ))}
+                <div className="space-y-1">
+                  <MenuItem href="/admin" label="Dashboard" icon={BarChart3} onClick={onClose} />
+                  <MenuItem href="/admin/users" label="Usuários" icon={UsersRound} onClick={onClose} />
+                  <MenuItem href="/admin/mountains" label="Conteúdos" icon={BookOpen} onClick={onClose} />
+                  <MenuItem href="/admin/heroes" label="Heroes" icon={ImageIcon} onClick={onClose} />
+                  <MenuItem href="/admin/ia" label="IA" icon={Bot} onClick={onClose} />
+                  <MenuItem href="/admin/notifications" label="Notificações" icon={Bell} onClick={onClose} />
+                  <MenuItem href="/admin/permissions" label="Permissões" icon={Shield} onClick={onClose} />
+                  <MenuItem href="/admin/bulk-operations" label="Operações em Lote" icon={Upload} onClick={onClose} />
+                  <MenuItem href="/admin/audit-logs" label="Logs de Auditoria" icon={History} onClick={onClose} />
+                  <MenuItem href="/admin/integrations" label="Integrações" icon={LinkIcon} onClick={onClose} />
+                  <MenuItem href="/admin/backup" label="Backup & Restore" icon={Database} onClick={onClose} />
+                </div>
               </div>
             )}
+
           </nav>
 
           {/* Footer */}

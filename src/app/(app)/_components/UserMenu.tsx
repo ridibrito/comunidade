@@ -106,9 +106,9 @@ export function UserMenu() {
   // Evitar hidratação mismatch
   if (!mounted) {
     return (
-      <div className="h-10 w-56 rounded-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border flex items-center gap-2 pl-1 pr-3">
+      <div className="h-10 w-12 lg:w-56 rounded-full bg-light-surface dark:bg-dark-surface  flex items-center gap-2 pl-1 pr-3">
         <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded hidden lg:block"></div>
       </div>
     );
   }
@@ -118,9 +118,9 @@ export function UserMenu() {
   
   if (loading) {
     return (
-      <div className="h-10 w-56 rounded-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border flex items-center gap-2 pl-1 pr-3">
+      <div className="h-10 w-12 lg:w-56 rounded-full bg-light-surface dark:bg-dark-surface  flex items-center gap-2 pl-1 pr-3">
         <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded hidden lg:block"></div>
       </div>
     );
   }
@@ -129,20 +129,30 @@ export function UserMenu() {
     <div ref={menuRef} className="relative">
       <button 
         onClick={() => setOpen((v) => !v)} 
-        className="h-10 w-56 rounded-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border text-light-text dark:text-dark-text flex items-center gap-2 pl-1 pr-3 hover:bg-light-border/50 dark:hover:bg-dark-border/50 transition-colors"
+        className="h-10 rounded-full bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text flex items-center gap-2 pl-1 pr-3 hover:bg-light-border/50 dark:hover:bg-dark-border/50 transition-colors w-12 lg:w-56"
       >
         <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-brand-accent to-purple-700 flex items-center justify-center">
-          {avatarUrl ? (
+          {avatarUrl && avatarUrl.trim() !== "" ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-sm font-semibold text-white">{initial}</span>
-          )}
+            <img 
+              src={avatarUrl} 
+              alt="avatar" 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Se a imagem falhar ao carregar, esconder e mostrar inicial
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+          ) : null}
+          <span className={`text-sm font-semibold text-white ${avatarUrl && avatarUrl.trim() !== "" ? 'hidden' : ''}`}>
+            {initial}
+          </span>
         </div>
-        <span className="text-sm text-light-text dark:text-dark-text max-w-[140px] truncate">{displayName}</span>
+        <span className="text-sm text-light-text dark:text-dark-text max-w-[140px] truncate hidden lg:block">{displayName}</span>
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-56 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface shadow-lg py-2 z-50">
+        <div className="absolute right-0 mt-2 w-56 rounded-xl  bg-light-surface dark:bg-dark-surface shadow-lg py-2 z-50">
           <div className="px-3 pb-2 border-b border-light-border dark:border-dark-border">
             <div className="text-sm font-medium text-light-text dark:text-dark-text truncate">{displayName}</div>
             {userEmail && <div className="text-xs text-light-muted dark:text-dark-muted truncate">{userEmail}</div>}

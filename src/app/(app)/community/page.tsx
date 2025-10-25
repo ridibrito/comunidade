@@ -181,38 +181,9 @@ export default function CommunityPage() {
       <Section>
         <PageHeader title="Comunidade" />
         
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Conteúdo Principal - Feed */}
           <div className="flex-1 space-y-6">
-          {/* Estatísticas da Comunidade */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <ModernCard variant="gradient" className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Users className="w-5 h-5 text-brand-accent" />
-                <span className="text-sm font-medium text-gray-600 dark:text-dark-muted">Membros Ativos</span>
-              </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-dark-text">1,247</div>
-              <Badge variant="success" size="sm" className="mt-2">+12% este mês</Badge>
-            </ModernCard>
-            
-            <ModernCard variant="gradient" className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <MessageCircle className="w-5 h-5 text-brand-accent" />
-                <span className="text-sm font-medium text-gray-600 dark:text-dark-muted">Posts Hoje</span>
-              </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-dark-text">89</div>
-              <Badge variant="info" size="sm" className="mt-2">+5% vs ontem</Badge>
-            </ModernCard>
-            
-            <ModernCard variant="gradient" className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <TrendingUp className="w-5 h-5 text-brand-accent" />
-                <span className="text-sm font-medium text-gray-600 dark:text-dark-muted">Engajamento</span>
-              </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-dark-text">94%</div>
-              <Badge variant="default" size="sm" className="mt-2">Excelente</Badge>
-            </ModernCard>
-          </div>
 
           {/* Criar Novo Post */}
           <ModernCard variant="elevated" className="space-y-4">
@@ -222,16 +193,16 @@ export default function CommunityPage() {
               </div>
               <div className="flex-1">
                 <input
-                  className="w-full h-12 px-4 rounded-xl border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-gray-900 dark:text-dark-text placeholder-gray-500 dark:placeholder-dark-muted focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 transition-all"
-                  placeholder="Compartilhe uma dúvida, experiência ou dica com a comunidade..."
+                  className="w-full h-12 px-4 rounded-xl border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-gray-900 dark:text-dark-text placeholder-gray-500 dark:placeholder-dark-muted focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 transition-all text-sm sm:text-base"
+                  placeholder="Compartilhe uma dúvida, experiência ou dica..."
                   value={newPost}
                   onChange={(e) => setNewPost(e.target.value)}
                 />
               </div>
             </div>
             
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-4">
                 <button className="flex items-center gap-2 text-sm text-gray-600 dark:text-dark-muted hover:text-brand-accent transition-colors cursor-pointer">
                   <Image className="w-4 h-4" />
                   Foto
@@ -337,7 +308,7 @@ export default function CommunityPage() {
 
                 {/* Ações do Post */}
                 <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-dark-border">
-                  <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-3 sm:gap-6">
                     <button className="flex items-center gap-2 text-gray-600 dark:text-dark-muted hover:text-red-500 transition-colors cursor-pointer">
                       <Heart className="w-4 h-4" />
                       <span>{post.likes}</span>
@@ -374,7 +345,7 @@ export default function CommunityPage() {
                             <span className="text-xs text-gray-500 dark:text-dark-muted">{comment.timestamp}</span>
                           </div>
                           <p className="text-sm text-gray-700 dark:text-dark-text mb-2">{comment.content}</p>
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2 sm:gap-4">
                             <button className="flex items-center gap-1 text-xs text-gray-500 dark:text-dark-muted hover:text-red-500 transition-colors cursor-pointer">
                               <ThumbsUp className="w-3 h-3" />
                               <span>{comment.likes}</span>
@@ -390,7 +361,7 @@ export default function CommunityPage() {
                 )}
 
                 {/* Campo de Comentário */}
-                <div className="flex gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                <div className="flex gap-2 sm:gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
                   <div className="w-8 h-8 rounded-full bg-brand-accent/10 flex items-center justify-center flex-shrink-0">
                     <Users className="w-4 h-4 text-brand-accent" />
                   </div>
@@ -451,7 +422,7 @@ export default function CommunityPage() {
           </div>
 
           {/* Sidebar Lateral */}
-          <div className="w-80 space-y-6">
+          <div className="w-full lg:w-80 space-y-6">
             {/* Próximos Eventos */}
             <ModernCard variant="elevated" className="space-y-4">
               <div className="flex items-center gap-2">
@@ -474,13 +445,13 @@ export default function CommunityPage() {
                       <span>{event.date} às {event.time}</span>
                     </div>
                     
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                       <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-dark-muted">
                         <Users className="w-3 h-3" />
                         <span>{event.participants} participantes</span>
                       </div>
                       <button 
-                        className="px-3 py-1 text-xs bg-brand-accent text-white rounded-md hover:bg-brand-accent/90 transition-colors flex items-center gap-1 cursor-pointer"
+                        className="px-3 py-1 text-xs bg-brand-accent text-white rounded-md hover:bg-brand-accent/90 transition-colors flex items-center gap-1 cursor-pointer w-full sm:w-auto"
                         onClick={() => window.open(event.zoomLink, '_blank')}
                       >
                         <Play className="w-3 h-3" />

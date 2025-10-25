@@ -32,15 +32,15 @@ export function Navbar() {
                 width={200} 
                 height={28} 
                 style={{ width: 200, height: "auto" }}
-                className="hidden sm:block"
+                className="hidden lg:block"
               />
               <img 
                 src="/logo.png" 
                 alt="Singulari" 
-                width={120} 
-                height={20} 
-                style={{ width: 120, height: "auto" }}
-                className="block sm:hidden"
+                width={160} 
+                height={24} 
+                style={{ width: 160, height: "auto" }}
+                className="block lg:hidden"
               />
             </Link>
           </div>
