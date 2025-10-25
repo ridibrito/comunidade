@@ -47,7 +47,7 @@ export default function RotinaPage() {
 
         <Section>
           <PageHeader title="Rotina" subtitle="Rotina diária por filho" />
-          <Card className="shadow-sm border border-light-border dark:border-dark-border rounded-lg">
+          <Card className="shadow-md rounded-lg p-8 border-0">
             <div className="text-sm text-light-muted dark:text-dark-muted">Em breve: configuração de rotina por filho.</div>
           </Card>
         </Section>

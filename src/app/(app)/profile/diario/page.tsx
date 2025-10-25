@@ -47,7 +47,7 @@ export default function DiarioPage() {
 
         <Section>
           <PageHeader title="Diário" subtitle="Registros do dia por filho" />
-          <Card className="shadow-sm border border-light-border dark:border-dark-border rounded-lg">
+          <Card className="shadow-md rounded-lg p-8 border-0">
             <div className="text-sm text-light-muted dark:text-dark-muted">Em breve: diário rápido para registro dos responsáveis.</div>
           </Card>
         </Section>

@@ -7,7 +7,7 @@ import { History } from "lucide-react";
 
 export default function AdminAuditLogsPage() {
   return (
-    <Container>
+    <Container fullWidth>
       <Section>
         <PageHeader
           title="Logs de Auditoria"

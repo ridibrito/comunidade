@@ -15,6 +15,7 @@ import { BookOpen, Calendar, TrendingUp, CheckCircle, Clock } from "lucide-react
 
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/ToastProvider";
+import { HeroCarousel } from "@/components/HeroCarousel";
 
 export default function DashboardPage() {
   const { push } = useToast();
@@ -151,14 +152,30 @@ export default function DashboardPage() {
     setSelectedChild(null);
   };
   return (
-    <Container>
-      <Section>
-        <PageHeader title={`Bem-vindo, ${displayName}!`} subtitle="Visão geral da sua família e progresso." />
+    <>
+      {/* Hero Carousel - primeira seção */}
+      <div>
+        <HeroCarousel pageSlug="dashboard" />
+      </div>
+      
+      <Container fullWidth className="p-0">
+        <Section className="p-0">
+
+        {/* Boas-vindas */}
+        <div className="px-6 pt-8 pb-8">
+          <h1 className="text-3xl font-bold text-light-text dark:text-dark-text mb-2">
+            Bem-vindo, {displayName || 'Usuário'}!
+          </h1>
+          <p className="text-light-muted dark:text-dark-muted">
+            Visão geral da sua família e progresso.
+          </p>
+        </div>
 
         {/* Card da Família */}
+        <div className="px-6 pb-6">
         <div className="grid-12">
           <div className="col-span-12">
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-100 via-purple-50 to-white dark:from-purple-900/30 dark:via-purple-800/20 dark:to-dark-surface border border-light-border/20 dark:border-dark-border/20 shadow-xl">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-100 via-purple-50 to-white dark:from-purple-900/30 dark:via-purple-800/20 dark:to-dark-surface shadow-xl">
               <div className="relative p-8">
                 <div className="grid gap-8 lg:grid-cols-2 items-center">
                   {/* Lado Esquerdo - Família */}
@@ -194,7 +211,7 @@ export default function DashboardPage() {
                               className="w-16 h-16 rounded-full object-cover border-3 border-white/90 dark:border-white/30 shadow-lg" 
                             />
                             {/* Tooltip com nome */}
-                            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-[9999]">
                               {child.name}
                             </div>
                           </div>
@@ -263,6 +280,7 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+        </div>
         </div>
 
 
@@ -353,7 +371,8 @@ export default function DashboardPage() {
             ))}
           </div>
         </div>
-      </Section>
+        </Section>
+      </Container>
 
       {/* Modal de Detalhes do Filho */}
       {selectedChild && (
@@ -398,7 +417,7 @@ export default function DashboardPage() {
 
             {/* Estatísticas Detalhadas */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border">
+              <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
                     <BookOpen className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -410,7 +429,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border">
+              <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
                     <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -422,7 +441,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border">
+              <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
                     <TrendingUp className="w-4 h-4 text-orange-600 dark:text-orange-400" />
@@ -438,7 +457,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Histórico de Atividades */}
-            <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border">
+            <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-xl shadow-md">
               <h4 className="font-semibold text-light-text dark:text-dark-text mb-3">Atividades Recentes</h4>
               <div className="space-y-3">
                 <div className="flex items-center gap-3 p-3 bg-light-border/10 dark:bg-dark-border/10 rounded-lg">
@@ -476,7 +495,7 @@ export default function DashboardPage() {
           </div>
         </Modal>
       )}
-    </Container>
+    </>
   );
 }
 

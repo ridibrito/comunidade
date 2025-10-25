@@ -38,6 +38,7 @@ interface Content {
   content_type: string;
   duration: number;
   position: number;
+  cover_url?: string;
   modules?: Module;
 }
 
@@ -62,8 +63,10 @@ export default function AdminLessonsPage() {
     module_id: "",
     position: 1,
     content_type: "video",
-    duration: 15
+    duration: 15,
+    cover_url: "" // Capa da aula
   });
+  const [uploadingCover, setUploadingCover] = useState(false);
 
   useEffect(() => {
     loadTrails();
@@ -204,7 +207,8 @@ export default function AdminLessonsPage() {
       module_id: lesson.module_id,
       position: lesson.position,
       content_type: lesson.content_type || "video",
-      duration: lesson.duration || 15
+      duration: lesson.duration || 15,
+      cover_url: (lesson as any).cover_url || ""
     });
     setShowModal(true);
   }
@@ -217,8 +221,43 @@ export default function AdminLessonsPage() {
       module_id: selectedModule,
       position: contents.length + 1,
       content_type: "video",
-      duration: 15
+      duration: 15,
+      cover_url: ""
     });
+  }
+
+  async function handleCoverUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingCover(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `lesson-cover-${Date.now()}.${fileExt}`;
+      const filePath = `lesson-covers/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('module-covers')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Erro no upload:', uploadError);
+        push('Erro ao fazer upload da capa', 'error');
+        return;
+      }
+
+      const { data } = supabase.storage
+        .from('module-covers')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({ ...prev, cover_url: data.publicUrl }));
+      push('Capa enviada com sucesso!', 'success');
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
+      push('Erro ao fazer upload da capa', 'error');
+    } finally {
+      setUploadingCover(false);
+    }
   }
 
   function openCreateModal() {
@@ -245,7 +284,8 @@ export default function AdminLessonsPage() {
             module_id: formData.module_id,
             position: formData.position,
             content_type: formData.content_type,
-            duration: formData.duration
+            duration: formData.duration,
+            cover_url: formData.cover_url || null
           })
           .eq('id', editingContent.id);
 
@@ -267,7 +307,8 @@ export default function AdminLessonsPage() {
             module_id: formData.module_id,
             position: formData.position,
             content_type: formData.content_type,
-            duration: formData.duration
+            duration: formData.duration,
+            cover_url: formData.cover_url || null
           });
 
         if (error) {
@@ -405,7 +446,7 @@ export default function AdminLessonsPage() {
                   Escolha uma trilha e módulo para gerenciar suas aulas
                 </p>
               </Card>
-            ) : lessons.length === 0 ? (
+            ) : contents.length === 0 ? (
               <Card className="text-center py-12">
                 <Play className="w-12 h-12 mx-auto mb-4 text-light-muted dark:text-dark-muted opacity-50" />
                 <h3 className="text-lg font-medium text-light-text dark:text-dark-text mb-2">
@@ -419,7 +460,7 @@ export default function AdminLessonsPage() {
                 </Button>
               </Card>
             ) : (
-              lessons.map((lesson) => (
+              contents.map((lesson) => (
                 <Card key={lesson.id} className="p-6 shadow-sm">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -525,7 +566,7 @@ export default function AdminLessonsPage() {
           <div className="space-y-6">
             <div>
               <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">
-                {editingLesson ? 'Editar Aula' : 'Nova Aula'}
+                {editingContent ? 'Editar Aula' : 'Nova Aula'}
               </h3>
               <p className="text-sm text-light-muted dark:text-dark-muted">
                 Configure os dados da aula educacional
@@ -534,7 +575,7 @@ export default function AdminLessonsPage() {
 
             <div className="space-y-4">
               <div>
-                <Label htmlFor="title">Título da Aula</Label>
+                <Label htmlFor="title">Título da Aula *</Label>
                 <Input
                   id="title"
                   value={formData.title}
@@ -556,15 +597,30 @@ export default function AdminLessonsPage() {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="slug">Slug</Label>
-                <Input
-                  id="slug"
-                  value={formData.slug}
-                  onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                  placeholder="ex: introducao-aspectos-cognitivos"
-                  className="bg-light-surface dark:bg-dark-surface shadow-sm"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="slug">Slug *</Label>
+                  <Input
+                    id="slug"
+                    value={formData.slug}
+                    onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                    placeholder="ex: introducao-aspectos-cognitivos"
+                    className="bg-light-surface dark:bg-dark-surface shadow-sm"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="content_type">Tipo *</Label>
+                  <select
+                    id="content_type"
+                    value={formData.content_type}
+                    onChange={(e) => setFormData(prev => ({ ...prev, content_type: e.target.value }))}
+                    className="w-full h-10 rounded-lg bg-light-surface dark:bg-dark-surface px-3 py-2 text-sm text-light-text dark:text-dark-text border border-light-border dark:border-dark-border focus:outline-none focus:ring-2 focus:ring-brand-accent/20"
+                  >
+                    <option value="video">Vídeo</option>
+                    <option value="text">Texto</option>
+                  </select>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -593,25 +649,53 @@ export default function AdminLessonsPage() {
               </div>
 
               <div>
-                <Label htmlFor="video_url">URL do Vídeo (Vimeo)</Label>
-                <Input
-                  id="video_url"
-                  value={formData.video_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, video_url: e.target.value }))}
-                  placeholder="ex: https://vimeo.com/123456789"
-                  className="bg-light-surface dark:bg-dark-surface shadow-sm"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="materials_url">URL dos Materiais (PDF)</Label>
-                <Input
-                  id="materials_url"
-                  value={formData.materials_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, materials_url: e.target.value }))}
-                  placeholder="ex: https://exemplo.com/material.pdf"
-                  className="bg-light-surface dark:bg-dark-surface shadow-sm"
-                />
+                <Label htmlFor="cover_image">Capa da Aula</Label>
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    id="cover_image"
+                    accept="image/*"
+                    onChange={handleCoverUpload}
+                    className="hidden"
+                    disabled={uploadingCover}
+                  />
+                  
+                  {!formData.cover_url ? (
+                    <label
+                      htmlFor="cover_image"
+                      className="cursor-pointer inline-flex items-center justify-center w-full py-3 border-2 border-dashed border-light-border dark:border-dark-border rounded-lg hover:border-brand-accent transition-colors bg-light-surface dark:bg-dark-surface"
+                    >
+                      <span className="text-sm font-medium text-light-text dark:text-dark-text">
+                        {uploadingCover ? 'Enviando...' : '+ Enviar Capa'}
+                      </span>
+                    </label>
+                  ) : (
+                    <div className="relative border-2 border-light-border dark:border-dark-border rounded-lg overflow-hidden bg-light-surface dark:bg-dark-surface">
+                      <img
+                        src={formData.cover_url}
+                        alt="Preview Capa"
+                        className="w-full h-48 object-cover"
+                      />
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        <label
+                          htmlFor="cover_image"
+                          className="cursor-pointer w-8 h-8 bg-brand-accent text-white rounded-full flex items-center justify-center hover:bg-brand-accent/90 transition-colors shadow-lg text-sm"
+                        >
+                          ↻
+                        </label>
+                        <button
+                          onClick={() => setFormData(prev => ({ ...prev, cover_url: "" }))}
+                          className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg text-lg"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-light-muted dark:text-dark-muted">
+                  Imagem ideal: 800x450px (16:9)
+                </p>
               </div>
             </div>
 

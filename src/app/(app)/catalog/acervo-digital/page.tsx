@@ -8,6 +8,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import ContentCarousel from "@/components/ui/ContentCarousel";
 import Card from "@/components/ui/Card";
 import { CardLivro } from "@/components/ui/CardModels";
+import { HeroCarousel } from "@/components/HeroCarousel";
 import { createClient } from "@/lib/supabase";
 
 interface Page {
@@ -252,6 +253,9 @@ export default function AcervoDigitalPage() {
 
   return (
     <Container fullWidth>
+      {/* Hero Carousel - Banner dinâmico */}
+      <HeroCarousel pageSlug="acervo-digital" />
+      
       <Section>
         <PageHeader 
           title={pageData.title} 

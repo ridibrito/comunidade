@@ -47,7 +47,7 @@ export default function ProfilePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      setEmail(user.email);
+      setEmail(user.email || null);
       
       const { data: profile } = await supabase
         .from("profiles")
@@ -56,16 +56,16 @@ export default function ProfilePage() {
         .single();
 
       if (profile) {
-        setFullName(profile.full_name || "");
-        setAvatarUrl(profile.avatar_url);
-        setPhone(profile.phone || "");
-        setZip(profile.zip || "");
-        setStreet(profile.street || "");
-        setNumber(profile.number || "");
-        setComplement(profile.complement || "");
-        setDistrict(profile.district || "");
-        setCity(profile.city || "");
-        setStateUF(profile.state || "");
+        setFullName((profile as any).full_name || "");
+        setAvatarUrl((profile as any).avatar_url);
+        setPhone((profile as any).phone || "");
+        setZip((profile as any).zip || "");
+        setStreet((profile as any).street || "");
+        setNumber((profile as any).number || "");
+        setComplement((profile as any).complement || "");
+        setDistrict((profile as any).district || "");
+        setCity((profile as any).city || "");
+        setStateUF((profile as any).state || "");
       }
     }
 
@@ -103,7 +103,7 @@ export default function ProfilePage() {
       
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ avatar_url: data.publicUrl })
+        .update({ avatar_url: data.publicUrl } as any)
         .eq("id", user.id);
 
       if (updateError) throw updateError;
@@ -241,10 +241,10 @@ export default function ProfilePage() {
           <PageHeader title="Meu perfil" subtitle="Gerencie seus dados pessoais, avatar e senha." />
           
           <div className="space-y-6">
-            <Card className="shadow-sm border border-light-border dark:border-dark-border rounded-lg">
+            <Card className="shadow-md rounded-lg py-12 px-8 border-0">
               <div className="grid gap-8 xl:grid-cols-[300px_1fr]">
                 <div className="flex flex-col items-center">
-                  <div className="relative w-44 h-44 rounded-full overflow-hidden border border-light-border dark:border-dark-border bg-light-border/30 dark:bg-dark-border/30 group">
+                  <div className="relative w-44 h-44 rounded-full overflow-hidden bg-light-border/30 dark:bg-dark-border/30 group shadow-md">
                     <Avatar className="w-full h-full">
                       {avatarUrl && <AvatarImage src={avatarUrl} alt="Avatar" />}
                       <AvatarFallback className="text-2xl font-medium text-light-text dark:text-dark-text bg-light-border/50 dark:bg-dark-border/50">
@@ -283,18 +283,18 @@ export default function ProfilePage() {
                       id="email"
                       value={email ?? ""} 
                       disabled 
-                      className="bg-light-border/30 dark:bg-dark-border/30 border-light-border/50 dark:border-dark-border/50 text-light-muted dark:text-dark-muted" 
+                      className="bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-brand-accent/20" 
                     />
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="phone">Telefone</Label>
-                    <MaskedInput value={phone} onChange={setPhone} mask={formatPhoneBR} placeholder="(00) 00000-0000" />
+                    <MaskedInput value={phone} onChange={setPhone} mask={formatPhoneBR} placeholder="(00) 00000-0000" className="border-light-border/50 dark:border-dark-border/50 focus:border-brand-accent/50 focus:ring-brand-accent/20" />
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="zip">CEP</Label>
-                    <MaskedInput value={zip} onChange={setZip} mask={formatCEP} placeholder="00000-000" />
+                    <MaskedInput value={zip} onChange={setZip} mask={formatCEP} placeholder="00000-000" className="border-light-border/50 dark:border-dark-border/50 focus:border-brand-accent/50 focus:ring-brand-accent/20" />
                   </div>
                   
                   <div className="space-y-2 lg:col-span-2">
@@ -349,7 +349,7 @@ export default function ProfilePage() {
                   
                   <div className="space-y-2">
                     <Label htmlFor="state">UF</Label>
-                    <MaskedInput value={stateUF} onChange={setStateUF} mask={formatUF} placeholder="UF" />
+                    <MaskedInput value={stateUF} onChange={setStateUF} mask={formatUF} placeholder="UF" className="border-light-border/50 dark:border-dark-border/50 focus:border-brand-accent/50 focus:ring-brand-accent/20" />
                   </div>
                   
                   <div className="mt-6 lg:col-span-3">
@@ -361,7 +361,7 @@ export default function ProfilePage() {
               </div>
             </Card>
 
-            <Card className="shadow-sm border border-light-border dark:border-dark-border rounded-lg">
+            <Card className="shadow-md rounded-lg p-12 border-0">
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">Alterar senha</h3>

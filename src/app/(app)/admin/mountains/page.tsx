@@ -108,12 +108,16 @@ export default function AdminMountainsPage() {
     description: "",
     slug: "",
     image_url: "",
+    banner_url: "",
     position: 0
   });
   
   // Upload states
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageInputType, setImageInputType] = useState<'url' | 'upload'>('url');
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [bannerInputType, setBannerInputType] = useState<'url' | 'upload'>('url');
+  const [uploadingContentCover, setUploadingContentCover] = useState(false);
   
   const [contentForm, setContentForm] = useState({
     title: "",
@@ -369,6 +373,7 @@ export default function AdminMountainsPage() {
         description: module.description,
         slug: module.slug,
         image_url: module.image_url || "",
+        banner_url: (module as any).banner_url || "",
         position: module.position
       });
     } else {
@@ -379,6 +384,7 @@ export default function AdminMountainsPage() {
         description: "",
         slug: "",
         image_url: "",
+        banner_url: "",
         position: trail?.modules?.length || 0
       });
     }
@@ -397,6 +403,7 @@ export default function AdminMountainsPage() {
             description: moduleForm.description,
             slug: moduleForm.slug,
             image_url: moduleForm.image_url,
+            banner_url: moduleForm.banner_url,
             position: moduleForm.position
           })
           .eq('id', editingModule.id);
@@ -411,6 +418,7 @@ export default function AdminMountainsPage() {
             description: moduleForm.description,
             slug: moduleForm.slug,
             image_url: moduleForm.image_url,
+            banner_url: moduleForm.banner_url,
             trail_id: selectedTrailId,
             position: moduleForm.position
           });
@@ -636,6 +644,51 @@ export default function AdminMountainsPage() {
     }
   }
 
+  async function handleContentCoverUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      push('Tipo de arquivo inválido. Use JPG, PNG, WebP ou GIF.', 'error');
+      return;
+    }
+
+    // Validar tamanho (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      push('Arquivo muito grande. Tamanho máximo: 5MB.', 'error');
+      return;
+    }
+
+    setUploadingContentCover(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `content-cover-${Date.now()}.${fileExt}`;
+      const filePath = `lesson-covers/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('module-covers')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Obter URL pública
+      const { data: { publicUrl } } = supabase.storage
+        .from('module-covers')
+        .getPublicUrl(filePath);
+
+      setContentForm({ ...contentForm, image_url: publicUrl });
+      push('Capa enviada com sucesso!', 'success');
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
+      push('Erro ao enviar capa. Crie o bucket "module-covers" no Supabase Storage.', 'error');
+    } finally {
+      setUploadingContentCover(false);
+      (event.target as HTMLInputElement).value = '';
+    }
+  }
+
   // Delete functions
   function openDeleteModal(type: 'trail' | 'module' | 'content', id: string, title: string) {
     setDeleteTarget({ type, id, title });
@@ -721,6 +774,50 @@ export default function AdminMountainsPage() {
       push('Erro ao enviar imagem. Crie o bucket "module-covers" no Supabase Storage.', 'error');
     } finally {
       setUploadingImage(false);
+    }
+  }
+
+  async function handleBannerUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      push('Tipo de arquivo inválido. Use JPG, PNG, WebP ou GIF.', 'error');
+      return;
+    }
+
+    // Validar tamanho (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      push('Arquivo muito grande. Tamanho máximo: 5MB.', 'error');
+      return;
+    }
+
+    setUploadingBanner(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `banner_${Date.now()}.${fileExt}`;
+      const filePath = `modules/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('module-covers')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Obter URL pública
+      const { data: { publicUrl } } = supabase.storage
+        .from('module-covers')
+        .getPublicUrl(filePath);
+
+      setModuleForm({ ...moduleForm, banner_url: publicUrl });
+      push('Banner enviado com sucesso!', 'success');
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
+      push('Erro ao enviar banner. Crie o bucket "module-covers" no Supabase Storage.', 'error');
+    } finally {
+      setUploadingBanner(false);
     }
   }
 
@@ -1165,6 +1262,84 @@ export default function AdminMountainsPage() {
                   </div>
                 )}
               </div>
+
+              {/* Banner do Módulo */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label>Banner do Módulo</Label>
+                  <span className="text-xs text-light-muted dark:text-dark-muted">
+                    📐 Ideal: 2700x900px (3:1)
+                  </span>
+                </div>
+                
+                {/* Botões para escolher tipo de input */}
+                <div className="flex gap-2 mb-3">
+                  <Button
+                    type="button"
+                    variant={bannerInputType === 'url' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setBannerInputType('url')}
+                    className={bannerInputType === 'url' ? 'bg-[#FF6B00] hover:bg-[#FF6B00]/90' : ''}
+                  >
+                    <LinkIcon className="w-4 h-4 mr-2" />
+                    URL
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={bannerInputType === 'upload' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setBannerInputType('upload')}
+                    className={bannerInputType === 'upload' ? 'bg-[#FF6B00] hover:bg-[#FF6B00]/90' : ''}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload
+                  </Button>
+                </div>
+
+                {/* Input de URL */}
+                {bannerInputType === 'url' && (
+                  <div>
+                    <Input
+                      value={moduleForm.banner_url}
+                      onChange={(e) => setModuleForm({ ...moduleForm, banner_url: e.target.value })}
+                      placeholder="https://exemplo.com/banner.jpg"
+                    />
+                    <p className="text-xs text-light-muted dark:text-dark-muted mt-1">
+                      Cole a URL da imagem externa (recomendado: 2700x900px, proporção 3:1)
+                    </p>
+                  </div>
+                )}
+
+                {/* Input de Upload */}
+                {bannerInputType === 'upload' && (
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                      onChange={handleBannerUpload}
+                      disabled={uploadingBanner}
+                      className="block w-full text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-800 focus:outline-none p-2"
+                    />
+                    <p className="text-xs text-light-muted dark:text-dark-muted mt-1">
+                      {uploadingBanner ? 'Enviando...' : 'JPG, PNG, WebP ou GIF (max 5MB) • Ideal: 2700x900px (3:1)'}
+                    </p>
+                  </div>
+                )}
+
+                {/* Preview do banner */}
+                {moduleForm.banner_url && (
+                  <div className="mt-3">
+                    <img 
+                      src={moduleForm.banner_url} 
+                      alt="Preview do banner" 
+                      className="w-full h-32 object-cover rounded-lg"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setShowModuleModal(false)}>
@@ -1183,27 +1358,29 @@ export default function AdminMountainsPage() {
             <h3 className="text-2xl font-semibold text-light-text dark:text-dark-text mb-6">
               {editingContent ? 'Editar Aula' : 'Nova Aula'}
             </h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Primeira coluna - Informações básicas */}
-              <div className="space-y-4">
-                <div>
-                  <Label>Título</Label>
-                  <Input
-                    value={contentForm.title}
-                    onChange={(e) => setContentForm({ ...contentForm, title: e.target.value })}
-                    placeholder="Nome da aula"
-                  />
-                </div>
-                <div>
-                  <Label>Descrição</Label>
-                  <textarea
-                    value={contentForm.description}
-                    onChange={(e) => setContentForm({ ...contentForm, description: e.target.value })}
-                    placeholder="Descrição da aula"
-                    className="w-full px-3 py-2 rounded-lg border"
-                    rows={4}
-                  />
-                </div>
+            <div className="space-y-4">
+              {/* Informações básicas */}
+              <div>
+                <Label>Título</Label>
+                <Input
+                  value={contentForm.title}
+                  onChange={(e) => setContentForm({ ...contentForm, title: e.target.value })}
+                  placeholder="Nome da aula"
+                />
+              </div>
+              
+              <div>
+                <Label>Descrição</Label>
+                <textarea
+                  value={contentForm.description}
+                  onChange={(e) => setContentForm({ ...contentForm, description: e.target.value })}
+                  placeholder="Descrição da aula"
+                  className="w-full px-3 py-2 rounded-lg border"
+                  rows={4}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Slug</Label>
                   <Input
@@ -1212,6 +1389,7 @@ export default function AdminMountainsPage() {
                     placeholder="slug-da-aula"
                   />
                 </div>
+                
                 <div>
                   <Label>Tipo de conteúdo</Label>
                   <select
@@ -1226,33 +1404,70 @@ export default function AdminMountainsPage() {
                 </div>
               </div>
 
-              {/* Segunda coluna - Configurações específicas */}
-              <div className="space-y-4">
-                <div>
-                  <Label>URL do Vídeo (Vimeo)</Label>
-                  <Input
-                    value={contentForm.video_url}
-                    onChange={(e) => handleVideoUrlChange(e.target.value)}
-                    placeholder="https://vimeo.com/..."
+              {/* Configurações específicas */}
+              <div>
+                <Label>URL do Vídeo (Vimeo)</Label>
+                <Input
+                  value={contentForm.video_url}
+                  onChange={(e) => handleVideoUrlChange(e.target.value)}
+                  placeholder="https://vimeo.com/..."
+                />
+                <p className="text-xs text-light-muted dark:text-dark-muted mt-1">
+                  A duração será preenchida automaticamente ao colar a URL do Vimeo
+                </p>
+              </div>
+              
+              <div>
+                <Label>Capa da Aula</Label>
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    id="content_cover_upload"
+                    accept="image/*"
+                    onChange={handleContentCoverUpload}
+                    className="hidden"
+                    disabled={uploadingContentCover}
                   />
-                  <p className="text-xs text-light-muted dark:text-dark-muted mt-1">
-                    A duração será preenchida automaticamente ao colar a URL do Vimeo
-                  </p>
-                </div>
-                <div>
-                  <Label>Capa (URL da imagem)</Label>
-                  <Input
-                    value={contentForm.image_url}
-                    onChange={(e) => setContentForm({ ...contentForm, image_url: e.target.value })}
-                    placeholder="https://exemplo.com/capa.jpg"
-                  />
-                  <p className="text-xs text-light-muted dark:text-dark-muted mt-1">
-                    Recomendado para livros (proporção 3:4). Você também pode usar o Storage bucket "book-covers".
-                  </p>
-                  {contentForm.image_url && (
-                    <img src={contentForm.image_url} alt="Capa" className="mt-2 w-32 h-44 object-cover rounded" />
+                  
+                  {!contentForm.image_url ? (
+                    <label
+                      htmlFor="content_cover_upload"
+                      className="cursor-pointer inline-flex items-center justify-center w-full py-3 border-2 border-dashed border-light-border dark:border-dark-border rounded-lg hover:border-brand-accent transition-colors bg-light-surface dark:bg-dark-surface"
+                    >
+                      <span className="text-sm font-medium text-light-text dark:text-dark-text">
+                        {uploadingContentCover ? 'Enviando...' : '+ Enviar Capa'}
+                      </span>
+                    </label>
+                  ) : (
+                    <div className="relative border-2 border-light-border dark:border-dark-border rounded-lg overflow-hidden bg-light-surface dark:bg-dark-surface">
+                      <img
+                        src={contentForm.image_url}
+                        alt="Preview Capa"
+                        className="w-full h-48 object-cover"
+                      />
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        <label
+                          htmlFor="content_cover_upload"
+                          className="cursor-pointer w-8 h-8 bg-brand-accent text-white rounded-full flex items-center justify-center hover:bg-brand-accent/90 transition-colors shadow-lg text-sm"
+                        >
+                          ↻
+                        </label>
+                        <button
+                          onClick={() => setContentForm({ ...contentForm, image_url: "" })}
+                          className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg text-lg"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
+                <p className="text-xs text-light-muted dark:text-dark-muted mt-1">
+                  Imagem ideal: 800x450px (16:9)
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Duração (minutos)</Label>
                   <Input
@@ -1268,6 +1483,7 @@ export default function AdminMountainsPage() {
                       : 'Ou insira manualmente'}
                   </p>
                 </div>
+                
                 <div>
                   <Label>Status</Label>
                   <select

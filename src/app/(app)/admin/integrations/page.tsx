@@ -7,7 +7,7 @@ import { Link } from "lucide-react";
 
 export default function AdminIntegrationsPage() {
   return (
-    <Container>
+    <Container fullWidth>
       <Section>
         <PageHeader
           title="Integrações"

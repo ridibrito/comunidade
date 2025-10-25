@@ -7,6 +7,9 @@ import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
 import ModernCard from "@/components/ui/ModernCard";
 import Button from "@/components/ui/Button";
+import Carousel from "@/components/ui/Carousel";
+import { CardVideoAula } from "@/components/ui/CardModels";
+import { ModuleBanner } from "@/components/ModuleBanner";
 import { ArrowLeft, Play, Clock, CheckCircle, Lock, Users, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
@@ -29,6 +32,7 @@ interface Module {
   description: string;
   slug: string;
   trail_id: string;
+  cover_url?: string;
   lessons: Lesson[];
   total_duration: string;
   progress: number;
@@ -39,6 +43,7 @@ export default function ModulePage() {
   const [module, setModule] = useState<Module | null>(null);
   const [loading, setLoading] = useState(true);
   const [trailTitle, setTrailTitle] = useState("");
+  const [trailSlug, setTrailSlug] = useState("");
   const [lessonsProgress, setLessonsProgress] = useState<{[key: string]: {percentage: number, completed: boolean}}>({});
 
   useEffect(() => {
@@ -61,15 +66,16 @@ export default function ModulePage() {
           return;
         }
 
-        // Buscar trilha para obter o título
+        // Buscar trilha para obter o título e slug
         const { data: trailData } = await supabase
           .from('trails')
-          .select('title')
+          .select('title, slug')
           .eq('id', moduleData.trail_id)
           .single();
 
         if (trailData) {
           setTrailTitle(trailData.title);
+          setTrailSlug(trailData.slug || '');
         }
 
         // Buscar aulas do módulo
@@ -81,6 +87,11 @@ export default function ModulePage() {
 
         if (lessonsError) {
           console.error('Erro ao carregar aulas:', lessonsError);
+        } else {
+          console.log('✅ Aulas carregadas:', lessonsData);
+          lessonsData?.forEach(lesson => {
+            console.log(`📚 Aula: ${lesson.title}, image_url: ${lesson.image_url}`);
+          });
         }
 
         // Calcular duração total
@@ -177,195 +188,80 @@ export default function ModulePage() {
 
   if (loading) {
     return (
-      <Container>
-        <Section>
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-accent mx-auto mb-4"></div>
-              <p className="text-light-muted dark:text-dark-muted">Carregando módulo...</p>
-            </div>
+      <Container fullWidth>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-accent mx-auto mb-4"></div>
+            <p className="text-light-muted dark:text-dark-muted">Carregando módulo...</p>
           </div>
-        </Section>
+        </div>
       </Container>
     );
   }
 
   if (!module) {
     return (
-      <Container>
-        <Section>
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-light-text dark:text-dark-text mb-4">Módulo não encontrado</h1>
-              <Link 
-                href="/catalog/montanha-do-amanha" 
-                className="inline-flex items-center gap-2 px-4 py-2 bg-brand-accent text-white rounded-lg hover:bg-brand-accent/90 transition-colors"
-              >
-                <ArrowLeft size={16} />
-                Voltar à Montanha do Amanhã
-              </Link>
-            </div>
+      <Container fullWidth>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-light-text dark:text-dark-text mb-4">Módulo não encontrado</h1>
+            <Link 
+              href="/catalog/montanha-do-amanha" 
+              className="inline-flex items-center gap-2 px-4 py-2 bg-brand-accent text-white rounded-lg hover:bg-brand-accent/90 transition-colors"
+            >
+              <ArrowLeft size={16} />
+              Voltar à Montanha do Amanhã
+            </Link>
           </div>
-        </Section>
+        </div>
       </Container>
     );
   }
 
   return (
-    <Container>
+    <Container fullWidth>
+      {/* Banner do Módulo */}
+      <ModuleBanner
+        title={module.title}
+        description={module.description}
+        coverUrl={(module as any).banner_url || module.cover_url}
+        lessonsCount={module.lessons.length}
+        totalDuration={module.total_duration}
+        progress={module.progress}
+        trailTitle={trailTitle}
+        trailSlug={trailSlug || 'montanha-do-amanha'}
+        onPlayClick={() => window.location.href = `/catalog/modulo/${module.slug}/assistir`}
+      />
+
       <Section>
-        {/* Header com navegação */}
-        <div className="mb-8">
-          <Link 
-            href="/catalog/montanha-do-amanha"
-            className="flex items-center gap-2 text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text transition-colors"
-          >
-            <ArrowLeft size={20} />
-            <span className="text-sm">Voltar à {trailTitle}</span>
-          </Link>
-        </div>
 
-        {/* Cabeçalho do módulo */}
+        {/* Lista de aulas com carrossel */}
         <div className="mb-8">
-          <PageHeader 
-            title={module.title} 
-            subtitle={module.description}
-          />
+          <h2 className="section-title text-light-text dark:text-dark-text mb-6">Aulas</h2>
           
-          {/* Informações do módulo */}
-          <div className="flex items-center gap-6 text-sm text-light-muted dark:text-dark-muted mb-6">
-            <div className="flex items-center gap-2">
-              <BookOpen size={16} />
-              <span>{module.lessons.length} {module.lessons.length === 1 ? 'aula' : 'aulas'}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock size={16} />
-              <span>{module.total_duration}</span>
-            </div>
-          </div>
-          
-          {/* Barra de progresso */}
-          <div className="max-w-md">
-            <div className="flex justify-between text-sm text-light-muted dark:text-dark-muted mb-2">
-              <span>Progresso</span>
-              <span>{module.progress}%</span>
-            </div>
-            <div className="w-full bg-light-border dark:bg-dark-border rounded-full h-2">
-              <div 
-                className="bg-brand-accent h-2 rounded-full transition-all duration-300"
-                style={{ width: `${module.progress}%` }}
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Lista de aulas */}
-        <div className="mb-8">
-          <h2 className="section-title text-light-text dark:text-dark-text">Aulas</h2>
-          
-          <div className="space-y-4">
-            {module.lessons.map((lesson, index) => (
-              <ModernCard key={lesson.id} className="hover:shadow-g4-hover dark:hover:shadow-g4-dark-hover transition-all duration-300">
-                <div className="flex items-start gap-4 p-6">
-                  {/* Thumbnail */}
-                  <div className="relative flex-shrink-0">
-                    <div className="w-32 h-20 bg-light-border dark:bg-dark-border rounded-lg overflow-hidden">
-                      <div className="w-full h-full bg-gradient-to-br from-light-border to-light-surface dark:from-dark-border dark:to-dark-surface flex items-center justify-center">
-                        <Play size={24} className="text-light-muted dark:text-dark-muted" />
-                      </div>
-                    </div>
-                    {lesson.is_completed && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                        <CheckCircle size={16} className="text-white" />
-                      </div>
-                    )}
-                    {lesson.is_locked && (
-                      <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-                        <Lock size={20} className="text-white/70" />
-                      </div>
-                    )}
+          <div className="relative">
+            <Carousel cardWidth={320} gap={24}>
+              {module.lessons.map((lesson, index) => {
+                const progress = lessonsProgress[lesson.id];
+                return (
+                  <div key={lesson.id}>
+                    <CardVideoAula
+                      title={lesson.title}
+                      description={lesson.description || ''}
+                      instructor=""
+                      duration={lesson.duration ? `${lesson.duration}min` : 'Sem duração'}
+                      lessons={1}
+                      progress={progress?.percentage || 0}
+                      rating={undefined}
+                      isNew={false}
+                      difficulty="Básico"
+                      image={(lesson as any).image_url || (lesson as any).cover_url || "https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=800"}
+                      slug={`${module.slug}/assistir`}
+                    />
                   </div>
-
-                  {/* Conteúdo */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-light-text dark:text-dark-text mb-2">
-                          {lesson.title}
-                        </h3>
-                        {lesson.description && (
-                          <p className="text-light-muted dark:text-dark-muted text-sm mb-3">
-                            {lesson.description}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-4 text-sm text-light-muted dark:text-dark-muted">
-                          <div className="flex items-center gap-1">
-                            <Clock size={14} />
-                            <span>{lesson.duration !== null && lesson.duration !== undefined ? `${lesson.duration}min` : 'Sem duração'}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <div className="w-2 h-2 rounded-full bg-light-muted dark:bg-dark-muted"></div>
-                            <span>Aula {lesson.position + 1}</span>
-                          </div>
-                          {lessonsProgress[lesson.id]?.completed && (
-                            <div className="flex items-center gap-1 text-green-500">
-                              <CheckCircle size={14} />
-                              <span className="text-xs">Concluída</span>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Barra de progresso */}
-                        {(() => {
-                          const progress = lessonsProgress[lesson.id];
-                          console.log(`🔍 Verificando progresso para ${lesson.title} (${lesson.id}):`, progress);
-                          return progress && progress.percentage > 0 ? (
-                            <div className="mt-3">
-                              <div className="flex justify-between text-xs text-light-muted dark:text-dark-muted mb-1">
-                                <span>Progresso</span>
-                                <span>{progress.percentage}%</span>
-                              </div>
-                              <div className="w-full bg-light-border dark:bg-dark-border rounded-full h-1.5 overflow-hidden">
-                                <div 
-                                  className="bg-brand-accent h-full transition-all duration-300"
-                                  style={{ width: `${progress.percentage}%` }}
-                                />
-                              </div>
-                            </div>
-                          ) : null;
-                        })()}
-                      </div>
-
-                      {/* Botão de ação */}
-                      <div className="flex-shrink-0 ml-4">
-                        {lesson.is_locked ? (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            disabled
-                            className="cursor-not-allowed"
-                          >
-                            <Lock size={16} className="mr-2" />
-                            Bloqueada
-                          </Button>
-                        ) : (
-                          <Link href={`/catalog/modulo/${module.slug}/assistir`}>
-                            <Button 
-                              variant="default" 
-                              size="sm"
-                              className="bg-brand-accent hover:bg-brand-accent/90 text-white"
-                            >
-                              <Play size={16} className="mr-2" />
-                              {lesson.is_completed ? 'Reassistir' : 'Assistir'}
-                            </Button>
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </ModernCard>
-            ))}
+                );
+              })}
+            </Carousel>
           </div>
         </div>
       </Section>

@@ -76,9 +76,9 @@ export function CardVideoAula({
 
   return (
     <Link href={`/catalog/modulo/${slug}`} className="block h-full" onClick={() => console.log('🔗 Link clicado para:', `/catalog/modulo/${slug}`)}>
-      <ModernCard variant="elevated" className={`h-full flex flex-col ${className} hover:shadow-lg transition-all duration-300 cursor-pointer`}>
+      <ModernCard variant="elevated" className={`h-full flex flex-col overflow-hidden ${className} hover:shadow-lg transition-all duration-300 cursor-pointer`}>
         <div className="relative">
-          <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-border">
+          <div className="aspect-video overflow-hidden">
             <img src={image} alt={title} className="w-full h-full object-cover" />
             {/* Play button overlay */}
             <div className="absolute inset-0 flex items-center justify-center">
@@ -87,30 +87,14 @@ export function CardVideoAula({
               </div>
             </div>
           </div>
-        
-        {/* Badges sobrepostos */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {isNew && <Badge variant="warning" size="sm">Novo</Badge>}
         </div>
-        
-        <div className="absolute top-2 right-2 flex flex-col gap-1">
-          {progress > 0 && <Badge variant="success" size="sm">{progress}%</Badge>}
-          {rating && (
-            <div className="flex items-center gap-1 bg-white/90 dark:bg-dark-surface/90 rounded px-2 py-1">
-              <Star className="w-3 h-3 text-yellow-500" />
-              <span className="text-xs font-medium">{rating}</span>
-            </div>
-          )}
-        </div>
-      </div>
 
-      <div className="flex-1 flex flex-col p-4 space-y-3">
+      <div className="flex-1 flex flex-col p-3 space-y-2">
         <div className="flex-1">
           <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1">{title}</h3>
-          <p className="text-sm text-gray-600 dark:text-dark-muted mb-2 min-h-[2.5rem]">{description}</p>
-          <p className="text-xs text-brand-accent font-medium">Instrutor: {instructor}</p>
+          <p className="text-sm text-gray-600 dark:text-dark-muted mb-2 line-clamp-2">{description}</p>
           
-          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-dark-muted mt-2">
+          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-dark-muted mb-2">
             <div className="flex items-center gap-1">
               <BookOpen className="w-3 h-3" />
               {lessons} {lessons === 1 ? 'aula' : 'aulas'}
@@ -122,26 +106,21 @@ export function CardVideoAula({
           </div>
           
           {/* Barra de progresso para vídeos do Vimeo */}
-          {progress > 0 && (
-            <div className="space-y-2 mt-3">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-600 dark:text-dark-muted font-medium">Progresso</span>
-                <span className="text-gray-500 dark:text-dark-muted">{progress}%</span>
-              </div>
-              <div className="w-full bg-gray-100 dark:bg-gray-600 rounded-full h-2">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-700 dark:text-gray-300 font-medium">Progresso</span>
+              <span className="text-gray-600 dark:text-gray-400 font-semibold">{progress}%</span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-transparent rounded-full h-2.5">
               <div 
-                className="bg-brand-accent h-2 rounded-full transition-all duration-300"
+                className="bg-brand-accent h-2.5 rounded-full transition-all duration-300 shadow-sm"
                 style={{ width: `${progress}%` }}
               />
-              </div>
             </div>
-          )}
+          </div>
         </div>
         
-        <div className="flex items-center justify-between mt-auto pt-3">
-          <Badge variant={getDifficultyColor(difficulty) as any} size="sm">
-            {difficulty}
-          </Badge>
+        <div className="flex items-center justify-end mt-auto pt-2">
           <Button 
             variant="default" 
             size="sm" 

@@ -197,7 +197,7 @@ export default function AdminIAPage() {
   };
 
   return (
-    <Container>
+    <Container fullWidth>
       <Section>
         <PageHeader
           title="Administração da IA"

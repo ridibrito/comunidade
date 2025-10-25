@@ -7,6 +7,7 @@ import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
 import ContentCarousel from "@/components/ui/ContentCarousel";
 import Card from "@/components/ui/Card";
+import { HeroCarousel } from "@/components/HeroCarousel";
 import { createClient } from "@/lib/supabase";
 
 interface Page {
@@ -173,6 +174,9 @@ export default function PlantaoDeDuvidasPage() {
 
   return (
     <Container fullWidth>
+      {/* Hero Carousel - Banner dinâmico */}
+      <HeroCarousel pageSlug="plantao-de-duvidas" />
+      
       <Section>
         <PageHeader 
           title={pageData.title} 

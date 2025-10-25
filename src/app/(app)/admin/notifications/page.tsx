@@ -7,7 +7,7 @@ import { Bell } from "lucide-react";
 
 export default function AdminNotificationsPage() {
   return (
-    <Container>
+    <Container fullWidth>
       <Section>
         <PageHeader
           title="Sistema de Notificações"

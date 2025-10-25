@@ -62,8 +62,12 @@ export default function AdminModulesPage() {
     description: "",
     slug: "",
     trail_id: "",
-    position: 1
+    position: 1,
+    cover_url: "", // Imagem pequena para a trilha (700x700)
+    banner_url: "" // Banner grande para o módulo (2700x900)
   });
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
 
   useEffect(() => {
     loadTrails();
@@ -176,7 +180,9 @@ export default function AdminModulesPage() {
       description: module.description,
       slug: module.slug,
       trail_id: module.trail_id,
-      position: module.position
+      position: module.position,
+      cover_url: (module as any).cover_url || "",
+      banner_url: (module as any).banner_url || ""
     });
     setShowModal(true);
   }
@@ -187,7 +193,9 @@ export default function AdminModulesPage() {
       description: "",
       slug: "",
       trail_id: selectedTrail,
-      position: modules.length + 1
+      position: modules.length + 1,
+      cover_url: "",
+      banner_url: ""
     });
   }
 
@@ -195,6 +203,74 @@ export default function AdminModulesPage() {
     resetForm();
     setEditingModule(null);
     setShowModal(true);
+  }
+
+  async function handleCoverUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingCover(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `module-cover-${Date.now()}.${fileExt}`;
+      const filePath = `module-covers/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('module-covers')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Erro no upload:', uploadError);
+        push('Erro ao fazer upload da capa', 'error');
+        return;
+      }
+
+      const { data } = supabase.storage
+        .from('module-covers')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({ ...prev, cover_url: data.publicUrl }));
+      push('Capa enviada com sucesso!', 'success');
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
+      push('Erro ao fazer upload da capa', 'error');
+    } finally {
+      setUploadingCover(false);
+    }
+  }
+
+  async function handleBannerUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingBanner(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `module-banner-${Date.now()}.${fileExt}`;
+      const filePath = `module-covers/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('module-covers')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Erro no upload:', uploadError);
+        push('Erro ao fazer upload do banner', 'error');
+        return;
+      }
+
+      const { data } = supabase.storage
+        .from('module-covers')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({ ...prev, banner_url: data.publicUrl }));
+      push('Banner enviado com sucesso!', 'success');
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
+      push('Erro ao fazer upload do banner', 'error');
+    } finally {
+      setUploadingBanner(false);
+    }
   }
 
   async function saveModule() {
@@ -213,7 +289,9 @@ export default function AdminModulesPage() {
             description: formData.description,
             slug: formData.slug,
             trail_id: formData.trail_id,
-            position: formData.position
+            position: formData.position,
+            cover_url: formData.cover_url || null,
+            banner_url: formData.banner_url || null
           })
           .eq('id', editingModule.id);
 
@@ -233,7 +311,9 @@ export default function AdminModulesPage() {
             description: formData.description,
             slug: formData.slug,
             trail_id: formData.trail_id,
-            position: formData.position
+            position: formData.position,
+            cover_url: formData.cover_url || null,
+            banner_url: formData.banner_url || null
           });
 
         if (error) {
@@ -391,20 +471,20 @@ export default function AdminModulesPage() {
                       <div className="flex items-center gap-6 text-sm text-light-muted dark:text-dark-muted">
                         <div className="flex items-center gap-1">
                           <Play className="w-4 h-4" />
-                          <span>{module.lessons?.length || 0} aulas</span>
+                          <span>{module.contents?.length || 0} aulas</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <span>Slug: {module.slug}</span>
                         </div>
                       </div>
                       
-                      {module.lessons && module.lessons.length > 0 && (
+                      {module.contents && module.contents.length > 0 && (
                         <div className="mt-4">
                           <h4 className="text-sm font-medium text-light-text dark:text-dark-text mb-2">
                             Aulas:
                           </h4>
                           <div className="space-y-2">
-                            {module.lessons.map((lesson) => (
+                            {module.contents.map((lesson) => (
                               <div key={lesson.id} className="flex items-center justify-between p-3 bg-light-border/20 dark:bg-dark-border/20 rounded-lg shadow-sm">
                                 <div>
                                   <div className="font-medium text-light-text dark:text-dark-text">
@@ -442,7 +522,7 @@ export default function AdminModulesPage() {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => deleteModule(module.id)}
+                        onClick={() => openDeleteModal(module)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -513,6 +593,86 @@ export default function AdminModulesPage() {
                   className="bg-light-surface dark:bg-dark-surface shadow-sm"
                 />
               </div>
+
+              <div>
+                <Label htmlFor="cover_image">Capa para Trilha (Opcional)</Label>
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    id="cover_image"
+                    accept="image/*"
+                    onChange={handleCoverUpload}
+                    className="hidden"
+                    disabled={uploadingCover}
+                  />
+                  <label
+                    htmlFor="cover_image"
+                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-brand-accent/10 hover:bg-brand-accent/20 text-brand-accent rounded-lg transition-colors"
+                  >
+                    {uploadingCover ? 'Enviando...' : 'Enviar Capa'}
+                  </label>
+                  {formData.cover_url && (
+                    <div className="mt-2">
+                      <div className="relative inline-block">
+                        <img
+                          src={formData.cover_url}
+                          alt="Preview Capa"
+                          className="w-32 h-32 object-cover rounded-lg shadow-sm"
+                        />
+                        <button
+                          onClick={() => setFormData(prev => ({ ...prev, cover_url: "" }))}
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-light-muted dark:text-dark-muted mt-1">
+                  Imagem ideal: 700x700px (1:1 - Quadrada)
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="banner_image">Banner do Módulo (Opcional)</Label>
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    id="banner_image"
+                    accept="image/*"
+                    onChange={handleBannerUpload}
+                    className="hidden"
+                    disabled={uploadingBanner}
+                  />
+                  <label
+                    htmlFor="banner_image"
+                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-brand-accent/10 hover:bg-brand-accent/20 text-brand-accent rounded-lg transition-colors"
+                  >
+                    {uploadingBanner ? 'Enviando...' : 'Enviar Banner'}
+                  </label>
+                  {formData.banner_url && (
+                    <div className="mt-2">
+                      <div className="relative inline-block">
+                        <img
+                          src={formData.banner_url}
+                          alt="Preview Banner"
+                          className="w-32 h-10 object-cover rounded-lg shadow-sm"
+                        />
+                        <button
+                          onClick={() => setFormData(prev => ({ ...prev, banner_url: "" }))}
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-light-muted dark:text-dark-muted mt-1">
+                  Imagem ideal: 2700x900px (3:1 - Banner horizontal)
+                </p>
+              </div>
             </div>
 
             <div className="flex gap-3 pt-4">
@@ -532,6 +692,18 @@ export default function AdminModulesPage() {
             </div>
           </div>
         </Modal>
+
+        {/* Modal de confirmação de exclusão */}
+        <ConfirmModal
+          open={showConfirmModal}
+          onClose={() => setShowConfirmModal(false)}
+          onConfirm={confirmDeleteModule}
+          title="Confirmar exclusão"
+          message={`Tem certeza que deseja excluir o módulo "${moduleToDelete?.title}"? Esta ação não pode ser desfeita.`}
+          confirmText="Excluir"
+          cancelText="Cancelar"
+          variant="danger"
+        />
       </Section>
     </Container>
   );

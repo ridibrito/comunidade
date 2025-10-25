@@ -7,7 +7,7 @@ import { Database } from "lucide-react";
 
 export default function AdminBackupPage() {
   return (
-    <Container>
+    <Container fullWidth>
       <Section>
         <PageHeader
           title="Backup & Restore"

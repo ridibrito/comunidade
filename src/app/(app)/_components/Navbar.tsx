@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { UserMenu } from "./UserMenu";
-import ThemeToggle from "@/components/ui/ThemeToggle";
+
 import { Calendar, Menu } from "lucide-react";
 import { NotificationBell } from "@/components/ui/NotificationSystem";
 import { MobileMenu } from "./MobileMenu";
@@ -60,14 +60,12 @@ export function Navbar() {
               {/* Sistema de Notificações */}
               <NotificationBell />
               
-              <ThemeToggle />
               <UserMenu />
             </div>
 
             {/* Mobile Navigation */}
             <div className="flex lg:hidden items-center gap-2">
               <NotificationBell />
-              <ThemeToggle />
               <UserMenu />
             </div>
           </nav>

@@ -7,7 +7,7 @@ import { Shield } from "lucide-react";
 
 export default function AdminPermissionsPage() {
   return (
-    <Container>
+    <Container fullWidth>
       <Section>
         <PageHeader
           title="Sistema de Permissões"

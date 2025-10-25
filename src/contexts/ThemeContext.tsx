@@ -1,8 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 
-type Theme = 'light' | 'dark';
+type Theme = 'light';
 
 interface ThemeContextType {
   theme: Theme;
@@ -13,51 +13,22 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('dark');
-  const [mounted, setMounted] = useState(false);
-
-  // Carrega o tema do localStorage na inicialização
+  // Remove o dark class do documento
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    const initialTheme = savedTheme || 'dark'; // Dark como padrão
-    
-    setThemeState(initialTheme);
-    setMounted(true);
-    
-    // Aplica o tema ao documento
-    if (initialTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    document.documentElement.classList.remove('dark');
+    // Remove do localStorage também
+    localStorage.removeItem('theme');
   }, []);
 
-  // Atualiza o DOM quando o tema muda
-  useEffect(() => {
-    if (!mounted) return;
-    
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    
-    localStorage.setItem('theme', theme);
-  }, [theme, mounted]);
+  const theme: Theme = 'light';
 
   const toggleTheme = () => {
-    setThemeState(prev => prev === 'light' ? 'dark' : 'light');
+    // Não faz nada, sempre light
   };
 
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
+  const setTheme = () => {
+    // Não faz nada, sempre light
   };
-
-  // Evita hidratação inconsistente
-  if (!mounted) {
-    return <>{children}</>;
-  }
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
@@ -69,31 +40,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {
-    // Retorna um fallback em vez de quebrar
+    // Retorna um fallback sempre com light
     return {
-      theme: 'dark' as Theme,
-      toggleTheme: () => {
-        if (typeof window !== 'undefined') {
-          const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-          const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-          localStorage.setItem('theme', newTheme);
-          if (newTheme === 'dark') {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
-          }
-        }
-      },
-      setTheme: (theme: Theme) => {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('theme', theme);
-          if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
-          }
-        }
-      }
+      theme: 'light' as Theme,
+      toggleTheme: () => {},
+      setTheme: () => {}
     };
   }
   return context;

@@ -287,13 +287,13 @@ export default function FamiliaPage() {
           <PageHeader title="Família" subtitle="Gerencie membros da família e filhos." />
 
           <div className="space-y-6">
-            <Card className="shadow-sm border border-light-border dark:border-dark-border rounded-lg">
-              <div className="flex items-center justify-between mb-4">
-                <div>
+            <Card className="shadow-md rounded-lg p-8 border-0">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                <div className="flex-shrink-0">
                   <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">Estrutura Familiar</h3>
                   <p className="text-sm text-light-muted dark:text-dark-muted">Gerencie os membros da sua família</p>
                 </div>
-                <Button onClick={() => setShowAddMember(true)} className="bg-brand-accent text-white hover:bg-brand-accent/90 transition-colors">
+                <Button onClick={() => setShowAddMember(true)} className="bg-brand-accent text-white hover:bg-brand-accent/90 transition-colors whitespace-nowrap">
                   <Plus className="w-4 h-4 mr-2" />
                   Adicionar membro
                 </Button>
@@ -308,7 +308,7 @@ export default function FamiliaPage() {
                 )}
 
                 {familyMembers.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between p-4 rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+                  <div key={m.id} className="flex items-center justify-between p-4 rounded-lg bg-light-surface dark:bg-dark-surface">
                     <div className="flex items-center gap-3">
                       <Avatar className="w-10 h-10">
                         {m.avatar_url && <AvatarImage src={m.avatar_url} alt={m.name} />}
@@ -334,13 +334,13 @@ export default function FamiliaPage() {
               </div>
             </Card>
 
-            <Card className="shadow-sm border border-light-border dark:border-dark-border rounded-lg">
-              <div className="flex items-center justify-between mb-4">
-                <div>
+            <Card className="shadow-md rounded-lg p-8 border-0">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                <div className="flex-shrink-0">
                   <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">Filhos</h3>
                   <p className="text-sm text-light-muted dark:text-dark-muted">Gerencie as informações dos seus filhos</p>
                 </div>
-                <Button onClick={() => setShowAddChild(true)} className="bg-brand-accent text-white hover:bg-brand-accent/90 transition-colors">
+                <Button onClick={() => setShowAddChild(true)} className="bg-brand-accent text-white hover:bg-brand-accent/90 transition-colors whitespace-nowrap">
                   <Plus className="w-4 h-4 mr-2" />
                   Adicionar filho
                 </Button>
@@ -355,7 +355,7 @@ export default function FamiliaPage() {
                 )}
 
                 {children.map((c) => (
-                  <div key={c.id} className="flex items-center justify-between p-4 rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+                  <div key={c.id} className="flex items-center justify-between p-4 rounded-lg bg-light-surface dark:bg-dark-surface">
                     <div className="flex items-center gap-3">
                       <Avatar className="w-10 h-10">
                         {c.avatar_url && <AvatarImage src={c.avatar_url} alt={c.name} />}
@@ -421,7 +421,7 @@ export default function FamiliaPage() {
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">Editar membro</h3>
           <div className="flex items-center gap-4">
-            <div className="relative w-16 h-16 rounded-full overflow-hidden border border-light-border dark:border-dark-border bg-light-border/30 dark:bg-dark-border/30">
+            <div className="relative w-16 h-16 rounded-full overflow-hidden bg-light-border/30 dark:bg-dark-border/30 shadow-md">
               <Avatar className="w-full h-full">
                 {editMemberAvatarUrl && <AvatarImage src={editMemberAvatarUrl} alt={editMemberName || 'Avatar'} />}
                 <AvatarFallback>{(editMemberName || 'F').split(' ').map(n => n[0]).join('').toUpperCase()}</AvatarFallback>
@@ -453,7 +453,7 @@ export default function FamiliaPage() {
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">Editar filho</h3>
           <div className="flex items-center gap-4">
-            <div className="relative w-16 h-16 rounded-full overflow-hidden border border-light-border dark:border-dark-border bg-light-border/30 dark:bg-dark-border/30">
+            <div className="relative w-16 h-16 rounded-full overflow-hidden bg-light-border/30 dark:bg-dark-border/30 shadow-md">
               <Avatar className="w-full h-full">
                 {editChildAvatarUrl && <AvatarImage src={editChildAvatarUrl} alt={editChildName || 'Avatar'} />}
                 <AvatarFallback>{(editChildName || 'C').split(' ').map(n => n[0]).join('').toUpperCase()}</AvatarFallback>

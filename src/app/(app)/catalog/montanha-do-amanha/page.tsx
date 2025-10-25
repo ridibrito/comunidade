@@ -9,6 +9,7 @@ import { CardVideoAula } from "@/components/ui/CardModels";
 import HeroSection from "@/components/ui/HeroSection";
 import ContentCarousel from "@/components/ui/ContentCarousel";
 import Card from "@/components/ui/Card";
+import { HeroCarousel } from "@/components/HeroCarousel";
 import { Play, Clock, Users, BookOpen } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -287,11 +288,7 @@ export default function MontanhaAmanhaPage() {
   if (loading) {
     return (
       <Container fullWidth>
-        <HeroSection 
-          pageSlug="montanha-do-amanha"
-          fallbackTitle="MONTANHA DO AMANHÃ"
-          fallbackSubtitle="Desenvolva suas habilidades de identificação e compreensão das características AHSD através de uma jornada educativa completa e transformadora."
-        />
+        <HeroCarousel pageSlug="montanha-do-amanha" />
         <Section>
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
@@ -306,12 +303,8 @@ export default function MontanhaAmanhaPage() {
 
   return (
     <Container fullWidth>
-      {/* Hero Section - Agora dinâmico */}
-      <HeroSection 
-        pageSlug="montanha-do-amanha"
-        fallbackTitle="MONTANHA DO AMANHÃ"
-        fallbackSubtitle="Desenvolva suas habilidades de identificação e compreensão das características AHSD através de uma jornada educativa completa e transformadora."
-      />
+      {/* Hero Carousel - Banner dinâmico */}
+      <HeroCarousel pageSlug="montanha-do-amanha" />
 
       <Section>
         <div className="space-y-12">

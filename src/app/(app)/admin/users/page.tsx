@@ -44,14 +44,10 @@ export default function AdminUsersPage() {
   
   // Estados para dados reais do Supabase
   const [realUsers, setRealUsers] = useState<User[]>([]);
-  const [useMockData, setUseMockData] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
   
   // Estado para abas de filtro
   const [activeTab, setActiveTab] = useState<"all" | "admin" | "aluno" | "profissional">("all");
-  
-  // Hook para dados mockados
-  const mockUsersHook = useMockUsers();
   
   // Estados para modais e formulários
   const [openAdd, setOpenAdd] = useState(false);
@@ -64,9 +60,9 @@ export default function AdminUsersPage() {
   const [editName, setEditName] = useState("");
   const [editRole, setEditRole] = useState<Role>("aluno");
   
-  // Usar dados mockados se não conseguir conectar com o banco
-  const list = useMockData ? mockUsersHook.users : realUsers;
-  const isLoading = useMockData ? mockUsersHook.loading : loading;
+  // Usar dados reais do banco
+  const list = realUsers;
+  const isLoading = loading;
 
   useEffect(() => {
     (async () => {
@@ -83,35 +79,24 @@ export default function AdminUsersPage() {
         
         if (json.users) {
           setRealUsers(json.users);
-          setUseMockData(false);
           setDbError(null);
           console.log(`Carregados ${json.users.length} usuários do banco de dados`);
         } else {
-          // Se não há usuários reais, usar dados mockados
-          console.log("Nenhum usuário encontrado no banco, usando dados mockados");
-          setUseMockData(true);
+          console.log("Nenhum usuário encontrado no banco");
         }
       } catch (error) {
         console.error("Erro ao carregar usuários:", error);
         setDbError(error instanceof Error ? error.message : "Erro desconhecido");
-        setUseMockData(true);
         
-        warning("Usando dados de demonstração", "Não foi possível conectar com o banco de dados. Exibindo dados mockados.");
+        error("Erro ao carregar usuários", "Não foi possível conectar com o banco de dados.");
       } finally {
         setLoading(false);
       }
     })();
-  }, [warning]);
+  }, [error]);
 
   async function createUser() {
     if (!email) { error("Informe o e‑mail", "Campo e‑mail é obrigatório."); return; }
-    
-    if (useMockData) {
-      // Usar dados mockados
-      await mockUsersHook.createUser({ email, full_name: name, role });
-      setEmail(""); setName(""); setRole("aluno"); setOpenAdd(false);
-      return;
-    }
     
     setLoading(true);
     try {
@@ -148,12 +133,6 @@ export default function AdminUsersPage() {
   async function removeUser(id: string) {
     const ok = await confirm({ title: "Remover usuário?", message: "Esta ação é permanente.", confirmText: "Excluir", cancelText: "Cancelar" });
     if (!ok) return;
-    
-    if (useMockData) {
-      // Usar dados mockados
-      await mockUsersHook.deleteUser(id);
-      return;
-    }
     
     // Remove do auth e do profiles
     try {
@@ -231,28 +210,7 @@ export default function AdminUsersPage() {
     return "Nunca";
   };
 
-  async function removeUser(id: string) {
-    const ok = await confirm({ title: "Excluir usuário", message: "Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita." });
-    if (!ok) return;
-    
-    if (useMockData) {
-      await mockUsersHook.removeUser(id);
-      return;
-    }
-    
-    try {
-      const resp = await fetch(`/api/admin/users?id=${id}`, { method: "DELETE" });
-      if (!resp.ok) throw new Error(await resp.text());
-      // refresh lista
-      const listResp = await fetch("/api/admin/users");
-      const json = await listResp.json();
-      setRealUsers(json.users ?? []);
-      success("Usuário excluído", "Usuário removido com sucesso.");
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      error("Erro ao excluir", msg);
-    }
-  }
+
 
   async function toggleUserActive(id: string, currentStatus: boolean) {
     const action = currentStatus ? "desativar" : "ativar";
@@ -318,46 +276,7 @@ export default function AdminUsersPage() {
     });
   }
 
-  async function removeUser(id: string) {
-    const user = list.find(u => u.id === id);
-    if (!user) return;
 
-    const confirmed = await confirm({
-      title: "Confirmar Exclusão",
-      message: `Tem certeza que deseja excluir "${user.full_name || user.email}"?`,
-      confirmText: "Excluir",
-      cancelText: "Cancelar",
-      variant: "destructive"
-    });
-
-    if (!confirmed) return;
-
-    try {
-      if (useMockData) {
-        // Usar dados mockados
-        await mockUsersHook.removeUser(id);
-        success("Usuário excluído", "Usuário removido com sucesso.");
-        return;
-      }
-
-      const resp = await fetch("/api/admin/users", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id })
-      });
-
-      if (!resp.ok) throw new Error(await resp.text());
-
-      // Atualizar lista
-      const listResp = await fetch("/api/admin/users");
-      const json = await listResp.json();
-      setRealUsers(json.users ?? []);
-      success("Usuário excluído", "Usuário removido com sucesso.");
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      error("Erro ao excluir", msg);
-    }
-  }
 
   // Função para filtrar usuários por aba
   const getFilteredUsers = () => {
@@ -374,16 +293,7 @@ export default function AdminUsersPage() {
       <Section>
         <PageHeader title="Usuários" subtitle="Criar e administrar contas. Novos usuários recebem email de convite para definir senha." />
         
-        {useMockData && (
-          <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-yellow-800 dark:text-yellow-200">
-                <strong>Modo Demonstração:</strong> Exibindo dados mockados. Configure o banco de dados para usar dados reais.
-              </span>
-            </div>
-          </div>
-        )}
+
         
         
         {/* Stats */}
@@ -654,13 +564,6 @@ export default function AdminUsersPage() {
               <button 
                 onClick={async ()=>{
                   if (!editId) return;
-                  
-                  if (useMockData) {
-                    // Usar dados mockados
-                    await mockUsersHook.updateUser(editId, { full_name: editName, role: editRole });
-                    setOpenEdit(false);
-                    return;
-                  }
                   
                   try {
                     const resp = await fetch("/api/admin/users", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: editId, full_name: editName, role: editRole }) });

@@ -7,7 +7,7 @@ import { Upload } from "lucide-react";
 
 export default function AdminBulkOperationsPage() {
   return (
-    <Container>
+    <Container fullWidth>
       <Section>
         <PageHeader
           title="Operações em Lote"
