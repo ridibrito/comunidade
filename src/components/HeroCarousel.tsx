@@ -143,7 +143,7 @@ export function HeroCarousel({ heroes: initialHeroes, pageSlug = 'dashboard' }: 
                   )}
                 </div>
               </div>
-                                                   )}
+            )}
             </div>
          ))}
         </div>
