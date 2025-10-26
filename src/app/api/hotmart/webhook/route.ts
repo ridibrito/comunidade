@@ -183,11 +183,8 @@ export async function POST(request: NextRequest) {
     console.log('📊 Status normalizado:', normalizedStatus);
     console.log('💰 É evento de pagamento:', isPaidEvent);
     
-    // Se for evento de cancelamento, não processar
-    if (eventType === 'PURCHASE_CANCELED') {
-      console.log('❌ Evento de cancelamento ignorado');
-      return NextResponse.json({ message: 'Purchase canceled event ignored' }, { status: 200 });
-    }
+    // Processar todos os eventos para atualizar status da assinatura
+    console.log('📝 Processando evento:', eventType, 'com status:', normalizedStatus);
 
     // 1. Verificar se usuário já existe
     console.log('🔍 Verificando se usuário já existe:', email);
@@ -199,56 +196,67 @@ export async function POST(request: NextRequest) {
     let user = existingUsers?.users?.find(u => u.email === email);
     
     if (!user) {
-      console.log('👤 Usuário não existe, criando novo usuário...');
-      // 2. Criar usuário se não existir
-      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-        email,
-        email_confirm: true,
-        user_metadata: { name },
-      });
-      
-      if (createError) {
-        console.error('❌ Erro ao criar usuário:', createError);
-        return NextResponse.json({ error: createError.message }, { status: 500 });
+      // Só criar usuário para eventos de pagamento aprovado
+      if (isPaidEvent && normalizedStatus === 'active') {
+        console.log('👤 Usuário não existe, criando novo usuário...');
+        const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+          email,
+          email_confirm: true,
+          user_metadata: { name },
+        });
+        
+        if (createError) {
+          console.error('❌ Erro ao criar usuário:', createError);
+          return NextResponse.json({ error: createError.message }, { status: 500 });
+        }
+        
+        user = newUser.user!;
+        console.log('✅ Usuário criado com sucesso:', user.id);
+      } else {
+        console.log('⚠️ Usuário não existe e evento não é de pagamento aprovado, ignorando criação');
+        return NextResponse.json({ message: 'User not found and event is not approved payment' }, { status: 200 });
       }
-      
-      user = newUser.user!;
-      console.log('✅ Usuário criado com sucesso:', user.id);
     } else {
       console.log('✅ Usuário já existe:', user.id);
     }
 
-    // 3. Garantir que o perfil existe com role de aluno
-    console.log('👤 Criando/atualizando perfil com role de aluno...');
-    const { error: profileError } = await supabase.from('profiles').upsert({
-      id: user.id,
-      full_name: name,
-      is_admin: false,
-      role: 'aluno'
-    });
-    
-    if (profileError) {
-      console.error('❌ Erro ao criar perfil:', profileError);
-      return NextResponse.json({ error: profileError.message }, { status: 500 });
+    // 3. Garantir que o perfil existe com role de aluno (só se usuário existir)
+    if (user) {
+      console.log('👤 Criando/atualizando perfil com role de aluno...');
+      const { error: profileError } = await supabase.from('profiles').upsert({
+        id: user.id,
+        full_name: name,
+        is_admin: false,
+        role: 'aluno'
+      });
+      
+      if (profileError) {
+        console.error('❌ Erro ao criar perfil:', profileError);
+        return NextResponse.json({ error: profileError.message }, { status: 500 });
+      }
+      
+      console.log('✅ Perfil criado/atualizado com role: aluno');
     }
-    
-    console.log('✅ Perfil criado/atualizado com role: aluno');
 
-    // 4. Criar/atualizar assinatura
-    const { error: subscriptionError } = await supabase.from('subscriptions').upsert({
-      user_id: user.id,
-      provider: 'hotmart',
-      product_id,
-      purchase_id,
-      status: normalizedStatus,
-      meta: event,
-    }, {
-      onConflict: 'purchase_id'
-    });
+    // 4. Criar/atualizar assinatura (só se usuário existir)
+    if (user) {
+      const { error: subscriptionError } = await supabase.from('subscriptions').upsert({
+        user_id: user.id,
+        provider: 'hotmart',
+        product_id,
+        purchase_id,
+        status: normalizedStatus,
+        meta: event,
+      }, {
+        onConflict: 'purchase_id'
+      });
 
-    if (subscriptionError) {
-      console.error('Erro ao criar assinatura:', subscriptionError);
-      return NextResponse.json({ error: subscriptionError.message }, { status: 500 });
+      if (subscriptionError) {
+        console.error('❌ Erro ao criar assinatura:', subscriptionError);
+        return NextResponse.json({ error: subscriptionError.message }, { status: 500 });
+      }
+      
+      console.log('✅ Assinatura criada/atualizada com status:', normalizedStatus);
     }
 
     // 5. Se for um evento de pagamento aprovado, enviar email de boas-vindas

@@ -182,11 +182,38 @@ export default function AdminIntegrationsPage() {
                   <li>Vá em "Configurações" → "Webhooks"</li>
                   <li>Adicione uma nova URL de webhook</li>
                   <li>Cole a URL de produção: <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">https://app.aldeiasingular.com.br/api/hotmart/webhook</code></li>
-                  <li>Selecione os eventos: "PURCHASE_APPROVED", "PURCHASE_COMPLETED"</li>
+                  <li>Selecione os eventos: "PURCHASE_APPROVED", "PURCHASE_COMPLETED", "PURCHASE_CANCELED", "PURCHASE_REFUNDED", "PURCHASE_CHARGEBACK", "PURCHASE_PENDING"</li>
                   <li>Configure o secret e cole no campo acima</li>
                   <li>Salve as configurações</li>
                   <li><strong>Teste fazendo uma compra!</strong> 🎉</li>
                 </ol>
+              </div>
+
+              {/* Status Explanation */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3 text-base">
+                  Como funciona o sistema de status:
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <h5 className="font-medium text-blue-800 dark:text-blue-200 mb-2">✅ Acesso Ativo:</h5>
+                    <ul className="space-y-1 text-blue-700 dark:text-blue-300">
+                      <li>• <strong>PURCHASE_APPROVED</strong> → Status: active</li>
+                      <li>• <strong>PURCHASE_COMPLETED</strong> → Status: active</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h5 className="font-medium text-red-800 dark:text-red-200 mb-2">❌ Acesso Removido:</h5>
+                    <ul className="space-y-1 text-red-700 dark:text-red-300">
+                      <li>• <strong>PURCHASE_CANCELED</strong> → Status: canceled</li>
+                      <li>• <strong>PURCHASE_REFUNDED</strong> → Status: refunded</li>
+                      <li>• <strong>PURCHASE_CHARGEBACK</strong> → Status: chargeback</li>
+                    </ul>
+                  </div>
+                </div>
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-3">
+                  💡 O sistema automaticamente remove o acesso quando detecta reembolsos, cancelamentos ou chargebacks.
+                </p>
               </div>
 
               <div className="flex gap-3">
