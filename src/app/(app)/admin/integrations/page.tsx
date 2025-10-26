@@ -21,9 +21,19 @@ export default function AdminIntegrationsPage() {
   const { push } = useToast();
 
   useEffect(() => {
-    // Simular carregamento das configurações existentes
-    setWebhookUrl(`${window.location.origin}/api/hotmart/webhook`);
-    setIsConfigured(true);
+    // Carregar configurações salvas
+    const savedConfig = localStorage.getItem('hotmart-config');
+    if (savedConfig) {
+      const config = JSON.parse(savedConfig);
+      setWebhookSecret(config.webhookSecret || '');
+      setProductIds(config.productIds || '');
+      setWebhookUrl(config.webhookUrl || 'https://app.aldeiasingular.com.br/api/hotmart/webhook');
+      setIsConfigured(config.isConfigured || false);
+    } else {
+      // Configuração padrão
+      setWebhookUrl('https://app.aldeiasingular.com.br/api/hotmart/webhook');
+      setIsConfigured(false);
+    }
   }, []);
 
   const handleCopyWebhookUrl = async () => {
@@ -37,9 +47,23 @@ export default function AdminIntegrationsPage() {
     }
   };
 
-  const handleSaveConfiguration = () => {
-    // Aqui você implementaria a lógica para salvar as configurações
-    push({ title: "Configuração salva", message: "As configurações da Hotmart foram salvas com sucesso!" });
+  const handleSaveConfiguration = async () => {
+    try {
+      // Salvar no localStorage para persistência local
+      const config = {
+        webhookSecret,
+        productIds,
+        webhookUrl,
+        isConfigured: true
+      };
+      
+      localStorage.setItem('hotmart-config', JSON.stringify(config));
+      setIsConfigured(true);
+      
+      push({ title: "Configuração salva", message: "As configurações da Hotmart foram salvas com sucesso!" });
+    } catch (error) {
+      push({ title: "Erro", message: "Erro ao salvar configurações", variant: "error" });
+    }
   };
 
   return (
@@ -81,7 +105,8 @@ export default function AdminIntegrationsPage() {
                   <Input
                     id="webhook-url"
                     value={webhookUrl}
-                    readOnly
+                    onChange={(e) => setWebhookUrl(e.target.value)}
+                    placeholder="Cole aqui a URL do ngrok ou use a URL de produção"
                     className="bg-light-surface dark:bg-dark-surface"
                   />
                   <Button
@@ -91,6 +116,24 @@ export default function AdminIntegrationsPage() {
                     className="shrink-0"
                   >
                     {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setWebhookUrl('https://app.aldeiasingular.com.br/api/hotmart/webhook')}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                  >
+                    Usar URL de produção
+                  </Button>
+                  <Button
+                    onClick={() => setWebhookUrl('https://enumerable-lynetta-soupiest.ngrok-free.dev/api/hotmart/webhook')}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                  >
+                    Usar URL do ngrok (teste)
                   </Button>
                 </div>
                 <p className="text-xs text-light-muted dark:text-dark-muted">
@@ -138,10 +181,11 @@ export default function AdminIntegrationsPage() {
                   <li>Acesse o painel da Hotmart</li>
                   <li>Vá em "Configurações" → "Webhooks"</li>
                   <li>Adicione uma nova URL de webhook</li>
-                  <li>Cole a URL acima no campo "URL do webhook"</li>
+                  <li>Cole a URL de produção: <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">https://app.aldeiasingular.com.br/api/hotmart/webhook</code></li>
                   <li>Selecione os eventos: "PURCHASE_APPROVED", "PURCHASE_COMPLETED"</li>
                   <li>Configure o secret e cole no campo acima</li>
                   <li>Salve as configurações</li>
+                  <li><strong>Teste fazendo uma compra!</strong> 🎉</li>
                 </ol>
               </div>
 
@@ -182,7 +226,7 @@ export default function AdminIntegrationsPage() {
                   <li>• Enviar email de boas-vindas para novos usuários</li>
                 </ul>
               </div>
-            </div>
+          </div>
           </Card>
         </div>
       </Section>

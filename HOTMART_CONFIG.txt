@@ -1,0 +1,10 @@
+# Configuração da Hotmart - Adicione ao seu arquivo .env.local
+
+# Hotmart Webhook Secret
+HOTMART_WEBHOOK_SECRET=RHVLbs7mCatB5ykhlP69aFORV7OgVda87189a6-ac8b-4b1c-b11a-4e3b8359de1f
+
+# IDs dos produtos (opcional - deixe vazio para aceitar todos)
+HOTMART_PRODUCT_IDS=
+
+# Email (opcional)
+MAIL_FROM=no-reply@comunidade.com

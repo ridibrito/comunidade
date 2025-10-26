@@ -16,6 +16,12 @@ function verifyHotmartSignature(body: string, signature: string, secret: string)
     hmac.update(body, 'utf8');
     const expectedSignature = hmac.digest('hex');
     
+    // Verificar se as assinaturas têm o mesmo tamanho
+    if (signature.length !== expectedSignature.length) {
+      console.log('Tamanhos diferentes:', signature.length, 'vs', expectedSignature.length);
+      return false;
+    }
+    
     return crypto.timingSafeEqual(
       Buffer.from(signature, 'hex'),
       Buffer.from(expectedSignature, 'hex')
@@ -31,13 +37,14 @@ function mapHotmartData(event: any) {
   const buyer = event.buyer || event.data?.buyer || {};
   const purchase = event.purchase || event.data?.purchase || {};
   const subscription = event.subscription || event.data?.subscription || {};
+  const product = event.product || event.data?.product || {};
   
   return {
     event: event.event || event.event_name || '',
     email: (buyer.email || event.email || '').toLowerCase(),
-    name: buyer.name || buyer.full_name || event.name || 'Aluno',
-    product_id: String(event.product?.id ?? purchase.product?.id ?? subscription?.plan?.id ?? event.product_id ?? ''),
-    purchase_id: String(purchase.purchase_id ?? event.transaction ?? event.purchase_id ?? ''),
+    name: buyer.name || buyer.first_name || buyer.full_name || event.name || 'Aluno',
+    product_id: String(product.id ?? purchase.product?.id ?? subscription?.plan?.id ?? event.product_id ?? ''),
+    purchase_id: String(purchase.transaction ?? purchase.purchase_id ?? event.transaction ?? event.purchase_id ?? ''),
     purchase_status: purchase.status ?? event.status ?? 'UNKNOWN',
   };
 }
@@ -115,21 +122,49 @@ async function sendWelcomeEmail(email: string, name: string) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
-    const signature = request.headers.get('x-hotmart-hmac-sha256') || request.headers.get('hottok') || '';
+    const hmacSignature = request.headers.get('x-hotmart-hmac-sha256') || '';
+    const hottok = request.headers.get('x-hotmart-hottok') || request.headers.get('hottok') || '';
     
-    // Verificar assinatura do webhook
-    if (!verifyHotmartSignature(body, signature, HOTMART_WEBHOOK_SECRET)) {
-      console.error('Assinatura inválida do webhook');
+    console.log('=== WEBHOOK HOTMART RECEBIDO ===');
+    console.log('Headers:', Object.fromEntries(request.headers.entries()));
+    console.log('Body:', body);
+    console.log('HMAC Signature:', hmacSignature);
+    console.log('Hottok:', hottok);
+    console.log('Secret configurado:', HOTMART_WEBHOOK_SECRET ? 'SIM' : 'NÃO');
+    console.log('================================');
+    
+    // Verificar assinatura do webhook (suporta tanto HMAC quanto Hottok)
+    let isValid = false;
+    
+    if (hmacSignature) {
+      // Verificar HMAC-SHA256
+      isValid = verifyHotmartSignature(body, hmacSignature, HOTMART_WEBHOOK_SECRET);
+      console.log('🔐 Verificação HMAC:', isValid ? 'VÁLIDA' : 'INVÁLIDA');
+    } else if (hottok) {
+      // Verificar Hottok simples
+      isValid = hottok === HOTMART_WEBHOOK_SECRET;
+      console.log('🔑 Verificação Hottok:', isValid ? 'VÁLIDA' : 'INVÁLIDA');
+    }
+    
+    if (!isValid) {
+      console.error('❌ Assinatura inválida do webhook');
+      console.error('HMAC recebida:', hmacSignature);
+      console.error('Hottok recebida:', hottok);
+      console.error('Secret esperado:', HOTMART_WEBHOOK_SECRET);
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
+    
+    console.log('✅ Assinatura válida!');
 
     const payload = JSON.parse(body);
     const event = Array.isArray(payload) ? payload[0] : payload;
     
     const { email, name, product_id, purchase_id, event: eventType, purchase_status } = mapHotmartData(event);
     
+    console.log('📊 Dados mapeados:', { email, name, product_id, purchase_id, event: eventType, purchase_status });
+    
     if (!email || !product_id) {
-      console.error('Campos obrigatórios ausentes:', { email, product_id });
+      console.error('❌ Campos obrigatórios ausentes:', { email, product_id });
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -144,16 +179,27 @@ export async function POST(request: NextRequest) {
     const normalizedStatus = normalizeStatus(eventType, purchase_status);
     const approvedEvents = ['PURCHASE_APPROVED', 'PURCHASE_COMPLETED', 'SUBSCRIPTION_RENEWED'];
     const isPaidEvent = approvedEvents.includes(eventType);
+    
+    console.log('📊 Status normalizado:', normalizedStatus);
+    console.log('💰 É evento de pagamento:', isPaidEvent);
+    
+    // Se for evento de cancelamento, não processar
+    if (eventType === 'PURCHASE_CANCELED') {
+      console.log('❌ Evento de cancelamento ignorado');
+      return NextResponse.json({ message: 'Purchase canceled event ignored' }, { status: 200 });
+    }
 
     // 1. Verificar se usuário já existe
+    console.log('🔍 Verificando se usuário já existe:', email);
     const { data: existingUsers } = await supabase.auth.admin.listUsers({
       page: 1,
-      perPage: 1,
+      perPage: 1000, // Aumentar limite para encontrar o usuário
     });
     
     let user = existingUsers?.users?.find(u => u.email === email);
     
     if (!user) {
+      console.log('👤 Usuário não existe, criando novo usuário...');
       // 2. Criar usuário se não existir
       const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
         email,
@@ -162,19 +208,31 @@ export async function POST(request: NextRequest) {
       });
       
       if (createError) {
-        console.error('Erro ao criar usuário:', createError);
+        console.error('❌ Erro ao criar usuário:', createError);
         return NextResponse.json({ error: createError.message }, { status: 500 });
       }
       
       user = newUser.user!;
+      console.log('✅ Usuário criado com sucesso:', user.id);
+    } else {
+      console.log('✅ Usuário já existe:', user.id);
     }
 
-    // 3. Garantir que o perfil existe
-    await supabase.from('profiles').upsert({
+    // 3. Garantir que o perfil existe com role de aluno
+    console.log('👤 Criando/atualizando perfil com role de aluno...');
+    const { error: profileError } = await supabase.from('profiles').upsert({
       id: user.id,
       full_name: name,
       is_admin: false,
+      role: 'aluno'
     });
+    
+    if (profileError) {
+      console.error('❌ Erro ao criar perfil:', profileError);
+      return NextResponse.json({ error: profileError.message }, { status: 500 });
+    }
+    
+    console.log('✅ Perfil criado/atualizado com role: aluno');
 
     // 4. Criar/atualizar assinatura
     const { error: subscriptionError } = await supabase.from('subscriptions').upsert({

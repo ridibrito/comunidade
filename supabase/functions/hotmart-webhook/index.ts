@@ -116,8 +116,13 @@ serve(async (req) => {
     user = created.data.user!;
   }
 
-  // 2) garante profile
-  await supabase.from("profiles").upsert({ id: user.id, full_name: name, is_admin: false });
+  // 2) garante profile com role de aluno
+  await supabase.from("profiles").upsert({ 
+    id: user.id, 
+    full_name: name, 
+    is_admin: false,
+    role: 'aluno'
+  });
 
   // 3) upsert assinatura
   await supabase.from("subscriptions").upsert({
