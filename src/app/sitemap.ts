@@ -1,39 +1,36 @@
-// app/sitemap.ts
-import { MetadataRoute } from 'next';
-
+import { MetadataRoute } from 'next'
+ 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://app.aldeiasingular.com.br';
-  
   return [
     {
-      url: baseUrl,
+      url: 'https://app.aldeiasingular.com.br',
       lastModified: new Date(),
-      changeFrequency: 'monthly',
+      changeFrequency: 'yearly',
       priority: 1,
     },
     {
-      url: `${baseUrl}/auth/login`,
+      url: 'https://app.aldeiasingular.com.br/auth/login',
       lastModified: new Date(),
-      changeFrequency: 'yearly',
+      changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/auth/recover`,
+      url: 'https://app.aldeiasingular.com.br/auth/recover',
       lastModified: new Date(),
-      changeFrequency: 'yearly',
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: 'https://app.aldeiasingular.com.br/about',
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
       priority: 0.5,
     },
     {
-      url: `${baseUrl}/about`,
+      url: 'https://app.aldeiasingular.com.br/contact',
       lastModified: new Date(),
       changeFrequency: 'monthly',
-      priority: 0.7,
+      priority: 0.5,
     },
-    {
-      url: `${baseUrl}/contact`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    },
-  ];
+  ]
 }

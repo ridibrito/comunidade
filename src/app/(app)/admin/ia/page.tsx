@@ -201,8 +201,7 @@ export default function AdminIAPage() {
       <Section>
         <PageHeader
           title="Administração da IA"
-          description="Gerencie prompts, configurações e monitore o desempenho da IA"
-          icon={<Bot className="w-5 h-5" />}
+          subtitle="Gerencie prompts, configurações e monitore o desempenho da IA"
         />
 
         <div className="space-y-6">

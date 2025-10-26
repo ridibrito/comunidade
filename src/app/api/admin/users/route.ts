@@ -86,6 +86,7 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+    // @ts-ignore
     const existingUser = usersData.users?.find(user => user.email === email);
     if (existingUser) {
       return NextResponse.json(

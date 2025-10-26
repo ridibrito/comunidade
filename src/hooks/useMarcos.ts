@@ -46,6 +46,33 @@ export function useMarcos(trailId?: string): UseMarcosReturn {
         return;
       }
 
+      // Verificar se trailId é um UUID válido (não é um ID mock)
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(trailId)) {
+        console.log(`[useMarcos] trailId não é um UUID válido: ${trailId}, usando dados mock`);
+        // Dados mock para demonstração
+        const mockMarcos: Marco[] = [
+          {
+            id: 'mock-1',
+            title: 'Primeiro Módulo',
+            conquered: false,
+            position: 1,
+            moduleId: 'mock-1',
+            trailId: trailId
+          },
+          {
+            id: 'mock-2',
+            title: 'Segundo Módulo',
+            conquered: false,
+            position: 2,
+            moduleId: 'mock-2',
+            trailId: trailId
+          }
+        ];
+        setMarcos(mockMarcos);
+        return;
+      }
+
       // Usar a função do banco para buscar marcos da trilha
       const { data: marcosData, error } = await supabase
         .rpc('get_marcos_trilha', {

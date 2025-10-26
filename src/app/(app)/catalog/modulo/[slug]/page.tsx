@@ -67,56 +67,65 @@ export default function ModulePage() {
         }
 
         // Buscar trilha para obter o título e slug
-        const { data: trailData } = await supabase
-          .from('trails')
-          .select('title, slug')
-          .eq('id', moduleData.trail_id)
-          .single();
+        if (moduleData) {
+          const module = moduleData as any;
+          if (module.trail_id) {
+            const { data: trailData } = await supabase
+              .from('trails')
+              .select('title, slug')
+              .eq('id', module.trail_id)
+              .single();
 
-        if (trailData) {
-          setTrailTitle(trailData.title);
-          setTrailSlug(trailData.slug || '');
+            if (trailData) {
+              const trail = trailData as any;
+              setTrailTitle(trail.title);
+              setTrailSlug(trail.slug || '');
+            }
+          }
         }
 
         // Buscar aulas do módulo
-        const { data: lessonsData, error: lessonsError } = await supabase
-          .from('contents')
-          .select('*')
-          .eq('module_id', moduleData.id)
-          .order('position');
+        if (moduleData) {
+          const module = moduleData as any;
+          const { data: lessonsData, error: lessonsError } = await supabase
+            .from('contents')
+            .select('*')
+            .eq('module_id', module.id)
+            .order('position');
 
-        if (lessonsError) {
-          console.error('Erro ao carregar aulas:', lessonsError);
-        } else {
-          console.log('✅ Aulas carregadas:', lessonsData);
-          lessonsData?.forEach(lesson => {
-            console.log(`📚 Aula: ${lesson.title}, image_url: ${lesson.image_url}`);
+          if (lessonsError) {
+            console.error('Erro ao carregar aulas:', lessonsError);
+          } else {
+            console.log('✅ Aulas carregadas:', lessonsData);
+            lessonsData?.forEach((lesson: any) => {
+              console.log(`📚 Aula: ${lesson.title}, image_url: ${lesson.image_url}`);
+            });
+          }
+
+          // Calcular duração total
+          const totalMinutes = lessonsData?.reduce((total: number, lesson: any) => {
+            const minutes = lesson.duration || 0;
+            return total + minutes;
+          }, 0) || 0;
+          
+          const hours = Math.floor(totalMinutes / 60);
+          const minutes = totalMinutes % 60;
+          const totalDuration = hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
+
+          // Carregar progresso das aulas primeiro
+          let calculatedProgress = 0;
+          if (lessonsData && lessonsData.length > 0) {
+            const lessonIds = lessonsData.map((lesson: any) => lesson.id);
+            calculatedProgress = await loadLessonsProgress(lessonIds, supabase, lessonsData.length);
+          }
+
+          setModule({
+            ...module,
+            lessons: lessonsData || [],
+            total_duration: totalDuration,
+            progress: calculatedProgress
           });
         }
-
-        // Calcular duração total
-        const totalMinutes = lessonsData?.reduce((total, lesson) => {
-          const minutes = lesson.duration || 0;
-          return total + minutes;
-        }, 0) || 0;
-        
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-        const totalDuration = hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
-
-        // Carregar progresso das aulas primeiro
-        let calculatedProgress = 0;
-        if (lessonsData && lessonsData.length > 0) {
-          const lessonIds = lessonsData.map(lesson => lesson.id);
-          calculatedProgress = await loadLessonsProgress(lessonIds, supabase, lessonsData.length);
-        }
-
-        setModule({
-          ...moduleData,
-          lessons: lessonsData || [],
-          total_duration: totalDuration,
-          progress: calculatedProgress
-        });
 
       } catch (error) {
         console.error('Erro geral:', error);

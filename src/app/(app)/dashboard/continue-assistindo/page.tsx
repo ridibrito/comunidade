@@ -261,7 +261,7 @@ export default function ContinueAssistindoPage() {
                         author="Autor"
                         description={content.description || ""}
                         pages={content.duration || 0}
-                        image={content.image}
+                        image={content.image_url || "/logo_full.png"}
                         fileUrl={content.file_url || "#"}
                         id={content.id}
                         className="w-full"
@@ -279,7 +279,7 @@ export default function ContinueAssistindoPage() {
                       duration={`${content.duration || 0}min`}
                       lessons={1}
                       progress={content.progress}
-                      image={content.image}
+                      image={content.image_url || "/logo_full.png"}
                       slug={content.slug}
                       className="w-full"
                     />

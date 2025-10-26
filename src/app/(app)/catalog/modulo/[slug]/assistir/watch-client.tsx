@@ -9,6 +9,7 @@ import { ArrowLeft, Play, Clock, CheckCircle, ChevronLeft, ChevronRight, Star, D
 import Link from "next/link";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 import { useEffect, useState } from "react";
+import { useSearchParams } from 'next/navigation';
 
 interface LessonRating {
   id: string;
@@ -40,6 +41,8 @@ interface LessonData {
 
 export default function WatchClient({ slug }: { slug: string }) {
   const supabase = getBrowserSupabaseClient();
+  const searchParams = useSearchParams();
+  const lessonId = searchParams.get('lesson');
   const [trailTitle, setTrailTitle] = useState("");
   const [moduleTitle, setModuleTitle] = useState("");
   const [lessons, setLessons] = useState<LessonData[]>([]);
@@ -331,7 +334,7 @@ export default function WatchClient({ slug }: { slug: string }) {
       
       setLessons(l ?? []);
       if ((l ?? []).length) {
-        setCurrent((l ?? [])[0].id);
+        setCurrent(lessonId || (l ?? [])[0].id);
         // Carregar progresso de todas as aulas
         const lessonIds = (l ?? []).map(lesson => lesson.id);
         loadAllLessonsProgress(lessonIds);
@@ -348,10 +351,11 @@ export default function WatchClient({ slug }: { slug: string }) {
 
   const currentLesson = lessons.find((x) => x.id === current);
   const embedUrl = currentLesson?.video_url ? 
-    currentLesson.video_url
-      .replace("vimeo.com/", "player.vimeo.com/video/")
-      .replace("www.vimeo.com/", "player.vimeo.com/video/")
-      + "?autoplay=0&title=0&byline=0&portrait=0&responsive=1" : null;
+    (() => {
+      const url = new URL(currentLesson.video_url.replace("vimeo.com/", "player.vimeo.com/video/").replace("www.vimeo.com/", "player.vimeo.com/video/"));
+      url.search = '?autoplay=0&title=0&byline=0&portrait=0&responsive=1';
+      return url.toString();
+    })() : null;
   
   const currentIndex = lessons.findIndex(lesson => lesson.id === current);
   const hasPrevious = currentIndex > 0;

@@ -117,25 +117,43 @@ export default function TemplatesSettingsPage() {
             <div>
               <h3 className="font-medium text-light-text dark:text-dark-text mb-2">Dados do Usuário</h3>
               <div className="space-y-1 text-sm">
-                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">{{nome}}</code>
-                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">{{email}}</code>
-                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">{{role}}</code>
+                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">
+                  {"{{nome}}"}
+                </code>
+                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">
+                  {"{{email}}"}
+                </code>
+                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">
+                  {"{{role}}"}
+                </code>
               </div>
             </div>
             <div>
               <h3 className="font-medium text-light-text dark:text-dark-text mb-2">Dados da Plataforma</h3>
               <div className="space-y-1 text-sm">
-                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">{{plataforma}}</code>
-                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">{{url}}</code>
-                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">{{data}}</code>
+                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">
+                  {"{{plataforma}}"}
+                </code>
+                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">
+                  {"{{url}}"}
+                </code>
+                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">
+                  {"{{data}}"}
+                </code>
               </div>
             </div>
             <div>
               <h3 className="font-medium text-light-text dark:text-dark-text mb-2">Links e Ações</h3>
               <div className="space-y-1 text-sm">
-                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">{{link_login}}</code>
-                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">{{link_reset}}</code>
-                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">{{link_conteudo}}</code>
+                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">
+                  {"{{link_login}}"}
+                </code>
+                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">
+                  {"{{link_reset}}"}
+                </code>
+                <code className="block px-2 py-1 bg-light-surface dark:bg-dark-surface rounded">
+                  {"{{link_conteudo}}"}
+                </code>
               </div>
             </div>
           </div>

@@ -62,8 +62,19 @@ import {
   CartesianGrid
 } from "recharts";
 
+type TrailRecord = { id: string; title: string };
+type CompletionDataPoint = { name: string; value: number; color: string };
+type ActivityLog = {
+  id?: string;
+  created_at: string;
+  user_id?: string;
+  action?: string;
+  resource_type?: string;
+  resource_id?: string;
+};
+
 export default function AdminPage() {
-  const supabase = getBrowserSupabaseClient();
+  const supabase = getBrowserSupabaseClient() as any;
   const [timeRange, setTimeRange] = useState("30d");
   const [selectedMetric, setSelectedMetric] = useState("users");
   const [loading, setLoading] = useState(true);
@@ -78,10 +89,10 @@ export default function AdminPage() {
     aiInteractions: 0
   });
   
-  const [userGrowthData, setUserGrowthData] = useState([]);
-  const [completionData, setCompletionData] = useState([]);
-  const [activityData, setActivityData] = useState([]);
-  const [recentActivities, setRecentActivities] = useState([]);
+  const [userGrowthData, setUserGrowthData] = useState<Record<string, any>[]>([]);
+  const [completionData, setCompletionData] = useState<CompletionDataPoint[]>([]);
+  const [activityData, setActivityData] = useState<Record<string, any>[]>([]);
+  const [recentActivities, setRecentActivities] = useState<ActivityLog[]>([]);
 
   useEffect(() => {
     loadDashboardData();
@@ -140,7 +151,8 @@ export default function AdminPage() {
         .select('id, title');
       
       if (trails) {
-        const completionPromises = trails.map(async (trail) => {
+        const typedTrails = trails as TrailRecord[];
+        const completionPromises = typedTrails.map(async (trail) => {
           const { count: completed } = await supabase
             .from('user_progress')
             .select('*', { count: 'exact' })
@@ -172,7 +184,7 @@ export default function AdminPage() {
         .order('created_at', { ascending: false })
         .limit(5);
       
-      setRecentActivities(activities || []);
+      setRecentActivities((activities as ActivityLog[] | null) ?? []);
 
       // Carregar dados de crescimento reais
       try {
@@ -182,7 +194,7 @@ export default function AdminPage() {
           .order('month');
         
         if (userGrowth && userGrowth.length > 0) {
-          setUserGrowthData(userGrowth);
+          setUserGrowthData(userGrowth as Record<string, any>[]);
         } else {
           // Se não houver dados, mostrar dados vazios
           setUserGrowthData([]);
@@ -200,7 +212,7 @@ export default function AdminPage() {
           .order('day_of_week');
         
         if (weeklyActivity && weeklyActivity.length > 0) {
-          setActivityData(weeklyActivity);
+          setActivityData(weeklyActivity as Record<string, any>[]);
         } else {
           // Se não houver dados, mostrar dados vazios
           setActivityData([]);

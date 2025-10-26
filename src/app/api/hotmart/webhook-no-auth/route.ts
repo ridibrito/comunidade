@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
       perPage: 1000,
     });
     
+    // @ts-ignore
     const user = existingUsers?.users?.find(u => u.email === email);
     
     // Se usuário não existe e é evento de pagamento, criar

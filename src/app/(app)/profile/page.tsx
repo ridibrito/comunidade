@@ -101,9 +101,10 @@ export default function ProfilePage() {
 
       setAvatarUrl(data.publicUrl);
       
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: data.publicUrl } as any)
+      {/* @ts-ignore */}
+      const { error: updateError } = await (supabase
+        .from("profiles") as any)
+        .update({ avatar_url: data.publicUrl })
         .eq("id", user.id);
 
       if (updateError) throw updateError;

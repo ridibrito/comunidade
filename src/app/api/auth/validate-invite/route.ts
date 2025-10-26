@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Erro ao buscar usuário" }, { status: 500 });
     }
 
+    // @ts-ignore
     const user = users?.users?.find(u => u.email === email);
     if (!user) {
       return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });

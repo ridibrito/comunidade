@@ -95,16 +95,19 @@ export default function IAPage() {
         .eq('id', user.id)
         .single();
       
-      if (profile?.avatar_url) {
-        setUserAvatar(profile.avatar_url);
-      }
-      
-      if (profile?.full_name) {
-        const firstName = profile.full_name.split(' ')[0];
-        setUserFirstName(firstName);
-      } else {
-        // Se não tiver nome, seta null para indicar que já tentou carregar
-        setUserFirstName(null);
+      if (profile) {
+        const profileData = profile as any;
+        if (profileData.avatar_url) {
+          setUserAvatar(profileData.avatar_url);
+        }
+        
+        if (profileData.full_name) {
+          const firstName = profileData.full_name.split(' ')[0];
+          setUserFirstName(firstName);
+        } else {
+          // Se não tiver nome, seta null para indicar que já tentou carregar
+          setUserFirstName(null);
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);

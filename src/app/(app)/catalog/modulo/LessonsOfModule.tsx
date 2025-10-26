@@ -14,9 +14,11 @@ export default function LessonsOfModule({ slug }: { slug: string }) {
     if (!supabase) return;
     (async () => {
       const { data: mod } = await supabase.from("modules").select("id, title").eq("slug", slug).maybeSingle();
-      if (!mod?.id) return;
-      setModuleTitle(mod.title);
-      const { data: l } = await supabase.from("lessons").select("id, title").eq("module_id", mod.id).order("position");
+      if (!mod) return;
+      const module = mod as any;
+      if (!module.id) return;
+      setModuleTitle(module.title);
+      const { data: l } = await supabase.from("lessons").select("id, title").eq("module_id", module.id).order("position");
       setLessons(l ?? []);
     })();
   }, [supabase, slug]);

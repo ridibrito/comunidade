@@ -1,30 +1,54 @@
 "use client";
 
-// Dados mockados removidos - usando dados reais do Supabase
+// Usando dados reais do Supabase
 import { getBrowserSupabaseClient } from "@/lib/supabase";
-import { createClient } from "@/lib/supabase";
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
-import PageHeader from "@/components/ui/PageHeader";
-// import Card from "@/components/ui/Card";
-import ModernCard from "@/components/ui/ModernCard";
-import MetricCard from "@/components/ui/MetricCard";
-import ProgressCard from "@/components/ui/ProgressCard";
 import Badge from "@/components/ui/Badge";
-import Modal from "@/components/ui/Modal";
-import { BookOpen, Calendar, TrendingUp, CheckCircle, Clock, Eye, Download, Play } from "lucide-react";
+import { Play } from "lucide-react";
 
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/ToastProvider";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import ContentCarousel from "@/components/ui/ContentCarousel";
-import Card from "@/components/ui/Card";
 import { CardVideoAula, CardLivro } from "@/components/ui/CardModels";
-import CardComMarcos from "@/components/ui/CardComMarcos";
-import { MagicCard } from "@/components/ui/animations/MagicCard";
-import { BorderBeam } from "@/components/ui/animations/BorderBeam";
-import { Particles } from "@/components/ui/animations/Particles";
+
 import { useRouter } from "next/navigation";
+
+// Tipos para o conteúdo
+interface Content {
+  id: string;
+  title: string;
+  description: string;
+  duration: number;
+  slug: string;
+  video_url: string;
+  materials_url?: string;
+  created_at: string;
+  module_id: string;
+  image_url?: string;
+  image?: string;
+  content_type: 'video' | 'livro' | 'artigo';
+  progress?: number;
+  lastWatched?: string;
+  trail_id?: string;
+  modules?: {
+    id: string;
+    slug: string;
+    title: string;
+    trail_id?: string;
+    trails?: {
+      id: string;
+      slug: string;
+      title: string;
+      pages?: {
+        id: string;
+        slug: string;
+        title: string;
+      };
+    };
+  };
+}
 
 // Configuração de badges por página
 const PAGE_BADGE: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'brand' | 'success' | 'warning' | 'error' }> = {
@@ -45,10 +69,11 @@ export default function DashboardPage() {
   const [children, setChildren] = useState<Kid[]>([]);
   const [selectedChild, setSelectedChild] = useState<Kid | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [latestContents, setLatestContents] = useState<any[]>([]);
+  const [latestContents, setLatestContents] = useState<Content[]>([]);
   const [loadingLatest, setLoadingLatest] = useState<boolean>(true);
-  const [continueContents, setContinueContents] = useState<any[]>([]);
+  const [continueContents, setContinueContents] = useState<Content[]>([]);
   const [loadingContinue, setLoadingContinue] = useState<boolean>(true);
+
   // Verificar se há erro de acesso negado
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -77,11 +102,12 @@ export default function DashboardPage() {
       if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
       else if (userData.user?.user_metadata?.avatar_url) setAvatarUrl(userData.user.user_metadata.avatar_url);
 
-      // parceiro(a): busca primeiro membro de família com relationship típico
+      // parceiro(a): busca primeiro membro de família com relationship 'Cônjuge'
       const { data: fams } = await (supabase
         .from("family_members")
         .select("name, relationship, avatar_url")
         .eq("user_id", uid)
+        .eq("relationship", "Cônjuge") // Filtro para parceiro(a)
         .order("created_at", { ascending: true })
         .limit(1) as unknown as { data: Array<{ name?: string | null; avatar_url?: string | null }> | null });
       if (fams && fams.length > 0) {
@@ -105,7 +131,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const loadContinueContents = async () => {
       try {
-        const supabase = createClient();
+        const supabase = getBrowserSupabaseClient();
         
         // Buscar progresso real do usuário
         const { data: { user } } = await supabase.auth.getUser();
@@ -127,17 +153,18 @@ export default function DashboardPage() {
               title,
               description,
               duration,
-              content_type,
               slug,
-              image_url,
-              file_url,
+              video_url,
+              materials_url,
               created_at,
               module_id,
-              trail_id,
+              image_url,
               modules:modules (
                 id,
                 slug,
                 title,
+                trail_id,
+                slug,
                 trails:trails (
                   id,
                   slug,
@@ -147,16 +174,6 @@ export default function DashboardPage() {
                     slug,
                     title
                   )
-                )
-              ),
-              trails:trails (
-                id,
-                slug,
-                title,
-                pages:pages (
-                  id,
-                  slug,
-                  title
                 )
               )
             )
@@ -168,35 +185,24 @@ export default function DashboardPage() {
           .limit(8);
 
         if (progressError) {
-          console.error('Erro ao carregar progresso:', progressError);
+          console.error('Erro ao carregar progresso do usuário:', progressError);
           setContinueContents([]);
           return;
         }
 
         const mapped = (progressData || [])
           .filter((item: any) => item.content) // Filtrar apenas conteúdos válidos
-          .map((item: any) => {
+          .map((item: any): Content => {
             const content = item.content;
-            const page = content?.modules?.trails?.pages || content?.trails?.pages;
-            const pageSlug: string | undefined = page?.slug;
-            const pageTitle: string | undefined = page?.title || content?.modules?.trails?.title || content?.trails?.title;
-            const badgeCfg = (pageSlug && PAGE_BADGE[pageSlug]) ? PAGE_BADGE[pageSlug] : { label: pageTitle || 'Conteúdo', variant: 'outline' as const };
             const image = content.image_url || '/logo_full.png';
-            
-            // Garantir que trail_id está disponível (pode vir de modules.trail_id ou trail_id direto)
-            const trailId = content.modules?.trail_id || content.trail_id;
             
             return {
               ...content,
-              trail_id: trailId, // Adicionar explicitamente para o CardComMarcos
+              trail_id: content.modules?.trail_id,
               image,
+              content_type: content.content_type || 'video',
               progress: item.completion_percentage,
-              lastWatched: item.updated_at,
-              origin: {
-                slug: pageSlug,
-                label: badgeCfg.label,
-                badge: badgeCfg
-              }
+              lastWatched: item.updated_at
             };
           });
 
@@ -216,7 +222,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const loadLatestContents = async () => {
       try {
-        const supabase = createClient();
+        const supabase = getBrowserSupabaseClient();
         const { data, error } = await supabase
           .from('contents')
           .select(`
@@ -224,13 +230,14 @@ export default function DashboardPage() {
             title,
             description,
             duration,
-            content_type,
             slug,
-            image_url,
+            video_url,
+            materials_url,
             file_url,
+            content_type,
             created_at,
             module_id,
-            trail_id,
+            image_url,
             modules:modules (
               id,
               slug,
@@ -246,19 +253,8 @@ export default function DashboardPage() {
                   title
                 )
               )
-            ),
-            trails:trails (
-              id,
-              slug,
-              title,
-              pages:pages (
-                id,
-                slug,
-                title
-              )
             )
           `)
-          .eq('status', 'published')
           .order('created_at', { ascending: false })
           .limit(12);
 
@@ -268,38 +264,15 @@ export default function DashboardPage() {
           return;
         }
 
-        const PAGE_BADGE: Record<string, { label: string; variant: "info"|"success"|"warning"|"error"|"brand"|"outline"|"default" }> = {
-          'montanha-do-amanha': { label: 'Montanha do Amanhã', variant: 'brand' },
-          'rodas-de-conversa': { label: 'Rodas de Conversa', variant: 'success' },
-          'plantao-de-duvidas': { label: 'Plantão de Dúvidas', variant: 'warning' },
-          'acervo-digital': { label: 'Acervo Digital', variant: 'info' }
-        };
-
-        const mapped = (data || []).map((c: any) => {
-          const page = (c as any)?.modules?.trails?.pages || (c as any)?.trails?.pages;
-          const pageSlug: string | undefined = page?.slug;
-          const pageTitle: string | undefined = page?.title || (c as any)?.modules?.trails?.title || (c as any)?.trails?.title;
-          const badgeCfg = (pageSlug && PAGE_BADGE[pageSlug]) ? PAGE_BADGE[pageSlug] : { label: pageTitle || 'Conteúdo', variant: 'outline' as const };
+        const mapped = (data || []).map((c: any): Content => {
           const image = c.image_url || '/logo_full.png';
-          
-          // Garantir que trail_id está disponível (pode vir de modules.trail_id ou trail_id direto)
-          const trailId = c.modules?.trail_id || c.trail_id;
-          
-          console.log(`[Dashboard] Mapeando conteúdo: ${c.title}`);
-          console.log(`  - module_id: ${c.module_id}`);
-          console.log(`  - trail_id direto: ${c.trail_id}`);
-          console.log(`  - modules?.trail_id: ${c.modules?.trail_id}`);
-          console.log(`  - trailId final: ${trailId}`);
           
           return {
             ...c,
-            trail_id: trailId, // Adicionar explicitamente para o CardComMarcos
+            trail_id: c.modules?.trail_id,
             image,
-            origin: {
-              slug: pageSlug,
-              title: pageTitle,
-              badge: badgeCfg
-            }
+            content_type: c.content_type || 'video',
+            progress: 0
           };
         });
 
@@ -314,78 +287,9 @@ export default function DashboardPage() {
     loadLatestContents();
   }, []);
   
-  // Dados de progresso mockados temporariamente
-  const mockProgress = {
-    completed: 12,
-    totalLessons: 20
-  };
-  
-  const progressPct = Math.round((mockProgress.completed / mockProgress.totalLessons) * 100);
-  
-  // Dados de eventos mockados temporariamente
-  const mockEvents = [
-    {
-      title: "Workshop de AHSD",
-      date: "25 de Outubro, 2024",
-      time: "14:00"
-    }
-  ];
-  
-  // Dados de trilhas mockados temporariamente
-  const mockTrails = [
-    {
-      title: "Montanha do Amanhã",
-      description: "Trilha completa de desenvolvimento",
-      progress: 75,
-      lessons: 12,
-      completed: 9,
-      modules: [
-        { title: "Fundamentos", completed: true, lessons: [{ title: "Aula 1" }, { title: "Aula 2" }] },
-        { title: "Desenvolvimento", completed: true, lessons: [{ title: "Aula 3" }, { title: "Aula 4" }] },
-        { title: "Avançado", completed: false, lessons: [{ title: "Aula 5" }] }
-      ]
-    },
-    {
-      title: "Acervo Digital",
-      description: "Biblioteca de recursos educacionais",
-      progress: 40,
-      lessons: 8,
-      completed: 3,
-      modules: [
-        { title: "Livros", completed: true, lessons: [{ title: "Livro 1" }, { title: "Livro 2" }] },
-        { title: "Vídeos", completed: false, lessons: [{ title: "Vídeo 1" }] }
-      ]
-    }
-  ];
 
-  // Funções determinísticas para evitar hydration mismatch (sem Math.random no render)
-  function hashStringToInt(input: string, seed = 0): number {
-    let hash = 2166136261 ^ seed;
-    for (let i = 0; i < input.length; i++) {
-      hash ^= input.charCodeAt(i);
-      // FNV-1a like
-      hash = (hash + (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24)) >>> 0;
-    }
-    return hash >>> 0;
-  }
 
-  function deterministicPercent(label: string, index: number): number {
-    const h = hashStringToInt(`${label}#${index}`, 1337);
-    return h % 101; // 0..100
-  }
-  const avgAnamnese = children.length ? Math.round(children.reduce((a,c)=> a + (c.anamnese ?? 0), 0) / children.length * 100) : 0;
-  const avgRoutine = children.length ? Math.round(children.reduce((a,c)=> a + ((c.routineToday?.done ?? 0) / Math.max(1,(c.routineToday?.total ?? 1))), 0) / children.length * 100) : 0;
-  const diariesThisWeek = 5; // mock
 
-  const openChildDetails = (child: Kid) => {
-    setSelectedChild(child);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedChild(null);
-  };
   return (
     <>
       {/* Hero Carousel - primeira seção */}
@@ -420,14 +324,39 @@ export default function DashboardPage() {
             <div className="text-center py-6 text-light-muted dark:text-dark-muted">Nenhum conteúdo recente</div>
           ) : (
             <ContentCarousel>
-              {latestContents.map((content: any) => (
-                <CardComMarcos
-                  key={content.id}
-                  content={content}
-                  showMarcos={true}
-                  className="w-full"
-                />
-              ))}
+              {latestContents.map((content: any) => {
+                if (content.content_type === 'book') {
+                  return (
+                    <CardLivro
+                      key={content.id}
+                      title={content.title}
+                      author="Autor"
+                      description={content.description || ""}
+                      pages={76} // Valor padrão, pode ser ajustado conforme necessário
+                      image={content.image}
+                      fileUrl={content.file_url || "#"} // URL do arquivo PDF
+                      className="w-full"
+                    />
+                  );
+                }
+                
+                return (
+                  <CardVideoAula
+                    key={content.id}
+                    title={content.title}
+                    description={content.description || ""}
+                    instructor="Instrutor"
+                    duration={`${content.duration || 0}min`}
+                    lessons={1}
+                    progress={content.progress || 0}
+                    image={content.image}
+                    slug={content.id}
+                    isLesson={true}
+                    moduleSlug={content.modules?.slug}
+                    className="w-full"
+                  />
+                );
+              })}
             </ContentCarousel>
           )}
         </div>
@@ -460,10 +389,18 @@ export default function DashboardPage() {
               ) : (
                 <ContentCarousel>
                   {continueContents.map((content: any) => (
-                    <CardComMarcos
+                    <CardVideoAula
                       key={content.id}
-                      content={content}
-                      showMarcos={true}
+                      title={content.title}
+                      description={content.description || ""}
+                      instructor="Instrutor"
+                      duration={`${content.duration || 0}min`}
+                      lessons={1}
+                      progress={content.progress || 0}
+                      image={content.image}
+                      slug={content.id}
+                      isLesson={true}
+                      moduleSlug={content.modules?.slug}
                       className="w-full"
                     />
                   ))}

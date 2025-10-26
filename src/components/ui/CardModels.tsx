@@ -49,7 +49,9 @@ interface CardVideoAulaProps {
   difficulty?: "Básico" | "Intermediário" | "Avançado";
   image: string;
   slug: string;
+  moduleSlug?: string;
   className?: string;
+  isLesson?: boolean; // Nova prop para indicar se é uma aula individual
 }
 
 export function CardVideoAula({
@@ -64,7 +66,9 @@ export function CardVideoAula({
   difficulty = "Básico",
   image,
   slug,
-  className = ""
+  moduleSlug,
+  className = "",
+  isLesson = false
 }: CardVideoAulaProps) {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -75,8 +79,10 @@ export function CardVideoAula({
     }
   };
 
+  const href = isLesson && moduleSlug ? `/catalog/modulo/${moduleSlug}/assistir?lesson=${slug}` : `/catalog/modulo/${slug}`;
+
   return (
-    <Link href={`/catalog/modulo/${slug}`} className="block h-full" onClick={() => console.log('🔗 Link clicado para:', `/catalog/modulo/${slug}`)}>
+    <Link href={href} className="block h-full">
       <ModernCard variant="elevated" className={`h-full flex flex-col overflow-hidden ${className} hover:shadow-lg transition-all duration-300 cursor-pointer`}>
         <div className="relative">
           <div className="aspect-video overflow-hidden">

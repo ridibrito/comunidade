@@ -10,6 +10,7 @@ function setSecurityHeaders(response: NextResponse) {
     `connect-src 'self' https: wss: ws:; ` +
     `img-src 'self' blob: data: https:; ` +
     `font-src 'self' data:; ` +
+    `frame-src 'self' https://player.vimeo.com https://vimeo.com; ` +
     `object-src 'none'; ` +
     `base-uri 'self'; ` +
     `form-action 'self'; ` +

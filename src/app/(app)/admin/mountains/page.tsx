@@ -32,6 +32,7 @@ interface Trail {
   position: number;
   isExpanded?: boolean;
   modules?: Module[];
+  directContents?: Content[];
 }
 
 interface Module {
@@ -73,7 +74,7 @@ interface ContentAsset {
 
 export default function AdminMountainsPage() {
   const { push } = useToast();
-  const supabase = createClient();
+  const supabase = createClient() as any;
   
   const [activeTab, setActiveTab] = useState("montanha-do-amanha");
   const [currentPage, setCurrentPage] = useState<Page | null>(null);
@@ -194,7 +195,7 @@ export default function AdminMountainsPage() {
       const duration = await fetchVimeoDuration(url);
       if (duration) {
         setContentForm(prev => ({ ...prev, duration, video_url: url }));
-        push(`Duração carregada: ${duration} minutos`, 'success');
+        push({ message: `Duração carregada: ${duration} minutos`, variant: 'success' });
       }
     }
   }
@@ -221,13 +222,14 @@ export default function AdminMountainsPage() {
         return;
       }
 
-      setCurrentPage(pageData);
+      const typedPage = pageData as Page;
+      setCurrentPage(typedPage);
       
       // Buscar trilhas
       const { data: trailsData, error: trailsError } = await supabase
         .from('trails')
         .select('*')
-        .eq('page_id', pageData.id)
+        .eq('page_id', typedPage.id)
         .order('position');
       
       if (trailsError) {
@@ -237,8 +239,10 @@ export default function AdminMountainsPage() {
       }
       
       // Para cada trilha, buscar módulos e conteúdos
+      const typedTrails = (trailsData as Trail[] | null) ?? [];
+
       const trailsWithData = await Promise.all(
-        (trailsData || []).map(async (trail) => {
+        typedTrails.map(async (trail: Trail) => {
           const { data: modulesData } = await supabase
             .from('modules')
             .select('*')
@@ -246,7 +250,7 @@ export default function AdminMountainsPage() {
             .order('position');
 
           const modulesWithContents = await Promise.all(
-            (modulesData || []).map(async (module) => {
+            ((modulesData as Module[] | null) ?? []).map(async (module: Module) => {
               const { data: contentsData } = await supabase
                 .from('contents')
                 .select('*')
@@ -255,7 +259,7 @@ export default function AdminMountainsPage() {
               
               return {
                 ...module,
-                contents: contentsData || [],
+                contents: (contentsData as Content[] | null) ?? [],
                 isExpanded: false
               };
             })
@@ -271,7 +275,7 @@ export default function AdminMountainsPage() {
           return {
             ...trail,
             modules: modulesWithContents,
-            directContents: directContents || [],
+            directContents: (directContents as Content[] | null) ?? [],
             isExpanded: false
           };
         })
@@ -324,7 +328,7 @@ export default function AdminMountainsPage() {
           .eq('id', editingTrail.id);
 
         if (error) throw error;
-        push('Trilha atualizada com sucesso!', 'success');
+        push({ message: 'Trilha atualizada com sucesso!', variant: 'success' });
       } else {
         const { error } = await supabase
           .from('trails')
@@ -337,14 +341,14 @@ export default function AdminMountainsPage() {
           });
 
         if (error) throw error;
-        push('Trilha criada com sucesso!', 'success');
+        push({ message: 'Trilha criada com sucesso!', variant: 'success' });
       }
 
       setShowTrailModal(false);
       await loadPageData(activeTab);
     } catch (error) {
       console.error('Erro ao salvar trilha:', error);
-      push('Erro ao salvar trilha', 'error');
+      push({ message: 'Erro ao salvar trilha', variant: 'error' });
     }
   }
 
@@ -409,7 +413,7 @@ export default function AdminMountainsPage() {
           .eq('id', editingModule.id);
 
         if (error) throw error;
-        push('Módulo atualizado com sucesso!', 'success');
+        push({ message: 'Módulo atualizado com sucesso!', variant: 'success' });
       } else {
         const { error } = await supabase
           .from('modules')
@@ -424,14 +428,14 @@ export default function AdminMountainsPage() {
           });
 
         if (error) throw error;
-        push('Módulo criado com sucesso!', 'success');
+        push({ message: 'Módulo criado com sucesso!', variant: 'success' });
       }
 
       setShowModuleModal(false);
       await loadPageData(activeTab);
     } catch (error) {
       console.error('Erro ao salvar módulo:', error);
-      push('Erro ao salvar módulo', 'error');
+      push({ message: 'Erro ao salvar módulo', variant: 'error' });
     }
   }
 
@@ -502,7 +506,7 @@ export default function AdminMountainsPage() {
           .eq('id', editingContent.id);
 
         if (error) throw error;
-        push('Aula atualizada com sucesso!', 'success');
+        push({ message: 'Aula atualizada com sucesso!', variant: 'success' });
       } else {
         const { error } = await supabase
           .from('contents')
@@ -521,14 +525,14 @@ export default function AdminMountainsPage() {
           });
 
         if (error) throw error;
-        push('Aula criada com sucesso!', 'success');
+        push({ message: 'Aula criada com sucesso!', variant: 'success' });
       }
 
       setShowContentModal(false);
       await loadPageData(activeTab);
     } catch (error) {
       console.error('Erro ao salvar aula:', error);
-      push('Erro ao salvar aula', 'error');
+      push({ message: 'Erro ao salvar aula', variant: 'error' });
     }
   }
 
@@ -585,13 +589,13 @@ export default function AdminMountainsPage() {
         });
 
       if (error) throw error;
-      push('Livro enviado com sucesso!', 'success');
+      push({ message: 'Livro enviado com sucesso!', variant: 'success' });
       
       setBookUploadModal(false);
       await loadPageData(activeTab);
     } catch (error) {
       console.error('Erro ao enviar livro:', error);
-      push('Erro ao enviar livro', 'error');
+      push({ message: 'Erro ao enviar livro', variant: 'error' });
     }
   }
 
@@ -634,10 +638,10 @@ export default function AdminMountainsPage() {
         });
       if (insErr) throw insErr;
       await loadAssets(editingContent.id);
-      push('Anexo enviado com sucesso!', 'success');
+      push({ message: 'Anexo enviado com sucesso!', variant: 'success' });
     } catch (err) {
       console.error('Erro ao enviar anexo:', err);
-      push('Erro ao enviar anexo', 'error');
+      push({ message: 'Erro ao enviar anexo', variant: 'error' });
     } finally {
       setAssetUploading(false);
       (e.target as HTMLInputElement).value = '';
@@ -651,13 +655,13 @@ export default function AdminMountainsPage() {
     // Validar tipo de arquivo
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
     if (!validTypes.includes(file.type)) {
-      push('Tipo de arquivo inválido. Use JPG, PNG, WebP ou GIF.', 'error');
+      push({ message: 'Tipo de arquivo inválido. Use JPG, PNG, WebP ou GIF.', variant: 'error' });
       return;
     }
 
     // Validar tamanho (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      push('Arquivo muito grande. Tamanho máximo: 5MB.', 'error');
+      push({ message: 'Arquivo muito grande. Tamanho máximo: 5MB.', variant: 'error' });
       return;
     }
 
@@ -679,10 +683,10 @@ export default function AdminMountainsPage() {
         .getPublicUrl(filePath);
 
       setContentForm({ ...contentForm, image_url: publicUrl });
-      push('Capa enviada com sucesso!', 'success');
+      push({ message: 'Capa enviada com sucesso!', variant: 'success' });
     } catch (error) {
       console.error('Erro ao fazer upload:', error);
-      push('Erro ao enviar capa. Crie o bucket "module-covers" no Supabase Storage.', 'error');
+      push({ message: 'Erro ao enviar capa. Crie o bucket "module-covers" no Supabase Storage.', variant: 'error' });
     } finally {
       setUploadingContentCover(false);
       (event.target as HTMLInputElement).value = '';
@@ -706,13 +710,13 @@ export default function AdminMountainsPage() {
 
       if (error) throw error;
 
-      push(`${deleteTarget.type === 'trail' ? 'Trilha' : deleteTarget.type === 'module' ? 'Módulo' : 'Aula'} excluído(a) com sucesso!`, 'success');
+      push({ message: `${deleteTarget.type === 'trail' ? 'Trilha' : deleteTarget.type === 'module' ? 'Módulo' : 'Aula'} excluído(a) com sucesso!`, variant: 'success' });
       setShowConfirmModal(false);
       setDeleteTarget(null);
       await loadPageData(activeTab);
     } catch (error) {
       console.error('Erro ao excluir:', error);
-      push('Erro ao excluir', 'error');
+      push({ message: 'Erro ao excluir', variant: 'error' });
     }
   }
 
@@ -740,13 +744,13 @@ export default function AdminMountainsPage() {
     // Validar tipo de arquivo
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
     if (!validTypes.includes(file.type)) {
-      push('Tipo de arquivo inválido. Use JPG, PNG, WebP ou GIF.', 'error');
+      push({ message: 'Tipo de arquivo inválido. Use JPG, PNG, WebP ou GIF.', variant: 'error' });
       return;
     }
 
     // Validar tamanho (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      push('Arquivo muito grande. Tamanho máximo: 5MB.', 'error');
+      push({ message: 'Arquivo muito grande. Tamanho máximo: 5MB.', variant: 'error' });
       return;
     }
 
@@ -768,10 +772,10 @@ export default function AdminMountainsPage() {
         .getPublicUrl(filePath);
 
       setModuleForm({ ...moduleForm, image_url: publicUrl });
-      push('Imagem enviada com sucesso!', 'success');
+      push({ message: 'Imagem enviada com sucesso!', variant: 'success' });
     } catch (error) {
       console.error('Erro ao fazer upload:', error);
-      push('Erro ao enviar imagem. Crie o bucket "module-covers" no Supabase Storage.', 'error');
+      push({ message: 'Erro ao enviar imagem. Crie o bucket "module-covers" no Supabase Storage.', variant: 'error' });
     } finally {
       setUploadingImage(false);
     }
@@ -784,13 +788,13 @@ export default function AdminMountainsPage() {
     // Validar tipo de arquivo
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
     if (!validTypes.includes(file.type)) {
-      push('Tipo de arquivo inválido. Use JPG, PNG, WebP ou GIF.', 'error');
+      push({ message: 'Tipo de arquivo inválido. Use JPG, PNG, WebP ou GIF.', variant: 'error' });
       return;
     }
 
     // Validar tamanho (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      push('Arquivo muito grande. Tamanho máximo: 5MB.', 'error');
+      push({ message: 'Arquivo muito grande. Tamanho máximo: 5MB.', variant: 'error' });
       return;
     }
 
@@ -812,10 +816,10 @@ export default function AdminMountainsPage() {
         .getPublicUrl(filePath);
 
       setModuleForm({ ...moduleForm, banner_url: publicUrl });
-      push('Banner enviado com sucesso!', 'success');
+      push({ message: 'Banner enviado com sucesso!', variant: 'success' });
     } catch (error) {
       console.error('Erro ao fazer upload:', error);
-      push('Erro ao enviar banner. Crie o bucket "module-covers" no Supabase Storage.', 'error');
+      push({ message: 'Erro ao enviar banner. Crie o bucket "module-covers" no Supabase Storage.', variant: 'error' });
     } finally {
       setUploadingBanner(false);
     }

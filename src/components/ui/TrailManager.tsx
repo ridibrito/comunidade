@@ -674,8 +674,8 @@ export interface Module {
   id: string;
   title: string;
   description?: string;
-  trail_id: string;
-  position: number;
+  trail_id?: string;
+  position?: number;
   contents?: Content[];
 }
 

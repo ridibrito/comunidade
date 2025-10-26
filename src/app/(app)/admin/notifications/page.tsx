@@ -11,9 +11,9 @@ export default function AdminNotificationsPage() {
       <Section>
         <PageHeader
           title="Sistema de Notificações"
-          description="Gerencie notificações, alertas e comunicações da plataforma"
-          icon={<Bell className="w-5 h-5" />}
+          subtitle="Gerencie notificações, alertas e comunicações da plataforma"
         />
+        <Bell className="w-12 h-12 text-brand-accent mb-6" />
 
         <div className="space-y-6">
           <div className="text-center py-12">

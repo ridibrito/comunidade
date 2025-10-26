@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Verificar se o usuário já existe
+    {/* @ts-ignore */}
     const { data: existingUser } = await supabase.auth.admin.getUserByEmail(email);
     if (existingUser.user) {
       return NextResponse.json(
@@ -73,6 +74,7 @@ export async function POST(request: NextRequest) {
         invite_status: 'pending',
         invite_email: email,
         invite_sent_at: new Date().toISOString(),
+        // @ts-ignore
         invite_token: resetData.properties?.access_token || null
       })
       .select()

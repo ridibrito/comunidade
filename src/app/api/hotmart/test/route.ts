@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
       perPage: 1000, // Aumentar limite para encontrar o usuário
     });
     
+    // @ts-ignore
     let user = existingUsers?.users?.find(u => u.email === email);
     
     if (!user) {

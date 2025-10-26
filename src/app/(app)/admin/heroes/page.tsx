@@ -89,13 +89,13 @@ export default function AdminHeroesPage() {
 
     setUploading(true);
     try {
-      console.log("Iniciando upload do arquivo:", file.name);
+      if (process.env.NODE_ENV !== 'production') console.log("Iniciando upload do arquivo:", file.name);
       
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `heroes/${fileName}`;
 
-      console.log("Fazendo upload para:", filePath);
+      if (process.env.NODE_ENV !== 'production') console.log("Fazendo upload para:", filePath);
 
       const { error: uploadError } = await supabase.storage
         .from('heroes')
@@ -106,13 +106,13 @@ export default function AdminHeroesPage() {
         throw uploadError;
       }
 
-      console.log("Upload concluído, obtendo URL pública...");
+      if (process.env.NODE_ENV !== 'production') console.log("Upload concluído, obtendo URL pública...");
 
       const { data } = supabase.storage
         .from('heroes')
         .getPublicUrl(filePath);
 
-      console.log("URL pública obtida:", data.publicUrl);
+      if (process.env.NODE_ENV !== 'production') console.log("URL pública obtida:", data.publicUrl);
 
       setFormData(prev => ({ ...prev, hero_image_url: data.publicUrl }));
       push({ title: "Upload realizado", message: "Imagem carregada com sucesso!" });
@@ -166,24 +166,24 @@ export default function AdminHeroesPage() {
           { type: "block", color: "pink-purple", position: "bottom-left", size: "medium" },
           { type: "block", color: "blue-purple", position: "center-right", size: "small" }
         ]
-      };
+      } as any;
 
-      if (editingHero) {
-        const { error } = await supabase
-          .from("page_heroes")
-          .update(heroData)
-          .eq("id", editingHero.id);
+             if (editingHero) {
+               const { error } = await (supabase as any)
+                 .from("page_heroes")
+                 .update(heroData)
+                 .eq("id", editingHero.id);
 
-        if (error) throw error;
-        push({ title: "Hero atualizado", message: "Dados salvos com sucesso!" });
-      } else {
-        const { error } = await supabase
-          .from("page_heroes")
-          .insert(heroData);
+               if (error) throw error;
+               push({ title: "Hero atualizado", message: "Dados salvos com sucesso!" });
+             } else {
+               const { error } = await (supabase as any)
+                 .from("page_heroes")
+                 .insert(heroData);
 
-        if (error) throw error;
-        push({ title: "Hero criado", message: "Nova página hero criada!" });
-      }
+               if (error) throw error;
+               push({ title: "Hero criado", message: "Nova página hero criada!" });
+             }
 
       setShowModal(false);
       setEditingHero(null);
@@ -196,7 +196,7 @@ export default function AdminHeroesPage() {
   }
 
   function editHero(hero: HeroData) {
-    console.log("Editando hero:", hero);
+    if (process.env.NODE_ENV !== 'production') console.log("Editando hero:", hero);
     setEditingHero(hero);
     
     // Extrair o primeiro botão do array cta_buttons
@@ -220,7 +220,7 @@ export default function AdminHeroesPage() {
       subtitle_position: (hero as any).subtitle_position || "center"
     });
     setShowModal(true);
-    console.log("Modal aberto:", true);
+    if (process.env.NODE_ENV !== 'production') console.log("Modal aberto:", true);
   }
 
   function resetForm() {

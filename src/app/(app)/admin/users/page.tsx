@@ -35,6 +35,7 @@ interface User {
   login_count?: number;
   invited_by?: string;
   invite_email?: string;
+  is_active?: boolean;
 }
 
 export default function AdminUsersPage() {
@@ -84,9 +85,10 @@ export default function AdminUsersPage() {
         } else {
           console.log("Nenhum usuário encontrado no banco");
         }
-      } catch (error) {
-        console.error("Erro ao carregar usuários:", error);
-        setDbError(error instanceof Error ? error.message : "Erro desconhecido");
+      } catch (err) {
+        console.error("Erro ao carregar usuários:", err);
+        const message = err instanceof Error ? err.message : "Erro desconhecido";
+        setDbError(message);
         
         error("Erro ao carregar usuários", "Não foi possível conectar com o banco de dados.");
       } finally {
@@ -459,7 +461,7 @@ export default function AdminUsersPage() {
                     <RowMenu 
                       onEdit={()=>{ setEditId(u.id); setEditName(u.full_name ?? ""); setEditRole((u.role as Role) ?? "aluno"); setOpenEdit(true); }} 
                       onDelete={()=>removeUser(u.id)}
-                      onToggleActive={()=>toggleUserActive(u.id, u.is_active)}
+                      onToggleActive={()=>toggleUserActive(u.id, u.is_active ?? true)}
                       onResetPassword={()=>resetUserPassword(u.id)}
                     />
                   </TableCell>

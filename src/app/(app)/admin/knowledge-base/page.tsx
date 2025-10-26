@@ -123,8 +123,8 @@ export default function KnowledgeBasePage() {
           message: `${data.data.sources.length} resultado(s) encontrado(s)`,
           variant: "success"
         });
-        // Aqui você pode mostrar os resultados em um modal ou nova página
-        console.log('Resultados da busca:', data.data);
+        // Aqui você pode mostrar os resultados em um modal ou nova página (futuro)
+        if (process.env.NODE_ENV !== 'production') console.log('Resultados da busca:', data.data);
       }
     } catch (error: any) {
       push({
@@ -159,8 +159,7 @@ export default function KnowledgeBasePage() {
       <Section>
         <PageHeader
           title="Base de Conhecimento IA"
-          description="Gerencie documentos e conhecimento para a IA especializada em AHSD"
-          icon={<Database className="w-5 h-5" />}
+          subtitle="Gerencie documentos e conhecimento para a IA especializada em AHSD"
         />
 
         {/* Stats Cards */}

@@ -84,54 +84,57 @@ export default function RodasDeConversaPage() {
       setPageData(pageData);
 
       // Buscar trilhas da página
-      const { data: trailsData, error: trailsError } = await supabase
-        .from('trails')
-        .select('*')
-        .eq('page_id', pageData.id)
-        .order('position');
+      if (pageData) {
+        const page = pageData as any;
+        const { data: trailsData, error: trailsError } = await supabase
+          .from('trails')
+          .select('*')
+          .eq('page_id', page.id)
+          .order('position');
 
-      if (trailsError) {
-        console.error('Erro ao carregar trilhas:', trailsError);
-        return;
+        if (trailsError) {
+          console.error('Erro ao carregar trilhas:', trailsError);
+          return;
+        }
+
+        // Para cada trilha, buscar seus módulos
+        const trailsWithModules = await Promise.all(
+          (trailsData || []).map(async (trail: any) => {
+            const { data: modulesData, error: modulesError } = await supabase
+              .from('modules')
+              .select('*')
+              .eq('trail_id', trail.id)
+              .order('position');
+
+            if (modulesError) {
+              console.error('Erro ao carregar módulos:', modulesError);
+              return { ...trail, modules: [] };
+            }
+
+            // Para cada módulo, buscar seus conteúdos
+            const modulesWithContents = await Promise.all(
+              (modulesData || []).map(async (module: any) => {
+                const { data: contentsData, error: contentsError } = await supabase
+                  .from('contents')
+                  .select('*')
+                  .eq('module_id', module.id)
+                  .order('position');
+
+                if (contentsError) {
+                  console.error('Erro ao carregar conteúdos:', contentsError);
+                  return { ...module, contents: [] };
+                }
+
+                return { ...module, contents: contentsData || [] };
+              })
+            );
+
+            return { ...trail, modules: modulesWithContents };
+          })
+        );
+
+        setTrails(trailsWithModules);
       }
-
-      // Para cada trilha, buscar seus módulos
-      const trailsWithModules = await Promise.all(
-        (trailsData || []).map(async (trail) => {
-          const { data: modulesData, error: modulesError } = await supabase
-            .from('modules')
-            .select('*')
-            .eq('trail_id', trail.id)
-            .order('position');
-
-          if (modulesError) {
-            console.error('Erro ao carregar módulos:', modulesError);
-            return { ...trail, modules: [] };
-          }
-
-          // Para cada módulo, buscar seus conteúdos
-          const modulesWithContents = await Promise.all(
-            (modulesData || []).map(async (module) => {
-              const { data: contentsData, error: contentsError } = await supabase
-                .from('contents')
-                .select('*')
-                .eq('module_id', module.id)
-                .order('position');
-
-              if (contentsError) {
-                console.error('Erro ao carregar conteúdos:', contentsError);
-                return { ...module, contents: [] };
-              }
-
-              return { ...module, contents: contentsData || [] };
-            })
-          );
-
-          return { ...trail, modules: modulesWithContents };
-        })
-      );
-
-      setTrails(trailsWithModules);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {

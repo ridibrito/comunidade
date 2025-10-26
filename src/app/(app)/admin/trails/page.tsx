@@ -42,6 +42,7 @@ interface Module {
   slug: string;
   position: number;
   contents?: Content[];
+  lessons?: { id: string }[];
 }
 
 interface Content {
@@ -56,7 +57,7 @@ interface Content {
 }
 
 export default function AdminTrailsPage() {
-  const supabase = getBrowserSupabaseClient();
+  const supabase = getBrowserSupabaseClient() as any;
   const { push } = useToast();
   
   const [pages, setPages] = useState<Page[]>([]);
@@ -92,7 +93,7 @@ export default function AdminTrailsPage() {
         .order('position');
 
       if (pagesError) throw pagesError;
-      setPages(pagesData || []);
+      setPages((pagesData as Page[] | null) ?? []);
 
       // Carregar trilhas da página "Montanha do Amanhã"
       const { data: pageData, error: pageError } = await supabase
@@ -104,62 +105,65 @@ export default function AdminTrailsPage() {
       if (pageError) throw pageError;
 
       if (pageData) {
+        const pageId = (pageData as Page).id;
         const { data: trailsData, error: trailsError } = await supabase
           .from('trails')
           .select('*')
-          .eq('page_id', pageData.id);
+          .eq('page_id', pageId);
         
         if (trailsError) {
           console.error('Erro ao carregar trilhas:', trailsError);
-          push('Erro ao carregar trilhas', 'error');
+          push({ message: 'Erro ao carregar trilhas', variant: 'error' });
           return;
         }
-      
-      // Para cada trilha, buscar seus módulos
-      const trailsWithModules = await Promise.all(
-        (trailsData || []).map(async (trail) => {
-          const { data: modulesData, error: modulesError } = await supabase
-            .from('modules')
-            .select('*')
-            .eq('trail_id', trail.id);
-          
-          if (modulesError) {
-            console.error('Erro ao carregar módulos:', modulesError);
-            return { ...trail, modules: [] };
-          }
-          
-          // Para cada módulo, buscar seus conteúdos
-          const modulesWithContents = await Promise.all(
-            (modulesData || []).map(async (module) => {
-              const { data: contentsData, error: contentsError } = await supabase
-                .from('contents')
-                .select('*')
-                .eq('module_id', module.id);
-              
-              if (contentsError) {
-                console.error('Erro ao carregar conteúdos:', contentsError);
-                return { ...module, contents: [] };
-              }
-              
-              return {
-                ...module,
-                contents: contentsData || []
-              };
-            })
-          );
-          
-          return {
-            ...trail,
-            modules: modulesWithContents
-          };
-        })
-      );
-      
-        setTrails(trailsWithModules);
+        
+        // Para cada trilha, buscar seus módulos
+        const typedTrails = (trailsData as Trail[] | null) ?? [];
+
+        const trailsWithModules = await Promise.all(
+          typedTrails.map(async (trail: Trail) => {
+            const { data: modulesData, error: modulesError } = await supabase
+              .from('modules')
+              .select('*')
+              .eq('trail_id', trail.id);
+            
+            if (modulesError) {
+              console.error('Erro ao carregar módulos:', modulesError);
+              return { ...trail, modules: [] };
+            }
+            
+            // Para cada módulo, buscar seus conteúdos
+            const modulesWithContents = await Promise.all(
+              ((modulesData as Module[] | null) ?? []).map(async (module: Module) => {
+                const { data: contentsData, error: contentsError } = await supabase
+                  .from('contents')
+                  .select('*')
+                  .eq('module_id', module.id);
+                
+                if (contentsError) {
+                  console.error('Erro ao carregar conteúdos:', contentsError);
+                  return { ...module, contents: [] };
+                }
+                
+                return {
+                  ...module,
+                  contents: (contentsData as Content[] | null) ?? []
+                };
+              })
+            );
+            
+            return {
+              ...trail,
+              modules: modulesWithContents
+            };
+          })
+        );
+        
+        setTrails(trailsWithModules as Trail[]);
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
-      push('Erro ao carregar dados', 'error');
+      push({ message: 'Erro ao carregar dados', variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -196,7 +200,7 @@ export default function AdminTrailsPage() {
   async function saveTrail() {
     try {
       if (!formData.title || !formData.slug) {
-        push('Título e slug são obrigatórios', 'error');
+      push({ message: 'Título e slug são obrigatórios', variant: 'error' });
         return;
       }
 
@@ -215,11 +219,11 @@ export default function AdminTrailsPage() {
 
         if (error) {
           console.error('Erro ao atualizar trilha:', error);
-          push('Erro ao atualizar trilha', 'error');
+          push({ message: 'Erro ao atualizar trilha', variant: 'error' });
           return;
         }
 
-        push('Trilha atualizada com sucesso!', 'success');
+        push({ message: 'Trilha atualizada com sucesso!', variant: 'success' });
       } else {
         // Criar nova trilha
         const { error } = await supabase
@@ -234,11 +238,11 @@ export default function AdminTrailsPage() {
 
         if (error) {
           console.error('Erro ao criar trilha:', error);
-          push('Erro ao criar trilha', 'error');
+          push({ message: 'Erro ao criar trilha', variant: 'error' });
           return;
         }
 
-        push('Trilha criada com sucesso!', 'success');
+        push({ message: 'Trilha criada com sucesso!', variant: 'success' });
       }
 
       // Recarregar dados
@@ -247,7 +251,7 @@ export default function AdminTrailsPage() {
       resetForm();
     } catch (error) {
       console.error('Erro ao salvar trilha:', error);
-      push('Erro ao salvar trilha', 'error');
+      push({ message: 'Erro ao salvar trilha', variant: 'error' });
     }
   }
 
@@ -273,18 +277,18 @@ export default function AdminTrailsPage() {
 
       if (error) {
         console.error('❌ Erro ao deletar trilha:', error);
-        push('Erro ao deletar trilha', 'error');
+        push({ message: 'Erro ao deletar trilha', variant: 'error' });
         return;
       }
 
       console.log('✅ Trilha deletada com sucesso!');
-      push('Trilha deletada com sucesso!', 'success');
+      push({ message: 'Trilha deletada com sucesso!', variant: 'success' });
       await loadData();
       setShowConfirmModal(false);
       setTrailToDelete(null);
     } catch (error) {
       console.error('❌ Erro ao deletar trilha:', error);
-      push('Erro ao deletar trilha', 'error');
+      push({ message: 'Erro ao deletar trilha', variant: 'error' });
     }
   }
 
@@ -497,7 +501,7 @@ export default function AdminTrailsPage() {
           description="Tem certeza que deseja excluir esta trilha? Esta ação irá excluir todos os módulos e aulas associados."
           confirmText="Excluir Trilha"
           cancelText="Cancelar"
-          variant="danger"
+          variant="destructive"
         >
           {trailToDelete && (
             <div className="mt-3 p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">

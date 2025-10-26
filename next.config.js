@@ -17,7 +17,6 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 dias
     dangerouslyAllowSVG: false,
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   
   // Configurações de headers
@@ -26,6 +25,7 @@ const nextConfig = {
       {
         source: '/(.*)',
         headers: [
+
           {
             key: 'X-DNS-Prefetch-Control',
             value: 'on'
@@ -35,9 +35,10 @@ const nextConfig = {
             value: '1; mode=block'
           },
           {
-            key: 'X-Frame-Options',
-            value: 'DENY'
+            key: 'Content-Security-Policy',
+            value: "frame-src player.vimeo.com;"
           },
+
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff'

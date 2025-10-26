@@ -11,9 +11,9 @@ export default function AdminPermissionsPage() {
       <Section>
         <PageHeader
           title="Sistema de Permissões"
-          description="Gerencie roles, permissões e acesso de usuários"
-          icon={<Shield className="w-5 h-5" />}
+          subtitle="Gerencie roles, permissões e acesso de usuários"
         />
+        <Shield className="w-12 h-12 text-brand-accent mb-6" />
 
         <div className="space-y-6">
           <div className="text-center py-12">

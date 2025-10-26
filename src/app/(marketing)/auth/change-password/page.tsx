@@ -98,14 +98,12 @@ export default function ChangePasswordPage() {
 
       // Atualizar perfil
       if (user) {
-        await supabase
-          .from('profiles')
-          .update({
-            invite_status: 'accepted',
-            last_login_at: new Date().toISOString(),
-            login_count: 1
-          })
-          .eq('id', user.id);
+        {/* @ts-ignore */}
+        await (supabase.from('profiles') as any).update({
+          invite_status: 'accepted',
+          last_login_at: new Date().toISOString(),
+          login_count: 1
+        }).eq('id', user.id);
 
         try {
           await fetch('/api/profile', { method: 'POST' });

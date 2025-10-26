@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Eye } from "lucide-react";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
 
 export default function LivroViewerClient({ id }: { id: string }) {
@@ -18,8 +19,9 @@ export default function LivroViewerClient({ id }: { id: string }) {
         .eq("id", id)
         .maybeSingle();
       if (data) {
-        setTitle(data.title);
-        setFileUrl(data.file_url);
+        const bookData = data as { title: string; file_url: string };
+        setTitle(bookData.title);
+        setFileUrl(bookData.file_url);
       }
     })();
   }, [supabase, id]);

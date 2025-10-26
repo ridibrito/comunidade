@@ -70,14 +70,12 @@ export default function ResetPasswordPage() {
       // Atualizar status do convite no perfil
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase
-          .from('profiles')
-          .update({
-            invite_status: 'accepted',
-            last_login_at: new Date().toISOString(),
-            login_count: 1
-          })
-          .eq('id', user.id);
+        {/* @ts-ignore */}
+        await (supabase.from('profiles') as any).update({
+          invite_status: 'accepted',
+          last_login_at: new Date().toISOString(),
+          login_count: 1
+        }).eq('id', user.id);
 
         // Confirma via endpoint server-side (service role) para garantir consistência
         try {

@@ -19,55 +19,7 @@ export function middleware(request: NextRequest) {
     return new NextResponse('Forbidden', { status: 403 });
   }
 
-  // Gerar nonce único para CSP
-  const nonce = generateSecureNonce();
-  
-  // Configurar cabeçalhos de segurança
   const response = NextResponse.next();
-  
-  // Content Security Policy
-  const cspHeader = `
-    default-src 'self';
-    script-src 'self' 'nonce-${nonce}' 'strict-dynamic';
-    style-src 'self' 'nonce-${nonce}' 'unsafe-inline';
-    connect-src 'self' https: wss: ws:;
-    img-src 'self' blob: data: https:;
-    font-src 'self' data:;
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-    frame-ancestors 'none';
-    upgrade-insecure-requests;
-  `.replace(/\s{2,}/g, ' ').trim();
-
-  response.headers.set('Content-Security-Policy', cspHeader);
-  
-  // Strict Transport Security (HSTS)
-  response.headers.set(
-    'Strict-Transport-Security',
-    'max-age=31536000; includeSubDomains; preload'
-  );
-  
-  // X-Content-Type-Options
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  
-  // X-Frame-Options
-  response.headers.set('X-Frame-Options', 'DENY');
-  
-  // Referrer Policy
-  response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
-  
-  // Permissions Policy
-  response.headers.set(
-    'Permissions-Policy',
-    'camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()'
-  );
-  
-  // X-XSS-Protection (para navegadores mais antigos)
-  response.headers.set('X-XSS-Protection', '1; mode=block');
-  
-  // Adicionar nonce ao request para uso nos componentes
-  request.headers.set('x-nonce', nonce);
   
   // Log de performance
   const duration = Date.now() - startTime;

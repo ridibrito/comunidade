@@ -47,8 +47,9 @@ export function CardComMarcos({ content, showMarcos = true, className }: CardCom
         lessons={1}
         progress={content.progress}
         image={content.image}
-        slug={content.slug}
+        slug={content.id} // Usar ID da aula em vez do slug do módulo
         className={className}
+        isLesson={true} // Indicar que é uma aula individual
       />
     );
   };

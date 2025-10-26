@@ -71,8 +71,7 @@ export default function AdminIntegrationsPage() {
       <Section>
         <PageHeader
           title="Integrações"
-          description="Gerencie integrações com Hotmart, APIs externas e outras plataformas"
-          icon={<Link className="w-5 h-5" />}
+          subtitle="Gerencie integrações com Hotmart, APIs externas e outras plataformas"
         />
 
         <div className="space-y-6">

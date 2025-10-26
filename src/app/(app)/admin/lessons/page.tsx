@@ -38,6 +38,9 @@ interface Content {
   content_type: string;
   duration: number;
   position: number;
+  video_url?: string;
+  materials_url?: string;
+  image_url?: string;
   cover_url?: string;
   modules?: Module;
 }
@@ -94,20 +97,20 @@ export default function AdminLessonsPage() {
         .from('pages')
         .select('id')
         .eq('slug', 'montanha-do-amanha')
-        .single();
+        .maybeSingle();
 
       if (pageError) throw pageError;
 
-      if (pageData) {
+      if (pageData && 'id' in pageData) {
         const { data: trailsData, error: trailsError } = await supabase
           .from('trails')
           .select('id, title, slug, page_id')
-          .eq('page_id', pageData.id)
+          .eq('page_id', (pageData as any).id)
           .order('position');
         
         if (trailsError) {
           console.error('Erro ao carregar trilhas:', trailsError);
-          push('Erro ao carregar trilhas', 'error');
+          push({ title: 'Erro', message: 'Erro ao carregar trilhas', variant: 'error' });
           return;
         }
         
@@ -115,12 +118,12 @@ export default function AdminLessonsPage() {
         
         // Selecionar primeira trilha por padrão
         if (trailsData && trailsData.length > 0) {
-          setSelectedTrail(trailsData[0].id);
+          setSelectedTrail((trailsData[0] as any).id);
         }
       }
     } catch (error) {
       console.error('Erro ao carregar trilhas:', error);
-      push('Erro ao carregar trilhas', 'error');
+      push({ title: 'Erro', message: 'Erro ao carregar trilhas', variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -143,7 +146,7 @@ export default function AdminLessonsPage() {
       
       if (modulesError) {
         console.error('Erro ao carregar módulos:', modulesError);
-        push('Erro ao carregar módulos', 'error');
+        push({ title: 'Erro', message: 'Erro ao carregar módulos', variant: 'error' });
         return;
       }
       
@@ -151,11 +154,11 @@ export default function AdminLessonsPage() {
       
       // Selecionar primeiro módulo por padrão
       if (modulesData && modulesData.length > 0) {
-        setSelectedModule(modulesData[0].id);
+        setSelectedModule((modulesData[0] as any).id);
       }
     } catch (error) {
       console.error('Erro ao carregar módulos:', error);
-      push('Erro ao carregar módulos', 'error');
+      push({ title: 'Erro', message: 'Erro ao carregar módulos', variant: 'error' });
     }
   }
 
@@ -185,14 +188,14 @@ export default function AdminLessonsPage() {
       
       if (contentsError) {
         console.error('Erro ao carregar conteúdos:', contentsError);
-        push('Erro ao carregar conteúdos', 'error');
+        push({ title: 'Erro', message: 'Erro ao carregar conteúdos', variant: 'error' });
         return;
       }
       
       setContents(contentsData || []);
     } catch (error) {
       console.error('Erro ao carregar conteúdos:', error);
-      push('Erro ao carregar conteúdos', 'error');
+      push({ title: 'Erro', message: 'Erro ao carregar conteúdos', variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -242,7 +245,7 @@ export default function AdminLessonsPage() {
 
       if (uploadError) {
         console.error('Erro no upload:', uploadError);
-        push('Erro ao fazer upload da capa', 'error');
+        push({ title: 'Erro', message: 'Erro ao fazer upload da capa', variant: 'error' });
         return;
       }
 
@@ -251,10 +254,10 @@ export default function AdminLessonsPage() {
         .getPublicUrl(filePath);
 
       setFormData(prev => ({ ...prev, cover_url: data.publicUrl }));
-      push('Capa enviada com sucesso!', 'success');
+      push({ title: 'Sucesso', message: 'Capa enviada com sucesso!', variant: 'success' });
     } catch (error) {
       console.error('Erro ao fazer upload:', error);
-      push('Erro ao fazer upload da capa', 'error');
+      push({ title: 'Erro', message: 'Erro ao fazer upload da capa', variant: 'error' });
     } finally {
       setUploadingCover(false);
     }
@@ -269,13 +272,13 @@ export default function AdminLessonsPage() {
   async function saveLesson() {
     try {
       if (!formData.title || !formData.slug || !formData.module_id) {
-        push('Título, slug e módulo são obrigatórios', 'error');
+        push({ title: 'Erro', message: 'Título, slug e módulo são obrigatórios', variant: 'error' });
         return;
       }
 
       if (editingContent) {
         // Atualizar aula existente
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('contents')
           .update({
             title: formData.title,
@@ -286,19 +289,19 @@ export default function AdminLessonsPage() {
             content_type: formData.content_type,
             duration: formData.duration,
             cover_url: formData.cover_url || null
-          })
+          } as any)
           .eq('id', editingContent.id);
 
         if (error) {
           console.error('Erro ao atualizar aula:', error);
-          push('Erro ao atualizar aula', 'error');
+          push({ title: 'Erro', message: 'Erro ao atualizar aula', variant: 'error' });
           return;
         }
 
-        push('Aula atualizada com sucesso!', 'success');
+        push({ title: 'Sucesso', message: 'Aula atualizada com sucesso!', variant: 'success' });
       } else {
         // Criar nova aula
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('contents')
           .insert({
             title: formData.title,
@@ -309,15 +312,15 @@ export default function AdminLessonsPage() {
             content_type: formData.content_type,
             duration: formData.duration,
             cover_url: formData.cover_url || null
-          });
+          } as any);
 
         if (error) {
           console.error('Erro ao criar aula:', error);
-          push('Erro ao criar aula', 'error');
+          push({ title: 'Erro', message: 'Erro ao criar aula', variant: 'error' });
           return;
         }
 
-        push('Aula criada com sucesso!', 'success');
+        push({ title: 'Sucesso', message: 'Aula criada com sucesso!', variant: 'success' });
       }
 
       // Recarregar dados
@@ -328,7 +331,7 @@ export default function AdminLessonsPage() {
       resetForm();
     } catch (error) {
       console.error('Erro ao salvar aula:', error);
-      push('Erro ao salvar aula', 'error');
+      push({ title: 'Erro', message: 'Erro ao salvar aula', variant: 'error' });
     }
   }
 
@@ -346,17 +349,17 @@ export default function AdminLessonsPage() {
 
       if (error) {
         console.error('Erro ao deletar aula:', error);
-        push('Erro ao deletar aula', 'error');
+        push({ title: 'Erro', message: 'Erro ao deletar aula', variant: 'error' });
         return;
       }
 
-      push('Aula deletada com sucesso!', 'success');
+      push({ title: 'Sucesso', message: 'Aula deletada com sucesso!', variant: 'success' });
       if (selectedModule) {
         await loadContents(selectedModule);
       }
     } catch (error) {
       console.error('Erro ao deletar aula:', error);
-      push('Erro ao deletar aula', 'error');
+      push({ title: 'Erro', message: 'Erro ao deletar aula', variant: 'error' });
     }
   }
 
@@ -486,13 +489,13 @@ export default function AdminLessonsPage() {
                         <div className="flex items-center gap-1">
                           <span>Slug: {lesson.slug}</span>
                         </div>
-                        {lesson.video_url && (
+                        {(lesson as any).video_url && (
                           <div className="flex items-center gap-1">
                             <Play className="w-4 h-4" />
                             <span>Com vídeo</span>
                           </div>
                         )}
-                        {lesson.materials_url && (
+                        {(lesson as any).materials_url && (
                           <div className="flex items-center gap-1">
                             <FileText className="w-4 h-4" />
                             <span>Com materiais</span>
@@ -500,7 +503,7 @@ export default function AdminLessonsPage() {
                         )}
                       </div>
                       
-                      {lesson.video_url && (
+                      {(lesson as any).video_url && (
                         <div className="mt-3 p-3 bg-light-border/20 dark:bg-dark-border/20 rounded-lg shadow-sm">
                           <div className="flex items-center gap-2 mb-2">
                             <Play className="w-4 h-4 text-brand-accent" />

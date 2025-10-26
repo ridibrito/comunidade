@@ -30,6 +30,8 @@ interface Module {
   position: number;
   contents?: Content[];
   trails?: Trail;
+  cover_url?: string | null;
+  banner_url?: string | null;
 }
 
 interface Content {
@@ -41,6 +43,8 @@ interface Content {
   content_type: string;
   duration: number;
   position: number;
+  video_url?: string | null;
+  materials_url?: string | null;
 }
 
 export default function AdminModulesPage() {
@@ -81,7 +85,7 @@ export default function AdminModulesPage() {
 
   async function loadTrails() {
     setLoading(true);
-    
+
     try {
       // Carregar trilhas da página "Montanha do Amanhã"
       const { data: pageData, error: pageError } = await supabase
@@ -92,29 +96,32 @@ export default function AdminModulesPage() {
 
       if (pageError) throw pageError;
 
-      if (pageData) {
+      const pageId = (pageData as { id: string } | null)?.id;
+
+      if (pageId) {
         const { data: trailsData, error: trailsError } = await supabase
           .from('trails')
           .select('id, title, slug, page_id')
-          .eq('page_id', pageData.id)
+          .eq('page_id', pageId)
           .order('position');
         
         if (trailsError) {
           console.error('Erro ao carregar trilhas:', trailsError);
-          push('Erro ao carregar trilhas', 'error');
+          push({ message: 'Erro ao carregar trilhas', variant: 'error' });
           return;
         }
         
-        setTrails(trailsData || []);
-        
+        const typedTrails = (trailsData as Trail[] | null) ?? [];
+        setTrails(typedTrails);
+
         // Selecionar primeira trilha por padrão
-        if (trailsData && trailsData.length > 0) {
-          setSelectedTrail(trailsData[0].id);
+        if (typedTrails.length > 0) {
+          setSelectedTrail(typedTrails[0].id);
         }
       }
     } catch (error) {
       console.error('Erro ao carregar trilhas:', error);
-      push('Erro ao carregar trilhas', 'error');
+      push({ message: 'Erro ao carregar trilhas', variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -139,13 +146,15 @@ export default function AdminModulesPage() {
       
       if (modulesError) {
         console.error('Erro ao carregar módulos:', modulesError);
-        push('Erro ao carregar módulos', 'error');
+        push({ message: 'Erro ao carregar módulos', variant: 'error' });
         return;
       }
       
       // Para cada módulo, buscar seus conteúdos
+      const typedModules = (modulesData as Module[] | null) ?? [];
+
       const modulesWithContents = await Promise.all(
-        (modulesData || []).map(async (module) => {
+        typedModules.map(async (module: Module) => {
           const { data: contentsData, error: contentsError } = await supabase
             .from('contents')
             .select('*')
@@ -156,10 +165,12 @@ export default function AdminModulesPage() {
             console.error('Erro ao carregar conteúdos:', contentsError);
             return { ...module, contents: [] };
           }
-          
+
+          const typedContents = (contentsData as Content[] | null) ?? [];
+
           return {
             ...module,
-            contents: contentsData || []
+            contents: typedContents
           };
         })
       );
@@ -167,7 +178,7 @@ export default function AdminModulesPage() {
       setModules(modulesWithContents);
     } catch (error) {
       console.error('Erro ao carregar módulos:', error);
-      push('Erro ao carregar módulos', 'error');
+      push({ message: 'Erro ao carregar módulos', variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -181,8 +192,8 @@ export default function AdminModulesPage() {
       slug: module.slug,
       trail_id: module.trail_id,
       position: module.position,
-      cover_url: (module as any).cover_url || "",
-      banner_url: (module as any).banner_url || ""
+      cover_url: module.cover_url || "",
+      banner_url: module.banner_url || ""
     });
     setShowModal(true);
   }
@@ -221,7 +232,7 @@ export default function AdminModulesPage() {
 
       if (uploadError) {
         console.error('Erro no upload:', uploadError);
-        push('Erro ao fazer upload da capa', 'error');
+        push({ message: 'Erro ao fazer upload da capa', variant: 'error' });
         return;
       }
 
@@ -230,10 +241,10 @@ export default function AdminModulesPage() {
         .getPublicUrl(filePath);
 
       setFormData(prev => ({ ...prev, cover_url: data.publicUrl }));
-      push('Capa enviada com sucesso!', 'success');
+      push({ message: 'Capa enviada com sucesso!', variant: 'success' });
     } catch (error) {
       console.error('Erro ao fazer upload:', error);
-      push('Erro ao fazer upload da capa', 'error');
+      push({ message: 'Erro ao fazer upload da capa', variant: 'error' });
     } finally {
       setUploadingCover(false);
     }
@@ -255,7 +266,7 @@ export default function AdminModulesPage() {
 
       if (uploadError) {
         console.error('Erro no upload:', uploadError);
-        push('Erro ao fazer upload do banner', 'error');
+        push({ message: 'Erro ao fazer upload do banner', variant: 'error' });
         return;
       }
 
@@ -264,10 +275,10 @@ export default function AdminModulesPage() {
         .getPublicUrl(filePath);
 
       setFormData(prev => ({ ...prev, banner_url: data.publicUrl }));
-      push('Banner enviado com sucesso!', 'success');
+      push({ message: 'Banner enviado com sucesso!', variant: 'success' });
     } catch (error) {
       console.error('Erro ao fazer upload:', error);
-      push('Erro ao fazer upload do banner', 'error');
+      push({ message: 'Erro ao fazer upload do banner', variant: 'error' });
     } finally {
       setUploadingBanner(false);
     }
@@ -276,53 +287,56 @@ export default function AdminModulesPage() {
   async function saveModule() {
     try {
       if (!formData.title || !formData.slug || !formData.trail_id) {
-        push('Título, slug e trilha são obrigatórios', 'error');
+        push({ message: 'Título, slug e trilha são obrigatórios', variant: 'error' });
         return;
       }
 
       if (editingModule) {
         // Atualizar módulo existente
-        const { error } = await supabase
-          .from('modules')
-          .update({
-            title: formData.title,
-            description: formData.description,
-            slug: formData.slug,
-            trail_id: formData.trail_id,
-            position: formData.position,
-            cover_url: formData.cover_url || null,
-            banner_url: formData.banner_url || null
-          })
+        const updatePayload: Partial<Module> = {
+          title: formData.title,
+          description: formData.description,
+          slug: formData.slug,
+          trail_id: formData.trail_id,
+          position: formData.position,
+          cover_url: formData.cover_url || null,
+          banner_url: formData.banner_url || null
+        };
+
+        const modulesTable = supabase.from('modules') as any;
+        const { error } = await modulesTable
+          .update(updatePayload)
           .eq('id', editingModule.id);
 
         if (error) {
           console.error('Erro ao atualizar módulo:', error);
-          push('Erro ao atualizar módulo', 'error');
+          push({ message: 'Erro ao atualizar módulo', variant: 'error' });
           return;
         }
 
-        push('Módulo atualizado com sucesso!', 'success');
+        push({ message: 'Módulo atualizado com sucesso!', variant: 'success' });
       } else {
         // Criar novo módulo
-        const { error } = await supabase
-          .from('modules')
-          .insert({
-            title: formData.title,
-            description: formData.description,
-            slug: formData.slug,
-            trail_id: formData.trail_id,
-            position: formData.position,
-            cover_url: formData.cover_url || null,
-            banner_url: formData.banner_url || null
-          });
+        const insertPayload: Omit<Module, 'id' | 'contents' | 'trails'> = {
+          title: formData.title,
+          description: formData.description,
+          slug: formData.slug,
+          trail_id: formData.trail_id,
+          position: formData.position,
+          cover_url: formData.cover_url || null,
+          banner_url: formData.banner_url || null
+        };
+
+        const modulesTable = supabase.from('modules') as any;
+        const { error } = await modulesTable.insert(insertPayload);
 
         if (error) {
           console.error('Erro ao criar módulo:', error);
-          push('Erro ao criar módulo', 'error');
+          push({ message: 'Erro ao criar módulo', variant: 'error' });
           return;
         }
 
-        push('Módulo criado com sucesso!', 'success');
+        push({ message: 'Módulo criado com sucesso!', variant: 'success' });
       }
 
       // Recarregar dados
@@ -333,7 +347,7 @@ export default function AdminModulesPage() {
       resetForm();
     } catch (error) {
       console.error('Erro ao salvar módulo:', error);
-      push('Erro ao salvar módulo', 'error');
+      push({ message: 'Erro ao salvar módulo', variant: 'error' });
     }
   }
 
@@ -353,11 +367,11 @@ export default function AdminModulesPage() {
 
       if (error) {
         console.error('Erro ao deletar módulo:', error);
-        push('Erro ao deletar módulo', 'error');
+        push({ message: 'Erro ao deletar módulo', variant: 'error' });
         return;
       }
 
-      push('Módulo deletado com sucesso!', 'success');
+      push({ message: 'Módulo deletado com sucesso!', variant: 'success' });
       if (selectedTrail) {
         await loadModules(selectedTrail);
       }
@@ -365,7 +379,7 @@ export default function AdminModulesPage() {
       setModuleToDelete(null);
     } catch (error) {
       console.error('Erro ao deletar módulo:', error);
-      push('Erro ao deletar módulo', 'error');
+      push({ message: 'Erro ao deletar módulo', variant: 'error' });
     }
   }
 
@@ -699,14 +713,12 @@ export default function AdminModulesPage() {
           onClose={() => setShowConfirmModal(false)}
           onConfirm={confirmDeleteModule}
           title="Confirmar exclusão"
-          message={`Tem certeza que deseja excluir o módulo "${moduleToDelete?.title}"? Esta ação não pode ser desfeita.`}
+          description={`Tem certeza que deseja excluir o módulo "${moduleToDelete?.title}"? Esta ação não pode ser desfeita.`}
           confirmText="Excluir"
           cancelText="Cancelar"
-          variant="danger"
+          variant="destructive"
         />
       </Section>
     </Container>
   );
 }
-
-
