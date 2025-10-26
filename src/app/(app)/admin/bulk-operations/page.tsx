@@ -11,8 +11,7 @@ export default function AdminBulkOperationsPage() {
       <Section>
         <PageHeader
           title="Operações em Lote"
-          description="Realize operações em massa, importação e exportação de dados"
-          icon={<Upload className="w-5 h-5" />}
+          subtitle="Realize operações em massa, importação e exportação de dados"
         />
 
         <div className="space-y-6">
