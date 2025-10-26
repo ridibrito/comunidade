@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { MarcosConquistados, ProgressoMarcos } from '@/components/ui/MarcosConquistados';
+import { useMarcos } from '@/hooks/useMarcos';
 
 interface Hero {
   id: string;
@@ -11,6 +13,7 @@ interface Hero {
   background_gradient: string;
   title_position?: string;
   subtitle_position?: string;
+  trail_id?: string;
   cta_buttons?: Array<{
     text: string;
     link?: string;
@@ -51,6 +54,10 @@ export function HeroCarousel({ heroes: initialHeroes, pageSlug = 'dashboard' }: 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [autoPlay, setAutoPlay] = useState(true);
 
+  // IMPORTANTE: Hooks devem ser chamados SEMPRE, antes de qualquer return condicional
+  const currentHero = heroes[currentIndex];
+  const { marcos, conquistados, total } = useMarcos(currentHero?.trail_id);
+
   useEffect(() => {
     if (!autoPlay || heroes.length <= 1) return;
 
@@ -82,8 +89,6 @@ export function HeroCarousel({ heroes: initialHeroes, pageSlug = 'dashboard' }: 
     setAutoPlay(false);
     setTimeout(() => setAutoPlay(true), 10000);
   };
-
-  const currentHero = heroes[currentIndex];
 
   return (
     <div className="relative w-full overflow-hidden min-h-[120px] max-h-[250px] sm:min-h-[160px] sm:max-h-[350px] md:min-h-[200px] md:max-h-[400px]" style={{ aspectRatio: '3 / 1' }}>
@@ -119,6 +124,17 @@ export function HeroCarousel({ heroes: initialHeroes, pageSlug = 'dashboard' }: 
                     <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-4 drop-shadow-lg">
                       {hero.title}
                     </h2>
+                  )}
+                  
+                  {/* Marcos Conquistados */}
+                  {index === currentIndex && marcos.length > 0 && (
+                    <div className="mb-3 sm:mb-4">
+                      <MarcosConquistados 
+                        marcos={marcos} 
+                        size="md"
+                        className="justify-start"
+                      />
+                    </div>
                   )}
                   {hero.subtitle && (
                     <p className={`text-sm sm:text-lg md:text-xl text-white/90 mb-3 sm:mb-6 drop-shadow-md ${

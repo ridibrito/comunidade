@@ -138,13 +138,33 @@ serve(async (req) => {
     });
     if (!error && link?.action_link) {
       const html = `
-        <div style="font-family:Inter,system-ui">
-          <h2>Bem-vindo(a) à Aldeia Singular</h2>
-          <p>Seu pagamento foi confirmado! Defina sua senha no botão abaixo:</p>
-          <p><a href="${link.action_link}" style="background:#0A2540;color:#fff;padding:12px 16px;border-radius:8px;text-decoration:none">Definir minha senha</a></p>
-          <p style="color:#555">Este link expira em 24 horas.</p>
+        <div style="font-family: Inter, system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #FF6B00; font-size: 28px; margin: 0;">Bem-vindo à Comunidade! 🎉</h1>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <p style="margin: 0 0 15px 0; font-size: 16px; color: #333;">Olá ${name},</p>
+            <p style="margin: 0 0 15px 0; font-size: 16px; color: #333;">Sua compra foi confirmada e você já tem acesso completo à nossa plataforma!</p>
+            <p style="margin: 0; font-size: 16px; color: #333;">Acesse sua conta e defina sua senha clicando no botão abaixo:</p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${link.action_link}" style="background: #FF6B00; color: #fff; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">
+              Definir minha senha
+            </a>
+          </div>
+          
+          <div style="text-align: center; margin-top: 30px;">
+            <p style="color: #666; font-size: 14px; margin: 0;">Este link expira em 24 horas.</p>
+            <p style="color: #666; font-size: 14px; margin: 5px 0 0 0;">Se você não conseguir acessar, use a opção "Esqueci minha senha" na página de login.</p>
+          </div>
+          
+          <div style="border-top: 1px solid #eee; margin-top: 30px; padding-top: 20px; text-align: center;">
+            <p style="color: #999; font-size: 12px; margin: 0;">Bem-vindo à nossa comunidade!</p>
+          </div>
         </div>`;
-      await mailProvider.send({ to: email, subject: "Acesse a Aldeia Singular – Defina sua senha", html });
+      await mailProvider.send({ to: email, subject: "Bem-vindo à Comunidade! 🎉 - Defina sua senha", html });
     }
   }
 

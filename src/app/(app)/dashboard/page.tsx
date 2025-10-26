@@ -20,6 +20,7 @@ import { HeroCarousel } from "@/components/HeroCarousel";
 import ContentCarousel from "@/components/ui/ContentCarousel";
 import Card from "@/components/ui/Card";
 import { CardVideoAula, CardLivro } from "@/components/ui/CardModels";
+import CardComMarcos from "@/components/ui/CardComMarcos";
 import { MagicCard } from "@/components/ui/animations/MagicCard";
 import { BorderBeam } from "@/components/ui/animations/BorderBeam";
 import { Particles } from "@/components/ui/animations/Particles";
@@ -182,8 +183,12 @@ export default function DashboardPage() {
             const badgeCfg = (pageSlug && PAGE_BADGE[pageSlug]) ? PAGE_BADGE[pageSlug] : { label: pageTitle || 'Conteúdo', variant: 'outline' as const };
             const image = content.image_url || '/logo_full.png';
             
+            // Garantir que trail_id está disponível (pode vir de modules.trail_id ou trail_id direto)
+            const trailId = content.modules?.trail_id || content.trail_id;
+            
             return {
               ...content,
+              trail_id: trailId, // Adicionar explicitamente para o CardComMarcos
               image,
               progress: item.completion_percentage,
               lastWatched: item.updated_at,
@@ -230,6 +235,7 @@ export default function DashboardPage() {
               id,
               slug,
               title,
+              trail_id,
               trails:trails (
                 id,
                 slug,
@@ -275,8 +281,19 @@ export default function DashboardPage() {
           const pageTitle: string | undefined = page?.title || (c as any)?.modules?.trails?.title || (c as any)?.trails?.title;
           const badgeCfg = (pageSlug && PAGE_BADGE[pageSlug]) ? PAGE_BADGE[pageSlug] : { label: pageTitle || 'Conteúdo', variant: 'outline' as const };
           const image = c.image_url || '/logo_full.png';
+          
+          // Garantir que trail_id está disponível (pode vir de modules.trail_id ou trail_id direto)
+          const trailId = c.modules?.trail_id || c.trail_id;
+          
+          console.log(`[Dashboard] Mapeando conteúdo: ${c.title}`);
+          console.log(`  - module_id: ${c.module_id}`);
+          console.log(`  - trail_id direto: ${c.trail_id}`);
+          console.log(`  - modules?.trail_id: ${c.modules?.trail_id}`);
+          console.log(`  - trailId final: ${trailId}`);
+          
           return {
             ...c,
+            trail_id: trailId, // Adicionar explicitamente para o CardComMarcos
             image,
             origin: {
               slug: pageSlug,
@@ -403,40 +420,14 @@ export default function DashboardPage() {
             <div className="text-center py-6 text-light-muted dark:text-dark-muted">Nenhum conteúdo recente</div>
           ) : (
             <ContentCarousel>
-              {latestContents.map((content: any) => {
-                // Card para livros usando componente existente
-                if (content.content_type === 'book') {
-                  return (
-                    <CardLivro
-                      key={content.id}
-                      title={content.title}
-                      author="Autor"
-                      description={content.description || ""}
-                      pages={content.duration || 0}
-                      image={content.image}
-                      fileUrl={content.file_url || "#"}
-                      id={content.id}
-                      className="w-full"
-                    />
-                  );
-                }
-
-                // Card para vídeos/aulas usando componente existente
-                return (
-                  <CardVideoAula
-                    key={content.id}
-                    title={content.title}
-                    description={content.description || ""}
-                    instructor="Instrutor"
-                    duration={`${content.duration || 0}min`}
-                    lessons={1}
-                    progress={0}
-                    image={content.image}
-                    slug={content.slug}
-                    className="w-full"
-                  />
-                );
-              })}
+              {latestContents.map((content: any) => (
+                <CardComMarcos
+                  key={content.id}
+                  content={content}
+                  showMarcos={true}
+                  className="w-full"
+                />
+              ))}
             </ContentCarousel>
           )}
         </div>
@@ -468,40 +459,14 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <ContentCarousel>
-                  {continueContents.map((content: any) => {
-                    // Card para livros usando componente existente
-                    if (content.content_type === 'book') {
-                      return (
-                        <CardLivro
-                          key={content.id}
-                          title={content.title}
-                          author="Autor"
-                          description={content.description || ""}
-                          pages={content.duration || 0}
-                          image={content.image}
-                          fileUrl={content.file_url || "#"}
-                          id={content.id}
-                          className="w-full"
-                        />
-                      );
-                    }
-
-                    // Card para vídeos/aulas usando componente existente
-                    return (
-                      <CardVideoAula
-                        key={content.id}
-                        title={content.title}
-                        description={content.description || ""}
-                        instructor="Instrutor"
-                        duration={`${content.duration || 0}min`}
-                        lessons={1}
-                        progress={content.progress}
-                        image={content.image}
-                        slug={content.slug}
-                        className="w-full"
-                      />
-                    );
-                  })}
+                  {continueContents.map((content: any) => (
+                    <CardComMarcos
+                      key={content.id}
+                      content={content}
+                      showMarcos={true}
+                      className="w-full"
+                    />
+                  ))}
                 </ContentCarousel>
               )}
             </div>
