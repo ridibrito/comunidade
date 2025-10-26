@@ -11,8 +11,7 @@ export default function AdminBackupPage() {
       <Section>
         <PageHeader
           title="Backup & Restore"
-          description="Gerencie backups automáticos, exportação e restauração de dados"
-          icon={<Database className="w-5 h-5" />}
+          subtitle="Gerencie backups automáticos, exportação e restauração de dados"
         />
 
         <div className="space-y-6">
