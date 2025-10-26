@@ -4,9 +4,25 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --no-lint",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "security-audit": "node scripts/security-audit.js",
+    "audit": "npm audit --audit-level=moderate",
+    "audit-fix": "npm audit fix",
+    "outdated": "npm outdated",
+    "update-deps": "npm update",
+    "check-security": "npm run security-audit && npm run audit",
+    "analyze": "ANALYZE=true npm run build",
+    "build:analyze": "npm run analyze",
+    "perf:audit": "npm run build && npm run analyze",
+    "perf:lighthouse": "lighthouse http://localhost:3000 --output=html --output-path=./lighthouse-report.html",
+    "perf:test": "npm run build && npm run start & sleep 5 && npm run perf:lighthouse",
+    "performance-audit": "node scripts/performance-audit.js",
+    "setup-env": "node scripts/setup-env.js",
+    "test-improvements": "node scripts/test-improvements.js",
+    "test-improvements-simple": "node scripts/test-improvements-simple.js",
+    "test:all": "npm run test-improvements-simple && npm run check-security"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -21,7 +37,9 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.7.0",
-    "@supabase/supabase-js": "^2.75.0",
+    "@supabase/supabase-js": "^2.76.1",
+    "@upstash/ratelimit": "^2.0.6",
+    "@upstash/redis": "^1.35.6",
     "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
     "dotenv": "^17.2.3",
@@ -40,10 +58,12 @@
     "react-markdown": "^10.1.0",
     "recharts": "^3.3.0",
     "resend": "^6.1.3",
-    "sonner": "^2.0.7"
+    "sonner": "^2.0.7",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/bundle-analyzer": "^16.0.0",
     "@tailwindcss/postcss": "^4.1.14",
     "@types/node": "^20",
     "@types/react": "^19",

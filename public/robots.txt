@@ -7,12 +7,29 @@ Allow: /
 # Páginas públicas
 Allow: /auth/login
 Allow: /auth/recover
+Allow: /about
+Allow: /contact
 
-# Bloquear páginas privadas
+# Bloquear páginas privadas e sensíveis
 Disallow: /admin/
 Disallow: /dashboard/
 Disallow: /profile/
 Disallow: /api/
+Disallow: /_next/
+Disallow: /.*
+Disallow: /.env
+Disallow: /.git
+Disallow: /logs/
+
+# Bloquear bots maliciosos
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
 
 # Sitemap
 Sitemap: https://app.aldeiasingular.com.br/sitemap.xml

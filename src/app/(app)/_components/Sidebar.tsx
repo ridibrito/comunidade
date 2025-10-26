@@ -38,9 +38,11 @@ export function Sidebar() {
           .from("profiles")
           .select("is_admin, role")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
-        const userIsAdmin = Boolean(profile?.is_admin) || (profile?.role === "admin");
+        type ProfileRow = { is_admin?: boolean | null; role?: string | null } | null;
+        const pr = (profile as ProfileRow) || null;
+        const userIsAdmin = Boolean(pr?.is_admin) || (pr?.role === "admin");
         setIsAdmin(userIsAdmin);
       } catch (error) {
         console.error("Erro ao verificar status de admin:", error);
@@ -89,7 +91,9 @@ export function Sidebar() {
             {inEvents && (
               <>
                 {item("/events/history", "Lives realizadas", pathname.startsWith("/events/history"), PlayCircle)}
+                {/** Calendário oculto nesta branch
                 {item("/events/calendar", "Calendário", pathname.startsWith("/events/calendar"), CalendarDays)}
+                **/}
               </>
             )}
             {inAdmin && !loading && isAdmin && (
@@ -99,6 +103,7 @@ export function Sidebar() {
                 {item("/admin/mountains", "Conteúdos", pathname.startsWith("/admin/mountains"), BookOpen)}
                 {item("/admin/heroes", "Heroes", pathname.startsWith("/admin/heroes"), ImageIcon)}
                 {item("/admin/ia", "IA", pathname.startsWith("/admin/ia"), Bot)}
+                {item("/admin/knowledge-base", "Base de Conhecimento", pathname.startsWith("/admin/knowledge-base"), Database)}
                 {item("/admin/notifications", "Notificações", pathname.startsWith("/admin/notifications"), Bell)}
                 {item("/admin/permissions", "Permissões", pathname.startsWith("/admin/permissions"), Shield)}
                 {item("/admin/bulk-operations", "Operações em Lote", pathname.startsWith("/admin/bulk-operations"), Upload)}

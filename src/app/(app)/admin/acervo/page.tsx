@@ -20,6 +20,8 @@ export default function AdminAcervoPage() {
           id: "m1",
           title: "Livros Fundamentais",
           description: "Obras essenciais sobre AHSD",
+          trail_id: "1",
+          position: 1,
           order: 1,
           isExpanded: true,
           lessons: [
@@ -43,6 +45,8 @@ export default function AdminAcervoPage() {
           id: "m2",
           title: "Artigos Científicos", 
           description: "Pesquisas e estudos atualizados",
+          trail_id: "1",
+          position: 2,
           order: 2,
           isExpanded: false,
           lessons: [

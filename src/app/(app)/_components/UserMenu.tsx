@@ -41,22 +41,20 @@ export function UserMenu() {
         }
         
         if (user) {
-          setUserEmail(user.email);
+          setUserEmail(user.email ?? null);
           
           // Buscar perfil do usuário com query mais simples
-          const { data: profile, error: profileError } = await supabase
+          const { data: profile } = await supabase
             .from("profiles")
             .select("full_name, avatar_url")
             .eq("id", user.id)
-            .single();
+            .maybeSingle();
             
-          if (profileError && profileError.code !== 'PGRST116') {
-            console.error("Erro ao carregar perfil:", profileError);
-          }
-          
-          if (profile) {
-            setFullName(profile.full_name || "");
-            setAvatarUrl(profile.avatar_url || null);
+          type ProfileRow = { full_name?: string | null; avatar_url?: string | null } | null;
+          const pr = (profile as ProfileRow) || null;
+          if (pr) {
+            setFullName(pr.full_name || "");
+            setAvatarUrl(pr.avatar_url || null);
           }
         }
       } catch (error) {

@@ -33,12 +33,13 @@ export function MountainBuilder() {
       const slug = "montanha-do-amanha";
       const { data: mountain } = await supabase
         .from("mountains")
-        .upsert({ slug, title: "Montanha do amanhã", description: "Programa" }, { onConflict: "slug" })
+        .upsert({ slug, title: "Montanha do amanhã", description: "Programa" } as any, { onConflict: "slug" })
         .select("id")
         .maybeSingle();
-      if (!mountain?.id) return;
+      const m = (mountain as { id: string } | null);
+      if (!m?.id) return;
 
-      const { data: t } = await supabase.from("trails").select("id, title, slug, position").eq("mountain_id", mountain.id).order("position");
+      const { data: t } = await supabase.from("trails").select("id, title, slug, position").eq("mountain_id", m.id).order("position");
       setTrails(t ?? []);
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -65,15 +66,18 @@ export function MountainBuilder() {
     const title = newTrailTitle.trim();
     if (!title) return;
     const slug = title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    const { data: mRow } = await supabase.from("mountains").select("id").eq("slug", "montanha-do-amanha").maybeSingle();
+    const mountainId = (mRow as any)?.id as string | null;
     const { data, error } = await supabase
       .from("trails")
-      .insert({ title, slug, mountain_id: (await supabase.from("mountains").select("id").eq("slug", "montanha-do-amanha").maybeSingle()).data?.id })
+      .insert({ title, slug, mountain_id: mountainId } as any)
       .select("id, title, slug, position")
       .maybeSingle();
     if (error) return push({ title: "Erro", message: error.message, variant: "error" });
-    setTrails((prev) => [...prev, data!]);
+    const createdTrail = (data as any) || null;
+    if (createdTrail) setTrails((prev) => [...prev, createdTrail]);
     setNewTrailTitle("");
-    setActiveTrailId(data!.id);
+    setActiveTrailId(createdTrail?.id ?? null);
     push({ title: "Trilha criada", message: "A trilha foi adicionada." });
   }
 
@@ -84,13 +88,14 @@ export function MountainBuilder() {
     const slug = title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
     const { data, error } = await supabase
       .from("modules")
-      .insert({ title, slug, trail_id: activeTrailId })
+      .insert({ title, slug, trail_id: activeTrailId } as any)
       .select("id, title, slug, trail_id, position")
       .maybeSingle();
     if (error) return push({ title: "Erro", message: error.message, variant: "error" });
-    setModules((prev) => [...prev, data!]);
+    const createdModule = (data as any) || null;
+    if (createdModule) setModules((prev) => [...prev, createdModule]);
     setNewModuleTitle("");
-    setActiveModuleId(data!.id);
+    setActiveModuleId(createdModule?.id ?? null);
     push({ title: "Módulo criado", message: "O módulo foi adicionado." });
   }
 
@@ -101,11 +106,12 @@ export function MountainBuilder() {
     const slug = title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
     const { data, error } = await supabase
       .from("lessons")
-      .insert({ title, slug, module_id: activeModuleId, video_url: newLessonVideo || null })
+      .insert({ title, slug, module_id: activeModuleId, video_url: newLessonVideo || null } as any)
       .select("id, title, slug, module_id, video_url, position")
       .maybeSingle();
     if (error) return push({ title: "Erro", message: error.message, variant: "error" });
-    setLessons((prev) => [...prev, data!]);
+    const createdLesson = (data as any) || null;
+    if (createdLesson) setLessons((prev) => [...prev, createdLesson]);
     setNewLessonTitle("");
     setNewLessonVideo("");
     push({ title: "Aula criada", message: "A aula foi adicionada." });

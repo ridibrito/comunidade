@@ -11,8 +11,7 @@ export default function AdminAuditLogsPage() {
       <Section>
         <PageHeader
           title="Logs de Auditoria"
-          description="Visualize o histórico completo de ações dos usuários e administradores"
-          icon={<History className="w-5 h-5" />}
+          subtitle="Visualize o histórico completo de ações dos usuários e administradores"
         />
 
         <div className="space-y-6">

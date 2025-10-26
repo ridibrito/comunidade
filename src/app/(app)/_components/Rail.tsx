@@ -35,9 +35,11 @@ export function Rail() {
           .from("profiles")
           .select("is_admin, role")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
-        const userIsAdmin = Boolean(profile?.is_admin) || (profile?.role === "admin");
+        type ProfileRow = { is_admin?: boolean | null; role?: string | null } | null;
+        const pr = (profile as ProfileRow) || null;
+        const userIsAdmin = Boolean(pr?.is_admin) || (pr?.role === "admin");
         setIsAdmin(userIsAdmin);
       } catch (error) {
         console.error("Erro ao verificar status de admin:", error);

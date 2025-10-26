@@ -1,13 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
+// Aplica cabeçalhos de segurança a uma resposta
+function setSecurityHeaders(response: NextResponse) {
+  const cspHeader = (
+    `default-src 'self'; ` +
+    `script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; ` +
+    `style-src 'self' 'unsafe-inline' https:; ` +
+    `connect-src 'self' https: wss: ws:; ` +
+    `img-src 'self' blob: data: https:; ` +
+    `font-src 'self' data:; ` +
+    `object-src 'none'; ` +
+    `base-uri 'self'; ` +
+    `form-action 'self'; ` +
+    `frame-ancestors 'none'; ` +
+    `upgrade-insecure-requests;`
+  ).trim();
+
+  response.headers.set('Content-Security-Policy', cspHeader);
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+
+  return response;
+}
+
 export async function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
   const res = NextResponse.next();
   
   // Permitir acesso à página de change-password se há token na URL
   if (url.pathname === "/auth/change-password" && url.searchParams.has("token")) {
-    return res;
+    return setSecurityHeaders(res);
   }
   
   const supabase = createServerClient(
@@ -34,7 +61,7 @@ export async function middleware(req: NextRequest) {
     const redirectRes = NextResponse.redirect(url);
     // Propaga cookies potencialmente atualizados (ex.: refresh de sessão)
     res.cookies.getAll().forEach((c) => redirectRes.cookies.set(c));
-    return redirectRes;
+    return setSecurityHeaders(redirectRes);
   }
 
   // Sistema de tracking de login - atualizar last_login_at e login_count
@@ -74,7 +101,7 @@ export async function middleware(req: NextRequest) {
     url.pathname = "/auth/change-password";
     const redirectRes = NextResponse.redirect(url);
     res.cookies.getAll().forEach((c) => redirectRes.cookies.set(c));
-    return redirectRes;
+    return setSecurityHeaders(redirectRes);
   }
   // Restringe /admin a administradores
   if (url.pathname.startsWith("/admin")) {
@@ -96,7 +123,7 @@ export async function middleware(req: NextRequest) {
         url.searchParams.set("error", "access_denied");
         const redirectRes = NextResponse.redirect(url);
         res.cookies.getAll().forEach((c) => redirectRes.cookies.set(c));
-        return redirectRes;
+        return setSecurityHeaders(redirectRes);
       }
     } catch (error) {
       console.error("Erro ao verificar permissões de admin:", error);
@@ -104,10 +131,10 @@ export async function middleware(req: NextRequest) {
       url.searchParams.set("error", "access_denied");
       const redirectRes = NextResponse.redirect(url);
       res.cookies.getAll().forEach((c) => redirectRes.cookies.set(c));
-      return redirectRes;
+      return setSecurityHeaders(redirectRes);
     }
   }
-  return res;
+  return setSecurityHeaders(res);
 }
 
 export const config = {

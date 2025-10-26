@@ -71,9 +71,11 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
           .from("profiles")
           .select("is_admin, role")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
-        const userIsAdmin = Boolean(profile?.is_admin) || (profile?.role === "admin");
+        type ProfileRow = { is_admin?: boolean | null; role?: string | null } | null;
+        const pr = (profile as ProfileRow) || null;
+        const userIsAdmin = Boolean(pr?.is_admin) || (pr?.role === "admin");
         setIsAdmin(userIsAdmin);
       } catch (error) {
         console.error("Erro ao verificar status de admin:", error);
@@ -183,7 +185,9 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                 </div>
                 <div className="space-y-1">
                   <MenuItem href="/events/history" label="Lives realizadas" icon={PlayCircle} onClick={onClose} />
+                  {/** Calendário oculto nesta branch
                   <MenuItem href="/events/calendar" label="Calendário" icon={CalendarDays} onClick={onClose} />
+                  **/}
                 </div>
               </div>
             )}
