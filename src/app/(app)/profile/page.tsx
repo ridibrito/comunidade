@@ -189,7 +189,8 @@ export default function ProfilePage() {
               </a>
             </li>
             
-            <li>
+            {/* Comentado temporariamente - voltaremos a usar no futuro */}
+            {/* <li>
               <a
                 href="/profile/familia"
                 className={`flex items-center gap-3 rounded-xl transition-colors px-4 py-3 cursor-pointer w-full text-left hover-brand-subtle`}
@@ -199,12 +200,10 @@ export default function ProfilePage() {
               </a>
             </li>
 
-            {/* Separador visual */}
             <li className="my-4">
               <div className="h-px bg-light-border dark:bg-dark-border" />
             </li>
 
-            {/* Acompanhamento */}
             <li>
               <a
                 href="/profile/anamnese"
@@ -233,7 +232,7 @@ export default function ProfilePage() {
                 <BookOpen size={18} className="text-light-muted dark:text-dark-muted" />
                 <span className="text-light-text dark:text-dark-text">Diário</span>
               </a>
-            </li>
+            </li> */}
           </ul>
         </aside>
 
