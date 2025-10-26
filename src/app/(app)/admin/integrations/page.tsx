@@ -130,11 +130,11 @@ export default function AdminIntegrationsPage() {
               </div>
 
               {/* Instructions */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-base">
                   Como configurar na Hotmart:
                 </h4>
-                <ol className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-decimal list-inside">
+                <ol className="text-sm text-gray-800 dark:text-gray-200 space-y-2 list-decimal list-inside font-medium leading-relaxed">
                   <li>Acesse o painel da Hotmart</li>
                   <li>Vá em "Configurações" → "Webhooks"</li>
                   <li>Adicione uma nova URL de webhook</li>
