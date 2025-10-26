@@ -5,6 +5,9 @@ import { VectorSearchService } from '@/lib/vector/supabase-vector';
 import { AHSDRAGSystem } from '@/lib/ai/rag';
 
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Endpoint desabilitado em produção' }, { status: 403 });
+  }
   try {
     // Teste 1: Gerar embedding
     console.log('🧪 Testando geração de embedding...');

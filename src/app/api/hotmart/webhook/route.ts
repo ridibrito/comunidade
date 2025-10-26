@@ -121,17 +121,28 @@ async function sendWelcomeEmail(email: string, name: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting por IP do chamador (via cabeçalhos proxy)
+    try {
+      const { getRateLimitIdentifier, applyRateLimit } = await import('@/lib/rate-limit-fallback');
+      const identifier = getRateLimitIdentifier(request as unknown as Request);
+      const { success } = await applyRateLimit(identifier, 'WEBHOOK');
+      if (!success) {
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    } catch {}
     const body = await request.text();
     const hmacSignature = request.headers.get('x-hotmart-hmac-sha256') || '';
     const hottok = request.headers.get('x-hotmart-hottok') || request.headers.get('hottok') || '';
     
-    console.log('=== WEBHOOK HOTMART RECEBIDO ===');
-    console.log('Headers:', Object.fromEntries(request.headers.entries()));
-    console.log('Body:', body);
-    console.log('HMAC Signature:', hmacSignature);
-    console.log('Hottok:', hottok);
-    console.log('Secret configurado:', HOTMART_WEBHOOK_SECRET ? 'SIM' : 'NÃO');
-    console.log('================================');
+    // Logs reduzidos em produção
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('=== WEBHOOK HOTMART RECEBIDO ===');
+      console.log('Headers:', Object.fromEntries(request.headers.entries()));
+      console.log('Body length:', body.length);
+      console.log('HMAC Signature present:', Boolean(hmacSignature));
+      console.log('Hottok present:', Boolean(hottok));
+      console.log('================================');
+    }
     
     // Verificar assinatura do webhook (suporta tanto HMAC quanto Hottok)
     let isValid = false;
@@ -139,11 +150,11 @@ export async function POST(request: NextRequest) {
     if (hmacSignature) {
       // Verificar HMAC-SHA256
       isValid = verifyHotmartSignature(body, hmacSignature, HOTMART_WEBHOOK_SECRET);
-      console.log('🔐 Verificação HMAC:', isValid ? 'VÁLIDA' : 'INVÁLIDA');
+      if (process.env.NODE_ENV !== 'production') console.log('🔐 Verificação HMAC:', isValid ? 'VÁLIDA' : 'INVÁLIDA');
     } else if (hottok) {
       // Verificar Hottok simples
       isValid = hottok === HOTMART_WEBHOOK_SECRET;
-      console.log('🔑 Verificação Hottok:', isValid ? 'VÁLIDA' : 'INVÁLIDA');
+      if (process.env.NODE_ENV !== 'production') console.log('🔑 Verificação Hottok:', isValid ? 'VÁLIDA' : 'INVÁLIDA');
     }
     
     if (!isValid) {
@@ -154,14 +165,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
     
-    console.log('✅ Assinatura válida!');
+    if (process.env.NODE_ENV !== 'production') console.log('✅ Assinatura válida!');
 
     const payload = JSON.parse(body);
     const event = Array.isArray(payload) ? payload[0] : payload;
     
     const { email, name, product_id, purchase_id, event: eventType, purchase_status } = mapHotmartData(event);
     
-    console.log('📊 Dados mapeados:', { email, name, product_id, purchase_id, event: eventType, purchase_status });
+    if (process.env.NODE_ENV !== 'production') console.log('📊 Dados mapeados:', { email, name, product_id, purchase_id, event: eventType, purchase_status });
     
     if (!email || !product_id) {
       console.error('❌ Campos obrigatórios ausentes:', { email, product_id });
@@ -180,14 +191,16 @@ export async function POST(request: NextRequest) {
     const approvedEvents = ['PURCHASE_APPROVED', 'PURCHASE_COMPLETED', 'SUBSCRIPTION_RENEWED'];
     const isPaidEvent = approvedEvents.includes(eventType);
     
-    console.log('📊 Status normalizado:', normalizedStatus);
-    console.log('💰 É evento de pagamento:', isPaidEvent);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('📊 Status normalizado:', normalizedStatus);
+      console.log('💰 É evento de pagamento:', isPaidEvent);
+    }
     
     // Processar todos os eventos para atualizar status da assinatura
-    console.log('📝 Processando evento:', eventType, 'com status:', normalizedStatus);
+    if (process.env.NODE_ENV !== 'production') console.log('📝 Processando evento:', eventType, 'com status:', normalizedStatus);
 
     // 1. Verificar se usuário já existe
-    console.log('🔍 Verificando se usuário já existe:', email);
+    if (process.env.NODE_ENV !== 'production') console.log('🔍 Verificando se usuário já existe');
     const { data: existingUsers } = await supabase.auth.admin.listUsers({
       page: 1,
       perPage: 1000, // Aumentar limite para encontrar o usuário
@@ -198,7 +211,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       // Só criar usuário para eventos de pagamento aprovado
       if (isPaidEvent && normalizedStatus === 'active') {
-        console.log('👤 Usuário não existe, criando novo usuário...');
+        if (process.env.NODE_ENV !== 'production') console.log('👤 Criando novo usuário');
         const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
           email,
           email_confirm: true,
@@ -211,18 +224,18 @@ export async function POST(request: NextRequest) {
         }
         
         user = newUser.user!;
-        console.log('✅ Usuário criado com sucesso:', user.id);
+        if (process.env.NODE_ENV !== 'production') console.log('✅ Usuário criado');
       } else {
-        console.log('⚠️ Usuário não existe e evento não é de pagamento aprovado, ignorando criação');
+        if (process.env.NODE_ENV !== 'production') console.log('⚠️ Ignorando criação de usuário (evento não aprovado)');
         return NextResponse.json({ message: 'User not found and event is not approved payment' }, { status: 200 });
       }
     } else {
-      console.log('✅ Usuário já existe:', user.id);
+      if (process.env.NODE_ENV !== 'production') console.log('✅ Usuário já existe');
     }
 
     // 3. Garantir que o perfil existe com role de aluno (só se usuário existir)
     if (user) {
-      console.log('👤 Criando/atualizando perfil com role de aluno...');
+      if (process.env.NODE_ENV !== 'production') console.log('👤 Upsert perfil aluno');
       const { error: profileError } = await supabase.from('profiles').upsert({
         id: user.id,
         full_name: name,
@@ -235,7 +248,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: profileError.message }, { status: 500 });
       }
       
-      console.log('✅ Perfil criado/atualizado com role: aluno');
+      if (process.env.NODE_ENV !== 'production') console.log('✅ Perfil ok');
     }
 
     // 4. Criar/atualizar assinatura (só se usuário existir)
@@ -256,7 +269,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: subscriptionError.message }, { status: 500 });
       }
       
-      console.log('✅ Assinatura criada/atualizada com status:', normalizedStatus);
+      if (process.env.NODE_ENV !== 'production') console.log('✅ Assinatura ok');
     }
 
     // 5. Se for um evento de pagamento aprovado, enviar email de boas-vindas
@@ -264,14 +277,7 @@ export async function POST(request: NextRequest) {
       await sendWelcomeEmail(email, name);
     }
 
-    console.log('Webhook processado com sucesso:', {
-      email,
-      name,
-      product_id,
-      purchase_id,
-      event: eventType,
-      status: normalizedStatus,
-    });
+    if (process.env.NODE_ENV !== 'production') console.log('Webhook processado com sucesso');
 
     return NextResponse.json({ 
       message: 'Webhook processed successfully',

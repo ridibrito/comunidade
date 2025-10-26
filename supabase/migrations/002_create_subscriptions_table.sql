@@ -22,3 +22,31 @@ FROM public.subscriptions
 WHERE status IN ('active','trial')
   AND (ends_at IS NULL OR ends_at > now())
 GROUP BY user_id;
+
+-- Habilitar RLS e políticas mínimas seguras
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'subscriptions' AND policyname = 'allow_user_read_own_subscriptions'
+  ) THEN
+    CREATE POLICY "allow_user_read_own_subscriptions"
+    ON public.subscriptions
+    FOR SELECT
+    USING (auth.uid() = user_id);
+  END IF;
+END $$;
+
+-- Inserções/atualizações somente por service role (executadas via backend)
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'subscriptions' AND policyname = 'allow_service_role_write_subscriptions'
+  ) THEN
+    CREATE POLICY "allow_service_role_write_subscriptions"
+    ON public.subscriptions
+    FOR ALL
+    TO service_role
+    USING (true)
+    WITH CHECK (true);
+  END IF;
+END $$;
