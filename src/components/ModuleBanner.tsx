@@ -29,13 +29,13 @@ export function ModuleBanner({
   onPlayClick
 }: ModuleBannerProps) {
   return (
-    <div className="relative w-full overflow-hidden md:aspect-[16/6] md:min-h-[400px] max-h-[600px] bg-black">
+    <div className="relative w-full overflow-hidden md:aspect-[16/6] md:min-h-[400px] max-h-[600px]">
       {/* Imagem de Fundo */}
       {coverUrl ? (
         <img
           src={coverUrl}
           alt={title}
-          className="w-full h-auto md:h-full object-contain md:object-cover object-center"
+          className="w-full h-auto md:h-full object-cover object-center"
           decoding="async"
           loading="eager"
         />
@@ -47,8 +47,8 @@ export function ModuleBanner({
       <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/50 to-black/30" />
 
       {/* Conteúdo */}
-      <div className="absolute inset-0 flex items-center">
-        <div className="w-full px-4 md:px-8 py-4 md:py-0">
+      <div className="absolute inset-0 flex items-start md:items-center">
+        <div className="w-full px-4 md:px-8 py-6 md:py-0">
           <div className="flex flex-col items-start max-w-4xl">
             {/* Botão voltar */}
             <div className="mb-4 md:mb-6 self-start">
@@ -68,13 +68,13 @@ export function ModuleBanner({
               )}
             </div>
 
-                         {/* Título e Metadados */}
-            <div className="mb-3 md:mb-4 w-full">
+            {/* Título e Metadados */}
+            <div className="hidden md:block mb-3 md:mb-4 w-full">
               <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-2 md:mb-4 drop-shadow-lg leading-tight">
-                 {title}
-               </h1>
+                {title}
+              </h1>
                
-              <div className="flex items-center flex-wrap gap-3 md:gap-6 text-white/90 mb-3 md:mb-4">
+              <div className="hidden md:flex items-center flex-wrap gap-3 md:gap-6 text-white/90 mb-3 md:mb-4">
                 {category && (
                   <div className="flex items-center gap-2 bg-white/20 px-2.5 py-1 rounded-lg backdrop-blur-sm">
                     <Tag size={16} />
@@ -94,13 +94,13 @@ export function ModuleBanner({
 
                          {/* Descrição */}
             {description && (
-              <p className="hidden sm:block text-white/90 text-base md:text-lg mb-4 md:mb-6 max-w-3xl drop-shadow-md">
+              <p className="hidden md:block text-white/90 text-base md:text-lg mb-4 md:mb-6 max-w-3xl drop-shadow-md">
                 {description}
               </p>
             )}
 
             {/* Barra de Progresso */}
-            <div className="mb-4 md:mb-6 w-full max-w-sm md:max-w-md">
+            <div className="hidden md:block mb-4 md:mb-6 w-full max-w-sm md:max-w-md">
               <div className="flex justify-between text-xs md:text-sm text-white/90 mb-1.5 md:mb-2">
                 <span>Progresso</span>
                 <span>{progress}%</span>
@@ -117,7 +117,7 @@ export function ModuleBanner({
             {onPlayClick && (
               <button
                 onClick={onPlayClick}
-                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 md:px-8 py-2.5 md:py-3 bg-brand-accent hover:bg-brand-accent/90 text-white text-sm md:text-base font-semibold rounded-lg transition-colors shadow-lg hover:shadow-xl"
+                className="hidden md:inline-flex items-center justify-start gap-2 w-auto px-4 md:px-8 py-2 md:py-3 bg-brand-accent hover:bg-brand-accent/90 text-white text-xs md:text-base font-semibold rounded-lg transition-colors shadow-lg hover:shadow-xl"
               >
                 <Play size={20} />
                 Continuar assistindo
