@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
         const resend = new Resend(resendApiKey);
         
         const { data: emailData, error: emailError } = await resend.emails.send({
-          from: 'Aldeia Singular <onboarding@resend.dev>', // Altere para seu domínio verificado
+          from: 'Aldeia Singular <comunidade@aldeiasingular.com.br>',
           to: [email],
           subject: emailTemplate.subject,
           html: emailTemplate.html,
