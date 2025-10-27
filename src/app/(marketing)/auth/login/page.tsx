@@ -84,9 +84,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex bg-dark-bg">
+    <main className="min-h-screen flex bg-light-bg">
       {/* Coluna esquerda: formulário */}
-      <section className="w-full md:w-[30%] max-w-[400px] border-r border-dark-border bg-dark-surface p-6 flex flex-col justify-center relative">
+      <section className="w-full md:w-[30%] max-w-[400px] border-r border-light-border bg-light-surface p-6 flex flex-col justify-center relative">
         
         <div className="mb-6 flex justify-center">
           <Image 
@@ -98,35 +98,35 @@ export default function LoginPage() {
             style={{ width: "auto", height: "auto" }}
           />
         </div>
-        <h1 className="text-2xl font-semibold text-dark-text">Entrar</h1>
-        <p className="text-dark-muted mt-1 text-sm">Acesse com e‑mail e senha. No primeiro acesso, use o link de definição de senha.</p>
+        <h1 className="text-2xl font-semibold text-light-text">Entrar</h1>
+        <p className="text-light-muted mt-1 text-sm">Acesse com e‑mail e senha. No primeiro acesso, use o link de definição de senha.</p>
         <form onSubmit={onSubmit} className="mt-5 space-y-3">
           <div>
-            <label className="text-sm text-dark-text">E‑mail</label>
+            <label className="text-sm text-light-text">E‑mail</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e)=>setEmail(e.target.value)}
-              className="mt-1 w-full h-11 rounded-xl bg-transparent border border-dark-border px-3 text-dark-text placeholder-dark-muted focus:border-brand-accent focus:ring-1 focus:ring-brand-accent"
+              className="mt-1 w-full h-11 rounded-xl bg-transparent border border-light-border px-3 text-light-text placeholder-light-muted focus:border-brand-accent focus:ring-1 focus:ring-brand-accent"
               placeholder="voce@exemplo.com"
             />
           </div>
           <div>
-            <label className="text-sm text-dark-text">Senha</label>
+            <label className="text-sm text-light-text">Senha</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
                 required
                 value={password}
                 onChange={(e)=>setPassword(e.target.value)}
-                className="mt-1 w-full h-11 rounded-xl bg-transparent border border-dark-border px-3 pr-10 text-dark-text placeholder-dark-muted focus:border-brand-accent focus:ring-1 focus:ring-brand-accent"
+                className="mt-1 w-full h-11 rounded-xl bg-transparent border border-light-border px-3 pr-10 text-light-text placeholder-light-muted focus:border-brand-accent focus:ring-1 focus:ring-brand-accent"
                 placeholder="Sua senha"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-dark-muted hover:text-dark-text transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-light-muted hover:text-light-text transition-colors"
               >
                 {showPassword ? (
                   <EyeOff className="w-5 h-5" />
@@ -143,22 +143,22 @@ export default function LoginPage() {
         {message && (
           <div className={`mt-3 p-3 rounded-lg border ${
             messageType === "error" 
-              ? "bg-red-900/20 border-red-800" 
-              : "bg-green-900/20 border-green-800"
+              ? "bg-red-100 border-red-300" 
+              : "bg-green-100 border-green-300"
           }`}>
             <div className={`text-sm font-medium ${
               messageType === "error" 
-                ? "text-red-400" 
-                : "text-green-400"
+                ? "text-red-800" 
+                : "text-green-800"
             }`}>
               {message}
             </div>
           </div>
         )}
-        <div className="mt-4 text-xs text-dark-muted">
+        <div className="mt-4 text-xs text-light-muted">
           Esqueceu a senha? <a href="/auth/recover" className="text-brand-accent hover:underline cursor-pointer">Recuperar acesso</a>
         </div>
-        <div className="mt-8 text-center text-dark-muted text-xs">© {new Date().getFullYear()} Aldeia Singular</div>
+        <div className="mt-8 text-center text-light-muted text-xs">© {new Date().getFullYear()} Aldeia Singular</div>
       </section>
 
       {/* Coluna direita: imagem/placeholder */}

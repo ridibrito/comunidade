@@ -26,8 +26,8 @@ export default function RecoverPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6 bg-dark-bg">
-      <div className="w-full max-w-md rounded-2xl border border-dark-border bg-dark-surface p-6">
+    <main className="min-h-screen flex items-center justify-center p-6 bg-light-bg">
+      <div className="w-full max-w-md rounded-2xl border border-light-border bg-light-surface p-6">
         <div className="mb-4 flex justify-center">
           <Image 
             src="/logo_full.png" 
@@ -38,17 +38,17 @@ export default function RecoverPage() {
             style={{ width: "auto", height: "auto" }}
           />
         </div>
-        <h1 className="text-2xl font-semibold text-dark-text">Recuperar acesso</h1>
-        <p className="text-dark-muted mt-1 text-sm">Informe seu e‑mail cadastrado para receber o link de redefinição.</p>
+        <h1 className="text-2xl font-semibold text-light-text">Recuperar acesso</h1>
+        <p className="text-light-muted mt-1 text-sm">Informe seu e‑mail cadastrado para receber o link de redefinição.</p>
         <form onSubmit={onSubmit} className="mt-4 space-y-3">
           <div>
-            <label className="text-sm text-dark-text">E‑mail</label>
+            <label className="text-sm text-light-text">E‑mail</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e)=>setEmail(e.target.value)}
-              className="mt-1 w-full h-11 rounded-xl bg-transparent border border-dark-border px-3 text-dark-text placeholder-dark-muted focus:border-brand-accent focus:ring-1 focus:ring-brand-accent"
+              className="mt-1 w-full h-11 rounded-xl bg-transparent border border-light-border px-3 text-light-text placeholder-light-muted focus:border-brand-accent focus:ring-1 focus:ring-brand-accent"
               placeholder="voce@exemplo.com"
             />
           </div>
@@ -56,8 +56,8 @@ export default function RecoverPage() {
             {loading ? "Enviando..." : "Enviar link"}
           </button>
         </form>
-        {message && <div className="mt-3 text-sm text-dark-text">{message}</div>}
-        <div className="mt-4 text-xs text-dark-muted">
+        {message && <div className="mt-3 text-sm text-light-text">{message}</div>}
+        <div className="mt-4 text-xs text-light-muted">
           Lembrou a senha? <a href="/auth/login" className="text-brand-accent">Voltar ao login</a>
         </div>
       </div>

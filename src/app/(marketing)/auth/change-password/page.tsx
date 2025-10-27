@@ -127,88 +127,114 @@ export default function ChangePasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-light-bg p-4">
+        <div className="bg-light-surface shadow-lg rounded-lg p-8 max-w-md text-center border border-light-border">
           <div className="mb-6 flex justify-center">
             <Image src="/logo_full.png" alt="Aldeia Singular" width={200} height={40} priority style={{ width: "auto", height: "auto" }} />
           </div>
           <div className="mb-4">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900">
-              <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+              <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-2xl font-bold text-light-text mb-4">
             Senha Alterada com Sucesso!
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
+          <p className="text-light-muted mb-6">
             Sua senha foi alterada com sucesso. Você será redirecionado para o dashboard em instantes.
           </p>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[##7C3AED] mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-accent mx-auto"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-      <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md w-full">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-light-bg p-4">
+      <div className="bg-light-surface shadow-lg rounded-lg p-8 max-w-md w-full border border-light-border">
         <div className="mb-6 flex justify-center">
           <Image src="/logo_full.png" alt="Aldeia Singular" width={200} height={40} priority style={{ width: "auto", height: "auto" }} />
         </div>
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-2xl font-bold text-light-text mb-2">
             Alterar Senha
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-light-muted">
             Você precisa alterar sua senha temporária para continuar
           </p>
         </div>
 
         <form onSubmit={handleChangePassword} className="space-y-6">
           <div>
-            <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="newPassword" className="block text-sm font-medium text-light-text mb-2">
               Nova Senha
             </label>
-            <input
-              id="newPassword"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[#7C3AED] focus:border-[#7C3AED] dark:bg-gray-700 dark:text-white"
-              placeholder="Digite sua nova senha"
-              required
-              minLength={6}
-            />
+            <div className="relative">
+              <input
+                id="newPassword"
+                type={showNewPassword ? "text" : "password"}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-light-border rounded-xl shadow-sm focus:outline-none focus:ring-brand-accent focus:border-brand-accent bg-transparent text-light-text placeholder-light-muted"
+                placeholder="Digite sua nova senha"
+                required
+                minLength={6}
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-light-muted hover:text-light-text transition-colors"
+              >
+                {showNewPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-light-text mb-2">
               Confirmar Nova Senha
             </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[#7C3AED] focus:border-[#7C3AED] dark:bg-gray-700 dark:text-white"
-              placeholder="Confirme sua nova senha"
-              required
-              minLength={6}
-            />
+            <div className="relative">
+              <input
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-light-border rounded-xl shadow-sm focus:outline-none focus:ring-brand-accent focus:border-brand-accent bg-transparent text-light-text placeholder-light-muted"
+                placeholder="Confirme sua nova senha"
+                required
+                minLength={6}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-light-muted hover:text-light-text transition-colors"
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
 
           {error && (
-            <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-md p-3">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <div className="bg-red-100 border border-red-300 rounded-lg p-3">
+              <p className="text-sm text-red-800">{error}</p>
             </div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7C3AED] hover:bg-[#6D28D9] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7C3AED] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-brand-accent hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <div className="flex items-center">
@@ -222,7 +248,7 @@ export default function ChangePasswordPage() {
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-light-muted">
             Esta é uma medida de segurança para proteger sua conta.
           </p>
         </div>

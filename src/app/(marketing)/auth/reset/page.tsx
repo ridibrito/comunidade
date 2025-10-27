@@ -100,8 +100,8 @@ export default function ResetPasswordPage() {
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-dark-bg p-4">
-        <div className="bg-dark-surface shadow-lg rounded-lg p-8 max-w-md text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-light-bg p-4">
+        <div className="bg-light-surface shadow-lg rounded-lg p-8 max-w-md text-center border border-light-border">
           <div className="mb-4 flex justify-center">
             <Image 
               src="/logo_full.png" 
@@ -113,7 +113,7 @@ export default function ResetPasswordPage() {
             />
           </div>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-accent mx-auto mb-4"></div>
-          <p className="text-dark-text">Verificando autenticação...</p>
+          <p className="text-light-text">Verificando autenticação...</p>
         </div>
       </div>
     );
@@ -121,8 +121,8 @@ export default function ResetPasswordPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-dark-bg p-4">
-        <div className="bg-dark-surface shadow-lg rounded-lg p-8 max-w-md text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-light-bg p-4">
+        <div className="bg-light-surface shadow-lg rounded-lg p-8 max-w-md text-center border border-light-border">
           <div className="mb-4 flex justify-center">
             <Image 
               src="/logo_full.png" 
@@ -134,16 +134,16 @@ export default function ResetPasswordPage() {
             />
           </div>
           <div className="mb-4">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-900">
-              <svg className="h-6 w-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+              <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-dark-text mb-4">
+          <h1 className="text-2xl font-bold text-light-text mb-4">
             Acesso Negado
           </h1>
-          <p className="text-dark-muted mb-6">
+          <p className="text-light-muted mb-6">
             {error || "Você precisa estar logado para redefinir sua senha. Verifique o link do email."}
           </p>
           <a
@@ -159,8 +159,8 @@ export default function ResetPasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-dark-bg p-4">
-        <div className="bg-dark-surface shadow-lg rounded-lg p-8 max-w-md text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-light-bg p-4">
+        <div className="bg-light-surface shadow-lg rounded-lg p-8 max-w-md text-center border border-light-border">
           <div className="mb-4 flex justify-center">
             <Image 
               src="/logo_full.png" 
@@ -172,16 +172,16 @@ export default function ResetPasswordPage() {
             />
           </div>
           <div className="mb-4">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-900">
-              <svg className="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+              <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-dark-text mb-4">
+          <h1 className="text-2xl font-bold text-light-text mb-4">
             Senha Redefinida com Sucesso!
           </h1>
-          <p className="text-dark-muted mb-6">
+          <p className="text-light-muted mb-6">
             Sua senha foi redefinida com sucesso. Você será redirecionado para o dashboard em instantes.
           </p>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-accent mx-auto"></div>
@@ -191,8 +191,8 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-dark-bg p-4">
-      <div className="bg-dark-surface shadow-lg rounded-lg p-8 max-w-md w-full">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-light-bg p-4">
+      <div className="bg-light-surface shadow-lg rounded-lg p-8 max-w-md w-full border border-light-border">
         <div className="mb-4 flex justify-center">
           <Image 
             src="/logo_full.png" 
@@ -204,17 +204,17 @@ export default function ResetPasswordPage() {
           />
         </div>
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-dark-text mb-2">
+          <h1 className="text-2xl font-bold text-light-text mb-2">
             Definir Nova Senha
           </h1>
-          <p className="text-dark-muted">
+          <p className="text-light-muted">
             {email ? `Para ${email}` : "Digite sua nova senha"}
           </p>
         </div>
 
         <form onSubmit={handleResetPassword} className="space-y-6">
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-dark-text mb-2">
+            <label htmlFor="password" className="block text-sm font-medium text-light-text mb-2">
               Nova Senha
             </label>
             <div className="relative">
@@ -223,7 +223,7 @@ export default function ResetPasswordPage() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 pr-10 border border-dark-border rounded-xl bg-transparent text-dark-text placeholder-dark-muted focus:outline-none focus:ring-1 focus:ring-brand-accent focus:border-brand-accent"
+                className="w-full px-3 py-2 pr-10 border border-light-border rounded-xl bg-transparent text-light-text placeholder-light-muted focus:outline-none focus:ring-1 focus:ring-brand-accent focus:border-brand-accent"
                 placeholder="Digite sua nova senha"
                 required
                 minLength={6}
@@ -231,7 +231,7 @@ export default function ResetPasswordPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-dark-muted hover:text-dark-text transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-light-muted hover:text-light-text transition-colors"
               >
                 {showPassword ? (
                   <EyeOff className="w-5 h-5" />
@@ -243,7 +243,7 @@ export default function ResetPasswordPage() {
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-dark-text mb-2">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-light-text mb-2">
               Confirmar Senha
             </label>
             <div className="relative">
@@ -252,7 +252,7 @@ export default function ResetPasswordPage() {
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-3 py-2 pr-10 border border-dark-border rounded-xl bg-transparent text-dark-text placeholder-dark-muted focus:outline-none focus:ring-1 focus:ring-brand-accent focus:border-brand-accent"
+                className="w-full px-3 py-2 pr-10 border border-light-border rounded-xl bg-transparent text-light-text placeholder-light-muted focus:outline-none focus:ring-1 focus:ring-brand-accent focus:border-brand-accent"
                 placeholder="Confirme sua nova senha"
                 required
                 minLength={6}
@@ -260,7 +260,7 @@ export default function ResetPasswordPage() {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-dark-muted hover:text-dark-text transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-light-muted hover:text-light-text transition-colors"
               >
                 {showConfirmPassword ? (
                   <EyeOff className="w-5 h-5" />
@@ -272,8 +272,8 @@ export default function ResetPasswordPage() {
           </div>
 
           {error && (
-            <div className="bg-red-900/20 border border-red-800 rounded-lg p-3">
-              <p className="text-sm text-red-400">{error}</p>
+            <div className="bg-red-100 border border-red-300 rounded-lg p-3">
+              <p className="text-sm text-red-800">{error}</p>
             </div>
           )}
 
@@ -294,7 +294,7 @@ export default function ResetPasswordPage() {
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-dark-muted">
+          <p className="text-sm text-light-muted">
             Lembrou da senha?{" "}
             <a href="/auth/login" className="font-medium text-brand-accent hover:underline">
               Fazer login
