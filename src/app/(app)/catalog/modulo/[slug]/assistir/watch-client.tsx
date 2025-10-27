@@ -44,6 +44,7 @@ export default function WatchClient({ slug }: { slug: string }) {
   const searchParams = useSearchParams();
   const lessonId = searchParams.get('lesson');
   const [trailTitle, setTrailTitle] = useState("");
+  const [parentPageSlug, setParentPageSlug] = useState("montanha-do-amanha");
   const [moduleTitle, setModuleTitle] = useState("");
   const [lessons, setLessons] = useState<LessonData[]>([]);
   const [userRating, setUserRating] = useState<number>(0);
@@ -311,7 +312,7 @@ export default function WatchClient({ slug }: { slug: string }) {
     (async () => {
       const { data: mod } = await supabase
         .from("modules")
-        .select("id, title, trail_id, trails(title)")
+        .select("id, title, trail_id, trails(title, page_id)")
         .eq("slug", slug)
         .maybeSingle() as { data: ModuleData | null };
       
@@ -319,6 +320,15 @@ export default function WatchClient({ slug }: { slug: string }) {
       
       setModuleTitle(mod.title);
       setTrailTitle(mod.trails?.title || "Montanha do Amanhã");
+      // Buscar slug da página mãe para breadcrumb/link
+      if ((mod as any)?.trails?.page_id) {
+        const { data: pageData } = await supabase
+          .from('pages')
+          .select('slug')
+          .eq('id', (mod as any).trails.page_id)
+          .single();
+        if (pageData?.slug) setParentPageSlug(pageData.slug);
+      }
       
       const { data: l, error: lessonsError } = await supabase
         .from("contents")
@@ -494,14 +504,14 @@ export default function WatchClient({ slug }: { slug: string }) {
           {/* Breadcrumbs */}
           <div className="flex items-center gap-2 text-sm text-light-muted dark:text-dark-muted mb-2">
             <Link 
-              href="/catalog/montanha-do-amanha"
+              href={`/catalog/${parentPageSlug}`}
               className="hover:text-light-text dark:hover:text-dark-text transition-colors"
             >
               Início
             </Link>
             <span>›</span>
             <Link 
-              href="/catalog/montanha-do-amanha"
+              href={`/catalog/${parentPageSlug}`}
               className="hover:text-light-text dark:hover:text-dark-text transition-colors"
             >
               {trailTitle}

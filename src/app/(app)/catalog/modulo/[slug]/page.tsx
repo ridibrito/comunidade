@@ -43,7 +43,8 @@ export default function ModulePage() {
   const [module, setModule] = useState<Module | null>(null);
   const [loading, setLoading] = useState(true);
   const [trailTitle, setTrailTitle] = useState("");
-  const [trailSlug, setTrailSlug] = useState("");
+  // Armazena o slug da página mãe (ex.: montanha-do-amanha, acervo-digital)
+  const [parentPageSlug, setParentPageSlug] = useState("");
   const [lessonsProgress, setLessonsProgress] = useState<{[key: string]: {percentage: number, completed: boolean}}>({});
 
   useEffect(() => {
@@ -66,20 +67,30 @@ export default function ModulePage() {
           return;
         }
 
-        // Buscar trilha para obter o título e slug
+        // Buscar trilha para obter o título e a página mãe
         if (moduleData) {
           const module = moduleData as any;
           if (module.trail_id) {
             const { data: trailData } = await supabase
               .from('trails')
-              .select('title, slug')
+              .select('title, slug, page_id')
               .eq('id', module.trail_id)
               .single();
 
             if (trailData) {
               const trail = trailData as any;
               setTrailTitle(trail.title);
-              setTrailSlug(trail.slug || '');
+              // Buscar a página mãe para obter o slug correto da rota de volta
+              if (trail.page_id) {
+                const { data: pageData } = await supabase
+                  .from('pages')
+                  .select('slug')
+                  .eq('id', trail.page_id)
+                  .single();
+                if (pageData) {
+                  setParentPageSlug((pageData as any).slug || '');
+                }
+              }
             }
           }
         }
@@ -238,7 +249,7 @@ export default function ModulePage() {
         totalDuration={module.total_duration}
         progress={module.progress}
         trailTitle={trailTitle}
-        trailSlug={trailSlug || 'montanha-do-amanha'}
+        trailSlug={parentPageSlug || 'montanha-do-amanha'}
         onPlayClick={() => window.location.href = `/catalog/modulo/${module.slug}/assistir`}
       />
 
