@@ -125,20 +125,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Enviar email personalizado usando Edge Function
+    // Enviar email personalizado via Edge Function
     try {
       const { data: emailData, error: emailError } = await supabase.functions.invoke('send-welcome-email', {
         body: {
-          email: email,
-          name: name,
-          tempPassword: tempPassword
+          email,
+          name,
+          tempPassword
         }
       });
 
       if (emailError) {
-        console.error("Erro ao enviar email:", emailError);
+        console.error("Erro ao enviar email via Edge Function:", emailError);
       } else {
-        console.log("Email enviado com sucesso:", emailData);
+        console.log("Email enviado via Edge Function:", emailData);
       }
     } catch (emailError) {
       console.error("Erro ao chamar Edge Function:", emailError);

@@ -95,37 +95,39 @@ export async function POST(request: NextRequest) {
     console.log("📧 Tentando enviar email para:", email);
     
     try {
-      // Usar a Edge Function do Supabase (send-welcome-email)
-      // que tem acesso aos Secrets corretos incluindo RESEND_API_KEY
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+      // Tentar enviar via Resend direto primeiro
+      const resendApiKey = process.env.RESEND_API_KEY;
       
-      const edgeFunctionUrl = `${supabaseUrl}/functions/v1/send-welcome-email`;
-      
-      console.log("📤 Chamando Edge Function:", edgeFunctionUrl);
-      
-      const emailResponse = await fetch(edgeFunctionUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${supabaseServiceKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: email,
-          name: fullName,
-          actionUrl: resetData.properties?.action_link
-        })
-      });
-      
-      const emailResult = await emailResponse.json();
-      
-      if (!emailResponse.ok) {
-        console.error("❌ Erro ao enviar email via Edge Function:", emailResult);
+      if (resendApiKey) {
+        console.log("📧 Enviando email diretamente via Resend");
+        
+        const resendResponse = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: process.env.MAIL_FROM || 'Comunidade Coruss <noreply@aldeiasingular.com.br>',
+            to: email,
+            subject: 'Bem-vindo à Comunidade Coruss! 🎉',
+            html: emailTemplate
+          })
+        });
+        
+        if (resendResponse.ok) {
+          const result = await resendResponse.json();
+          console.log("✅ Email enviado com sucesso via Resend:", result.id);
+        } else {
+          const error = await resendResponse.json();
+          console.error("❌ Erro ao enviar email via Resend:", error);
+          throw new Error('Falha ao enviar email via Resend');
+        }
       } else {
-        console.log("✅ Email enviado com sucesso via Edge Function!", emailResult);
+        console.warn("⚠️ RESEND_API_KEY não configurada. Email não será enviado.");
       }
-    } catch (emailError) {
-      console.error("❌ Erro ao processar envio de email:", emailError);
+    } catch (emailError: any) {
+      console.error("❌ Erro ao processar envio de email:", emailError.message || emailError);
       // Não falhar a requisição se o email falhar
     }
 
