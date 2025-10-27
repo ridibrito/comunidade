@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
       perPage: 1000, // Aumentar limite para encontrar o usuário
     });
     
-    let user = existingUsers?.users?.find(u => u.email === email);
+    let user = existingUsers?.users?.find((u: any) => u.email === email);
     
     if (!user) {
       // Só criar usuário para eventos de pagamento aprovado
