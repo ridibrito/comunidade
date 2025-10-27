@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { inviteEmailTemplate } from "@/lib/email-templates";
-import { Resend } from "resend";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -96,26 +95,34 @@ export async function POST(request: NextRequest) {
     console.log("📧 Tentando enviar email para:", email);
     
     try {
-      const resendApiKey = process.env.RESEND_API_KEY;
+      // Usar a Edge Function do Supabase (send-welcome-email)
+      // que tem acesso aos Secrets corretos incluindo RESEND_API_KEY
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
       
-      if (!resendApiKey) {
-        console.warn("⚠️  RESEND_API_KEY não configurada. Email não será enviado.");
-        console.log("📋 Link para copiar:", resetData.properties?.action_link);
+      const edgeFunctionUrl = `${supabaseUrl}/functions/v1/send-welcome-email`;
+      
+      console.log("📤 Chamando Edge Function:", edgeFunctionUrl);
+      
+      const emailResponse = await fetch(edgeFunctionUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseServiceKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: email,
+          name: fullName,
+          actionUrl: resetData.properties?.action_link
+        })
+      });
+      
+      const emailResult = await emailResponse.json();
+      
+      if (!emailResponse.ok) {
+        console.error("❌ Erro ao enviar email via Edge Function:", emailResult);
       } else {
-        const resend = new Resend(resendApiKey);
-        
-        const { data: emailData, error: emailError } = await resend.emails.send({
-          from: 'Aldeia Singular <comunidade@aldeiasingular.com.br>',
-          to: [email],
-          subject: emailTemplate.subject,
-          html: emailTemplate.html,
-        });
-        
-        if (emailError) {
-          console.error("❌ Erro ao enviar email:", emailError);
-        } else {
-          console.log("✅ Email enviado com sucesso!", emailData);
-        }
+        console.log("✅ Email enviado com sucesso via Edge Function!", emailResult);
       }
     } catch (emailError) {
       console.error("❌ Erro ao processar envio de email:", emailError);
