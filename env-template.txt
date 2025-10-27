@@ -1,0 +1,107 @@
+# ===========================================
+# CONFIGURAÇÕES PRINCIPAIS DA APLICAÇÃO
+# ===========================================
+
+# URL da aplicação (obrigatório)
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# URL do site (para produção)
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+# ===========================================
+# CONFIGURAÇÕES DO SUPABASE
+# ===========================================
+
+# URL do projeto Supabase (obrigatório)
+NEXT_PUBLIC_SUPABASE_URL=
+
+# Chave anônima do Supabase (obrigatório)
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+
+# Chave de serviço do Supabase (obrigatório para operações administrativas)
+SUPABASE_SERVICE_ROLE_KEY=
+
+# ===========================================
+# CONFIGURAÇÕES DE IA (OPENAI)
+# ===========================================
+
+# Chave da API OpenAI (obrigatório para funcionalidades de IA)
+OPENAI_API_KEY=
+
+# ===========================================
+# CONFIGURAÇÕES DE EMAIL (RESEND)
+# ===========================================
+
+# Chave da API Resend (obrigatório para envio de emails)
+RESEND_API_KEY=
+
+# Email remetente padrão
+MAIL_FROM=Comunidade Coruss <noreply@aldeiasingular.com.br>
+
+# ===========================================
+# CONFIGURAÇÕES DO REDIS (UPSTASH)
+# ===========================================
+
+# URL do Redis Upstash (opcional - para rate limiting)
+UPSTASH_REDIS_REST_URL=
+
+# Token do Redis Upstash (opcional - para rate limiting)
+UPSTASH_REDIS_REST_TOKEN=
+
+# ===========================================
+# CONFIGURAÇÕES DA HOTMART
+# ===========================================
+
+# Secret do webhook Hotmart (opcional - para integração com Hotmart)
+HOTMART_WEBHOOK_SECRET=
+
+# IDs dos produtos Hotmart (opcional - separados por vírgula)
+HOTMART_PRODUCT_IDS=
+
+# ===========================================
+# CONFIGURAÇÕES DE AMBIENTE
+# ===========================================
+
+# Ambiente da aplicação (development, production)
+NODE_ENV=development
+
+# ===========================================
+# INSTRUÇÕES DE CONFIGURAÇÃO
+# ===========================================
+
+# 1. SUPABASE:
+#    - Acesse https://supabase.com/dashboard
+#    - Crie um novo projeto ou selecione um existente
+#    - Vá em Settings > API
+#    - Copie a URL do projeto para NEXT_PUBLIC_SUPABASE_URL
+#    - Copie a chave anônima para NEXT_PUBLIC_SUPABASE_ANON_KEY
+#    - Copie a chave de serviço para SUPABASE_SERVICE_ROLE_KEY
+
+# 2. OPENAI:
+#    - Acesse https://platform.openai.com/api-keys
+#    - Crie uma nova chave de API
+#    - Copie para OPENAI_API_KEY
+
+# 3. RESEND:
+#    - Acesse https://resend.com/api-keys
+#    - Crie uma nova chave de API
+#    - Copie para RESEND_API_KEY
+
+# 4. UPSTASH REDIS (opcional):
+#    - Acesse https://console.upstash.com/
+#    - Crie um banco Redis
+#    - Copie a URL e token para as variáveis correspondentes
+
+# 5. HOTMART (opcional):
+#    - Configure o webhook na sua conta Hotmart
+#    - Use o secret fornecido pela Hotmart
+#    - Configure os IDs dos produtos se necessário
+
+# ===========================================
+# NOTAS IMPORTANTES
+# ===========================================
+
+# - Nunca commite este arquivo no Git
+# - Mantenha as chaves seguras
+# - Para produção, configure as URLs corretas
+# - Teste todas as integrações após configurar
