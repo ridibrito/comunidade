@@ -19,7 +19,7 @@ interface ToastContextType {
       success: string | ((data: T) => string);
       error: string | ((error: any) => string);
     }
-  ) => Promise<T>;
+  ) => any;
   // Toasts específicos da aplicação
   lessonCompleted: (lessonTitle: string) => string | number;
   moduleCompleted: (moduleTitle: string) => string | number;
