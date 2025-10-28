@@ -133,7 +133,21 @@ export default function AdminHeroesPage() {
 
     try {
       // Usar o page_slug selecionado
-      const pageSlug = formData.page_slug || "dashboard";
+      let pageSlug = formData.page_slug || "dashboard";
+
+      // Se estiver criando um novo hero (não editando), verificar se o slug já existe
+      if (!editingHero) {
+        const { data: existingHero } = await supabase
+          .from("page_heroes")
+          .select("page_slug")
+          .eq("page_slug", pageSlug)
+          .single();
+
+        // Se o slug já existe, adicionar timestamp para torná-lo único
+        if (existingHero) {
+          pageSlug = `${pageSlug}-hero-${Date.now()}`;
+        }
+      }
 
       // Se houver um cta_button configurado, adicione ao array de cta_buttons
       const ctaButtonsArray = [];
@@ -182,7 +196,7 @@ export default function AdminHeroesPage() {
                  .insert(heroData);
 
                if (error) throw error;
-               push({ title: "Hero criado", message: "Nova página hero criada!" });
+               push({ title: "Hero criado", message: `Nova página hero criada com slug: ${pageSlug}` });
              }
 
       setShowModal(false);
