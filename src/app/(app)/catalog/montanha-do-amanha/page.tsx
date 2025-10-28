@@ -10,7 +10,7 @@ import HeroSection from "@/components/ui/HeroSection";
 import ContentCarousel from "@/components/ui/ContentCarousel";
 import Card from "@/components/ui/Card";
 import { HeroCarousel } from "@/components/HeroCarousel";
-import { Play, Clock, Users, BookOpen } from "lucide-react";
+import { Play, Clock, Users, BookOpen, Mountain } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
@@ -307,6 +307,12 @@ export default function MontanhaAmanhaPage() {
       <HeroCarousel pageSlug="montanha-do-amanha" />
 
       <Section>
+        <div className="pt-0 px-0">
+          <div className="mb-2">
+            <h1 className="text-2xl font-bold">Montanha do Amanhã</h1>
+          </div>
+          <p className="text-light-muted dark:text-dark-muted text-lg mb-6">Trilhas educacionais para desenvolvimento integral</p>
+        </div>
         <div className="space-y-12">
           {/* Verificar se há trilhas */}
           {trails.length === 0 ? (

@@ -1,9 +1,12 @@
-import type { ElementType, ReactNode } from "react";
+import { createElement, isValidElement, type ElementType, type ReactNode } from "react";
 
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
   description?: string;
+  // Aceita:
+  // - um elemento React pronto (ex: <Icon />)
+  // - um componente de ícone (ex: Icon) incluindo ForwardRef de lucide-react
   icon?: ReactNode | ElementType<{ className?: string }>;
   iconClassName?: string;
 }
@@ -13,11 +16,17 @@ export default function PageHeader({ title, subtitle, description, icon, iconCla
 
   let renderedIcon: ReactNode = null;
   if (icon) {
-    if (typeof icon === "function") {
-      const IconComponent = icon as ElementType<{ className?: string }>;
-      renderedIcon = <IconComponent className={iconClassName ?? "w-6 h-6 text-brand-accent"} />;
-    } else {
-      renderedIcon = icon;
+    try {
+      if (isValidElement(icon)) {
+        // Elemento JSX já criado
+        renderedIcon = icon;
+      } else {
+        // Componente (inclui forwardRef do lucide-react)
+        const IconComponent = icon as ElementType<{ className?: string }>;
+        renderedIcon = createElement(IconComponent, { className: iconClassName ?? "w-6 h-6 text-brand-accent" });
+      }
+    } catch {
+      renderedIcon = null;
     }
   }
 

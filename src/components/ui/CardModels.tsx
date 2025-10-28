@@ -98,8 +98,12 @@ export function CardVideoAula({
 
       <div className="flex-1 flex flex-col p-3 space-y-2">
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1">{title}</h3>
-          <p className="text-sm text-gray-600 dark:text-dark-muted mb-2 line-clamp-2">{description}</p>
+          <Tooltip label={title} side="top">
+            <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1 line-clamp-2 min-h-[3rem] cursor-help">{title}</h3>
+          </Tooltip>
+          <Tooltip label={description} side="top">
+            <p className="text-sm text-gray-600 dark:text-dark-muted mb-2 line-clamp-2 min-h-[2.75rem] cursor-help">{description}</p>
+          </Tooltip>
           
           <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-dark-muted mb-2">
             <div className="flex items-center gap-1">
@@ -214,8 +218,12 @@ export function CardAulaAoVivo({
 
       <div className="flex-1 flex flex-col p-4 space-y-3">
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1">{title}</h3>
-          <p className="text-sm text-gray-600 dark:text-dark-muted mb-2 min-h-[2.5rem]">{description}</p>
+          <Tooltip label={title} side="top">
+            <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1 line-clamp-2 min-h-[3rem] cursor-help">{title}</h3>
+          </Tooltip>
+          <Tooltip label={description} side="top">
+            <p className="text-sm text-gray-600 dark:text-dark-muted mb-2 line-clamp-2 min-h-[2.75rem] cursor-help">{description}</p>
+          </Tooltip>
           <p className="text-xs text-brand-accent font-medium">Instrutor: {instructor}</p>
           
           <div className="space-y-2 mt-2">
@@ -345,10 +353,12 @@ export function CardLivro({
       <div className="flex-1 flex flex-col p-3 space-y-2 overflow-visible">
         <div className="flex-1 overflow-visible">
           <Tooltip label={title} side="top">
-            <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1 line-clamp-1 cursor-help">{title}</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1 line-clamp-1 min-h-[1.5rem] cursor-help">{title}</h3>
           </Tooltip>
           <p className="text-xs text-brand-accent font-medium mb-1">por {author}</p>
-          <p className="text-sm text-gray-600 dark:text-dark-muted line-clamp-2">{description}</p>
+          <Tooltip label={description} side="top">
+            <p className="text-sm text-gray-600 dark:text-dark-muted line-clamp-2 min-h-[2.75rem] cursor-help">{description}</p>
+          </Tooltip>
         </div>
         
         <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-dark-muted">

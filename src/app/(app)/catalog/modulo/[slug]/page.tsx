@@ -95,7 +95,7 @@ export default function ModulePage() {
           }
         }
 
-        // Buscar aulas do módulo
+        // Buscar encontros do módulo
         if (moduleData) {
           const module = moduleData as any;
           const { data: lessonsData, error: lessonsError } = await supabase
@@ -105,11 +105,11 @@ export default function ModulePage() {
             .order('position');
 
           if (lessonsError) {
-            console.error('Erro ao carregar aulas:', lessonsError);
+            console.error('Erro ao carregar encontros:', lessonsError);
           } else {
-            console.log('✅ Aulas carregadas:', lessonsData);
+            console.log('✅ Encontros carregados:', lessonsData);
             lessonsData?.forEach((lesson: any) => {
-              console.log(`📚 Aula: ${lesson.title}, image_url: ${lesson.image_url}`);
+              console.log(`📚 Encontro: ${lesson.title}, image_url: ${lesson.image_url}`);
             });
           }
 
@@ -123,7 +123,7 @@ export default function ModulePage() {
           const minutes = totalMinutes % 60;
           const totalDuration = hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
 
-          // Carregar progresso das aulas primeiro
+          // Carregar progresso dos encontros primeiro
           let calculatedProgress = 0;
           if (lessonsData && lessonsData.length > 0) {
             const lessonIds = lessonsData.map((lesson: any) => lesson.id);
@@ -150,10 +150,10 @@ export default function ModulePage() {
     }
   }, [params.slug]);
 
-  // Função para carregar progresso de todas as aulas
+  // Função para carregar progresso de todos os encontros
   const loadLessonsProgress = async (lessonIds: string[], supabase: any, totalLessons: number): Promise<number> => {
     try {
-      console.log('🔍 Carregando progresso para aulas:', lessonIds);
+      console.log('🔍 Carregando progresso para encontros:', lessonIds);
       
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -192,7 +192,7 @@ export default function ModulePage() {
         
         // Calcular progresso médio do módulo
         const averageProgress = Math.round(totalProgress / totalLessons);
-        console.log('✅ Progresso das aulas carregado (página módulo):', progressMap);
+        console.log('✅ Progresso dos encontros carregado (página módulo):', progressMap);
         console.log('📊 Progresso médio do módulo:', averageProgress + '%');
         
         return averageProgress;
@@ -255,9 +255,9 @@ export default function ModulePage() {
 
       <Section>
 
-        {/* Lista de aulas com carrossel */}
+        {/* Lista de encontros com carrossel */}
         <div className="mb-8">
-          <h2 className="section-title text-light-text dark:text-dark-text mb-6">Aulas</h2>
+          <h2 className="section-title text-light-text dark:text-dark-text mb-6">Encontros</h2>
           
           <div className="relative">
             <Carousel cardWidth={320} gap={24}>
@@ -276,7 +276,9 @@ export default function ModulePage() {
                       isNew={false}
                       difficulty="Básico"
                       image={(lesson as any).image_url || (lesson as any).cover_url || "https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=800"}
-                      slug={`${module.slug}/assistir`}
+                      slug={lesson.id}
+                      moduleSlug={module.slug}
+                      isLesson={true}
                     />
                   </div>
                 );

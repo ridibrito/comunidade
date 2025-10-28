@@ -8,6 +8,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import ContentCarousel from "@/components/ui/ContentCarousel";
 import Card from "@/components/ui/Card";
 import { HeroCarousel } from "@/components/HeroCarousel";
+import { Mic } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 
 interface Page {
@@ -150,7 +151,12 @@ export default function RodasDeConversaPage() {
     return (
       <Container fullWidth>
         <Section>
-          <PageHeader title="Rodas de Conversa" subtitle="Carregando..." />
+          <div className="pt-0 px-0">
+        <div className="mb-2">
+          <h1 className="text-2xl font-bold">Rodas de Conversa</h1>
+        </div>
+            <p className="text-light-muted dark:text-dark-muted text-lg mb-6">Carregando...</p>
+          </div>
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
           </div>
@@ -163,7 +169,10 @@ export default function RodasDeConversaPage() {
     return (
       <Container fullWidth>
         <Section>
-          <PageHeader title="Rodas de Conversa" subtitle="Página não encontrada" />
+          <div className="mb-2">
+            <h1 className="text-2xl font-bold">Rodas de Conversa</h1>
+          </div>
+          <p className="text-light-muted dark:text-dark-muted text-lg">Página não encontrada</p>
         </Section>
       </Container>
     );
@@ -175,10 +184,10 @@ export default function RodasDeConversaPage() {
       <HeroCarousel pageSlug="rodas-de-conversa" />
       
       <Section>
-        <PageHeader 
-          title={pageData.title} 
-          subtitle={pageData.description} 
-        />
+        <div className="mb-2">
+          <h1 className="text-2xl font-bold">{pageData.title}</h1>
+        </div>
+        <p className="text-light-muted dark:text-dark-muted text-lg mb-6">{pageData.description}</p>
         
         {trails.length === 0 ? (
           <div className="text-center py-12">

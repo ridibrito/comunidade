@@ -305,9 +305,6 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold text-light-text dark:text-dark-text mb-2">
             Bem-vindo, {displayName || 'Usuário'}!
           </h1>
-          <p className="text-light-muted dark:text-dark-muted">
-            Confira as últimas novidades da plataforma.
-          </p>
         </div>
 
         {/* Novidades - últimos conteúdos publicados */}

@@ -168,10 +168,10 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                   </h3>
                 </div>
                 <div className="space-y-1">
-                  <MenuItem href="/catalog/montanha-do-amanha" label="Montanha do amanhã" icon={Mountain} onClick={onClose} />
-                  <MenuItem href="/catalog/plantao-de-duvidas" label="Plantão de dúvidas" icon={HelpCircle} onClick={onClose} />
-                  <MenuItem href="/catalog/rodas-de-conversa" label="Rodas de conversa" icon={Mic} onClick={onClose} />
-                  <MenuItem href="/catalog/acervo-digital" label="Acervo digital" icon={Library} onClick={onClose} />
+                  <MenuItem href="/catalog/montanha-do-amanha" label="Montanha do Amanhã" icon={Mountain} onClick={onClose} />
+                  <MenuItem href="/catalog/plantao-de-duvidas" label="Plantão de Dúvidas" icon={HelpCircle} onClick={onClose} />
+                  <MenuItem href="/catalog/rodas-de-conversa" label="Rodas de Conversa" icon={Mic} onClick={onClose} />
+                  <MenuItem href="/catalog/acervo-digital" label="Acervo Digital" icon={Library} onClick={onClose} />
                 </div>
               </div>
             )}

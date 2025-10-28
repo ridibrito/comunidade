@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
-import PageHeader from "@/components/ui/PageHeader";
 import ContentCarousel from "@/components/ui/ContentCarousel";
 import Card from "@/components/ui/Card";
 import { HeroCarousel } from "@/components/HeroCarousel";
@@ -156,38 +155,41 @@ export default function PlantaoDeDuvidasPage() {
 
   if (loading) {
     return (
-      <Container fullWidth>
-        <Section>
-          <PageHeader title="Plantão de Dúvidas" subtitle="Carregando..." />
+      <div className="container">
+        <div className="p-8">
+          <h1>Plantão de Dúvidas</h1>
+          <p>Carregando...</p>
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
           </div>
-        </Section>
-      </Container>
+        </div>
+      </div>
     );
   }
 
   if (!pageData) {
     return (
-      <Container fullWidth>
-        <Section>
-          <PageHeader title="Plantão de Dúvidas" subtitle="Página não encontrada" />
-        </Section>
-      </Container>
+      <div className="container">
+        <div className="p-8">
+          <h1>Plantão de Dúvidas</h1>
+          <p>Página não encontrada</p>
+        </div>
+      </div>
     );
   }
 
   return (
     <Container fullWidth>
-      {/* Hero Carousel - Banner dinâmico */}
+      {/* Banner */}
       <HeroCarousel pageSlug="plantao-de-duvidas" />
-      
+
       <Section>
-        <PageHeader 
-          title={pageData.title} 
-          subtitle={pageData.description} 
-        />
-        
+        {/* Título sem ícone */}
+        <div className="mb-2">
+          <h1 className="text-2xl font-bold">Plantão de Dúvidas</h1>
+        </div>
+        <p className="text-light-muted dark:text-dark-muted text-lg mb-6">{pageData.description}</p>
+
         {trails.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-500 dark:text-dark-muted">
@@ -196,18 +198,14 @@ export default function PlantaoDeDuvidasPage() {
             </div>
           </div>
         ) : (
-        <div className="space-y-12">
+          <div className="space-y-12">
             {trails.map((trail) => (
               <div key={trail.id} className="space-y-6">
                 <div className="text-left">
-                  <h2 className="text-2xl font-bold text-light-text dark:text-dark-text mb-2">
-                    {trail.title}
-                </h2>
-                  <p className="text-light-muted dark:text-dark-muted">
-                    {trail.description}
-                </p>
-            </div>
-            
+                  <h2 className="text-2xl font-bold text-light-text dark:text-dark-text mb-2">{trail.title}</h2>
+                  <p className="text-light-muted dark:text-dark-muted">{trail.description}</p>
+                </div>
+
                 {trail.modules.length > 0 && (
                   <ContentCarousel>
                     {trail.modules.map((module) => (
@@ -219,24 +217,20 @@ export default function PlantaoDeDuvidasPage() {
                         <div className="flex-1 bg-gradient-to-br from-orange-500 to-orange-600 rounded-t-lg relative overflow-hidden">
                           <div className="absolute inset-0 bg-black/20"></div>
                           <div className="absolute bottom-4 left-4 right-4">
-                            <h3 className="text-white font-semibold text-lg leading-tight">
-                              {module.title}
-                            </h3>
+                            <h3 className="text-white font-semibold text-lg leading-tight">{module.title}</h3>
                           </div>
                         </div>
                         <div className="p-4 flex-1 flex flex-col justify-between">
-                          <p className="text-sm text-light-muted dark:text-dark-muted line-clamp-2">
-                            {module.description}
-                          </p>
+                          <p className="text-sm text-light-muted dark:text-dark-muted line-clamp-2">{module.description}</p>
                           <div className="mt-2 text-xs text-light-muted dark:text-dark-muted">
-                            {module.contents.length} {module.contents.length === 1 ? 'sessão' : 'sessões'}
+                            {(module.contents?.length || 0)} {(module.contents?.length || 0) === 1 ? 'sessão' : 'sessões'}
                           </div>
                         </div>
                       </Card>
                     ))}
                   </ContentCarousel>
                 )}
-            </div>
+              </div>
             ))}
           </div>
         )}

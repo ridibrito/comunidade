@@ -82,10 +82,10 @@ export function Sidebar() {
           <ul className="text-sm space-y-2">
             {inCatalog && (
               <>
-                {item("/catalog/montanha-do-amanha", "Montanha do amanhã", pathname.startsWith("/catalog/montanha-do-amanha"), Mountain)}
-                {item("/catalog/plantao-de-duvidas", "Plantão de dúvidas", pathname.startsWith("/catalog/plantao-de-duvidas"), HelpCircle)}
-                {item("/catalog/rodas-de-conversa", "Rodas de conversa", pathname.startsWith("/catalog/rodas-de-conversa"), Mic)}
-                {item("/catalog/acervo-digital", "Acervo digital", pathname.startsWith("/catalog/acervo-digital"), Library)}
+                {item("/catalog/montanha-do-amanha", "Montanha do Amanhã", pathname.startsWith("/catalog/montanha-do-amanha"), Mountain)}
+                {item("/catalog/plantao-de-duvidas", "Plantão de Dúvidas", pathname.startsWith("/catalog/plantao-de-duvidas"), HelpCircle)}
+                {item("/catalog/rodas-de-conversa", "Rodas de Conversa", pathname.startsWith("/catalog/rodas-de-conversa"), Mic)}
+                {item("/catalog/acervo-digital", "Acervo Digital", pathname.startsWith("/catalog/acervo-digital"), Library)}
               </>
             )}
             {inEvents && (

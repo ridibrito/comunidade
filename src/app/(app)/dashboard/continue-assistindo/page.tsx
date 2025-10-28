@@ -8,7 +8,7 @@ import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
 import ContentCarousel from "@/components/ui/ContentCarousel";
 import { CardVideoAula, CardLivro } from "@/components/ui/CardModels";
-import { ArrowLeft, Play } from "lucide-react";
+import { ArrowLeft, Play, Mountain, HelpCircle, Mic, Library } from "lucide-react";
 
 // Configuração de badges por página
 const PAGE_BADGE: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'brand' | 'success' | 'warning' | 'error' }> = {
@@ -16,6 +16,22 @@ const PAGE_BADGE: Record<string, { label: string; variant: 'default' | 'secondar
   'acervo-digital': { label: 'Acervo Digital', variant: 'success' },
   'plantao-de-duvidas': { label: 'Plantão de Dúvidas', variant: 'warning' },
   'rodas-de-conversa': { label: 'Rodas de Conversa', variant: 'error' }
+};
+
+// Ordem fixa das categorias conforme solicitado
+const CATEGORY_ORDER = [
+  'montanha-do-amanha',
+  'plantao-de-duvidas', 
+  'rodas-de-conversa',
+  'acervo-digital'
+];
+
+// Ícones específicos para cada categoria (mesmos do menu)
+const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  'montanha-do-amanha': Mountain,
+  'plantao-de-duvidas': HelpCircle,
+  'rodas-de-conversa': Mic,
+  'acervo-digital': Library
 };
 
 interface ContentWithProgress {
@@ -165,8 +181,8 @@ export default function ContinueAssistindoPage() {
   };
 
   const getCategoryIcon = (categorySlug: string) => {
-    // Aqui você pode adicionar ícones específicos para cada categoria
-    return <Play className="w-5 h-5" />;
+    const IconComponent = CATEGORY_ICONS[categorySlug] || Play;
+    return <IconComponent className="w-5 h-5 text-brand-accent" />;
   };
 
   const totalContents = Object.values(groupedContents).reduce((sum, contents) => sum + contents.length, 0);
@@ -236,12 +252,12 @@ export default function ContinueAssistindoPage() {
 
         {/* Conteúdos agrupados por categoria */}
         <div className="space-y-8">
-          {Object.entries(groupedContents).map(([categorySlug, contents]) => (
+          {CATEGORY_ORDER.filter(categorySlug => groupedContents[categorySlug] && groupedContents[categorySlug].length > 0).map((categorySlug) => {
+            const contents = groupedContents[categorySlug];
+            return (
             <div key={categorySlug}>
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-brand-accent rounded-full flex items-center justify-center">
-                  {getCategoryIcon(categorySlug)}
-                </div>
+                {getCategoryIcon(categorySlug)}
                 <h2 className="text-2xl font-bold text-light-text dark:text-dark-text">
                   {getCategoryTitle(categorySlug)}
                 </h2>
@@ -287,7 +303,8 @@ export default function ContinueAssistindoPage() {
                 })}
               </ContentCarousel>
             </div>
-          ))}
+            );
+          })}
         </div>
       </Section>
     </Container>
