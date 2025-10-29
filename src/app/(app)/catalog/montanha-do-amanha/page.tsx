@@ -13,6 +13,7 @@ import { HeroCarousel } from "@/components/HeroCarousel";
 import { Play, Clock, Users, BookOpen, Mountain } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { SectionHeading, SectionTitle } from "@/components/ui/SectionHeading";
 
 interface Page {
   id: string;
@@ -308,9 +309,7 @@ export default function MontanhaAmanhaPage() {
 
       <Section>
         <div className="pt-0 px-0">
-          <div className="mb-2">
-            <h1 className="text-2xl font-bold">Montanha do Amanhã</h1>
-          </div>
+          <SectionTitle title="Montanha do Amanhã" icon={Mountain} className="mb-2" />
           <p className="text-light-muted dark:text-dark-muted text-lg mb-6">Trilhas educacionais para desenvolvimento integral</p>
         </div>
         <div className="space-y-12">
@@ -333,14 +332,12 @@ export default function MontanhaAmanhaPage() {
               <div key={trail.id} className="space-y-6">
                 {/* Título da Trilha */}
                 <div className="text-left">
-                  <div className="flex items-start justify-between gap-4 mb-2">
-                    <div className="flex-1">
-                      <h2 className="text-2xl font-bold text-light-text dark:text-dark-text mb-1">
-                    {trail.title}
-                  </h2>
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div className="flex-1 space-y-2">
+                      <SectionHeading title={trail.title} />
                       <p className="text-light-muted dark:text-dark-muted">
-                      {trail.description}
-                    </p>
+                        {trail.description}
+                      </p>
                     </div>
                     <Badge variant="outline" className="text-white border-light-border dark:border-dark-border">
                       {trail.badge}

@@ -7,6 +7,8 @@ import Section from "@/components/ui/Section";
 import ContentCarousel from "@/components/ui/ContentCarousel";
 import Card from "@/components/ui/Card";
 import { HeroCarousel } from "@/components/HeroCarousel";
+import { SectionHeading, SectionTitle } from "@/components/ui/SectionHeading";
+import { HelpCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 
 interface Page {
@@ -184,10 +186,7 @@ export default function PlantaoDeDuvidasPage() {
       <HeroCarousel pageSlug="plantao-de-duvidas" />
 
       <Section>
-        {/* Título sem ícone */}
-        <div className="mb-2">
-          <h1 className="text-2xl font-bold">Plantão de Dúvidas</h1>
-        </div>
+        <SectionTitle title="Plantão de Dúvidas" icon={HelpCircle} className="mb-2" />
         <p className="text-light-muted dark:text-dark-muted text-lg mb-6">{pageData.description}</p>
 
         {trails.length === 0 ? (
@@ -202,7 +201,7 @@ export default function PlantaoDeDuvidasPage() {
             {trails.map((trail) => (
               <div key={trail.id} className="space-y-6">
                 <div className="text-left">
-                  <h2 className="text-2xl font-bold text-light-text dark:text-dark-text mb-2">{trail.title}</h2>
+                  <SectionHeading title={trail.title} />
                   <p className="text-light-muted dark:text-dark-muted">{trail.description}</p>
                 </div>
 

@@ -100,19 +100,21 @@ export function useNotificationSimulator(intervalMs: number = 30000) {
     
     isActiveRef.current = true;
     
-    const sendRandomNotification = () => {
+    const sendRandomNotification = async () => {
       const randomTemplate = notificationTemplates[
         Math.floor(Math.random() * notificationTemplates.length)
       ];
       
-      addNotification(randomTemplate);
+      await addNotification(randomTemplate);
     };
 
     // Enviar primeira notificação imediatamente
     sendRandomNotification();
 
     // Configurar intervalo para notificações subsequentes
-    intervalRef.current = setInterval(sendRandomNotification, intervalMs);
+    intervalRef.current = setInterval(() => {
+      sendRandomNotification();
+    }, intervalMs);
   };
 
   const stopSimulator = () => {

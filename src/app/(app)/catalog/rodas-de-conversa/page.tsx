@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
-import PageHeader from "@/components/ui/PageHeader";
 import ContentCarousel from "@/components/ui/ContentCarousel";
 import Card from "@/components/ui/Card";
 import { HeroCarousel } from "@/components/HeroCarousel";
+import { SectionHeading, SectionTitle } from "@/components/ui/SectionHeading";
 import { Mic } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 
@@ -152,9 +152,7 @@ export default function RodasDeConversaPage() {
       <Container fullWidth>
         <Section>
           <div className="pt-0 px-0">
-        <div className="mb-2">
-          <h1 className="text-2xl font-bold">Rodas de Conversa</h1>
-        </div>
+            <SectionTitle title="Rodas de Conversa" icon={Mic} className="mb-2" />
             <p className="text-light-muted dark:text-dark-muted text-lg mb-6">Carregando...</p>
           </div>
           <div className="flex items-center justify-center py-12">
@@ -169,9 +167,7 @@ export default function RodasDeConversaPage() {
     return (
       <Container fullWidth>
         <Section>
-          <div className="mb-2">
-            <h1 className="text-2xl font-bold">Rodas de Conversa</h1>
-          </div>
+          <SectionTitle title="Rodas de Conversa" icon={Mic} className="mb-2" />
           <p className="text-light-muted dark:text-dark-muted text-lg">Página não encontrada</p>
         </Section>
       </Container>
@@ -184,9 +180,7 @@ export default function RodasDeConversaPage() {
       <HeroCarousel pageSlug="rodas-de-conversa" />
       
       <Section>
-        <div className="mb-2">
-          <h1 className="text-2xl font-bold">{pageData.title}</h1>
-        </div>
+        <SectionTitle title={pageData.title} icon={Mic} className="mb-2" />
         <p className="text-light-muted dark:text-dark-muted text-lg mb-6">{pageData.description}</p>
         
         {trails.length === 0 ? (
@@ -201,12 +195,10 @@ export default function RodasDeConversaPage() {
             {trails.map((trail) => (
               <div key={trail.id} className="space-y-6">
                 <div className="text-left">
-                  <h2 className="text-2xl font-bold text-light-text dark:text-dark-text mb-2">
-                    {trail.title}
-                </h2>
+                  <SectionHeading title={trail.title} />
                   <p className="text-light-muted dark:text-dark-muted">
                     {trail.description}
-                </p>
+                  </p>
             </div>
             
                 {trail.modules.length > 0 && (

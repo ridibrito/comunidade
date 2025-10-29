@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/ToastProvider";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import ContentCarousel from "@/components/ui/ContentCarousel";
 import { CardVideoAula, CardLivro } from "@/components/ui/CardModels";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 
 import { useRouter } from "next/navigation";
 
@@ -309,10 +310,7 @@ export default function DashboardPage() {
 
         {/* Novidades - últimos conteúdos publicados */}
         <div className="section-spacing">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-1 h-8 bg-brand-accent rounded-full"></div>
-            <h2 className="text-2xl font-bold text-light-text dark:text-dark-text">Novidades</h2>
-          </div>
+          <SectionHeading title="Novidades" className="mb-6" />
           {loadingLatest ? (
             <div className="flex items-center justify-center py-8">
               <div className="w-6 h-6 border-2 border-brand-accent border-t-transparent rounded-full animate-spin" />
