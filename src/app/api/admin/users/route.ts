@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { config } from "@/lib/config";
+import { invalidateCache } from "@/lib/redis";
 
 function getAdminClient() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -9,58 +10,103 @@ function getAdminClient() {
   return createClient(url, service, { auth: { autoRefreshToken: false, persistSession: false } });
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const supabase = getAdminClient();
     
-    // list users (emails)
-    const emails: Record<string, string> = {};
-    let page = 1;
-    for (let i = 0; i < 10; i++) { // hard cap 1000 users per request
-      const resp = await supabase.auth.admin.listUsers({ page, perPage: 100 });
-      if (resp.error) {
-        console.error("Erro ao listar usuários:", resp.error);
-        throw new Error(`Erro ao listar usuários: ${resp.error.message}`);
+    // Adicionar suporte para paginação
+    const { searchParams } = new URL(request.url);
+    const pageParam = searchParams.get('page');
+    const page = pageParam ? parseInt(pageParam, 10) : 1;
+    const limit = 50; // Limite de usuários por página
+    const offset = (page - 1) * limit;
+
+    // Cache apenas para primeira página (mais acessada)
+    const { getCached } = await import('@/lib/redis');
+    const cacheKey = page === 1 ? 'admin:users:page:1' : null;
+    
+    const fetchUsers = async () => {
+      // List users (emails) - otimizado com limite
+      const emails: Record<string, string> = {};
+      let currentPage = 1;
+      let totalFetched = 0;
+      
+      // Buscar apenas emails necessários para a página atual
+      while (totalFetched < offset + limit && currentPage <= 10) {
+        const resp = await supabase.auth.admin.listUsers({ 
+          page: currentPage, 
+          perPage: 100 
+        });
+        
+        if (resp.error) {
+          console.error("Erro ao listar usuários:", resp.error);
+          throw new Error(`Erro ao listar usuários: ${resp.error.message}`);
+        }
+        
+        const users = resp.data?.users ?? [];
+        for (const u of users) {
+          emails[u.id] = u.email ?? "";
+          totalFetched++;
+        }
+        
+        if (users.length < 100) break;
+        currentPage++;
       }
-      const users = resp.data?.users ?? [];
-      for (const u of users) emails[u.id] = u.email ?? "";
-      if (users.length < 100) break;
-      page++;
-    }
-    
-    // profiles
-    const { data: profiles, error: profilesError } = await supabase
-      .from("profiles")
-      .select("id, full_name, role, invite_status, invite_sent_at, last_login_at, login_count, invited_by, invite_email");
-    
-    if (profilesError) {
-      console.error("Erro ao buscar perfis:", profilesError);
-      throw new Error(`Erro ao buscar perfis: ${profilesError.message}`);
-    }
-    
-        const list = (profiles ?? []).map((p: any) => ({ 
-          id: p.id, 
-          full_name: p.full_name, 
-          role: p.role, 
-          email: emails[p.id] ?? "",
-          invite_status: p.invite_status || 'pending',
-          invite_sent_at: p.invite_sent_at,
-          last_login_at: p.last_login_at,
-          login_count: p.login_count || 0,
-          invited_by: p.invited_by,
-          invite_email: p.invite_email,
-          is_active: p.is_active ?? true,
-          temp_password: p.temp_password,
-          password_reset_token: p.password_reset_token,
-          password_reset_expires: p.password_reset_expires
-        }));
-    
-    console.log("Users found:", list.length);
-    return NextResponse.json({ users: list });
+      
+      // Buscar profiles com paginação
+      const { data: profiles, error: profilesError, count } = await supabase
+        .from("profiles")
+        .select("id, full_name, role, invite_status, invite_sent_at, last_login_at, login_count, invited_by, invite_email, is_active, temp_password, password_reset_token, password_reset_expires", { count: 'exact' })
+        .range(offset, offset + limit - 1)
+        .order('created_at', { ascending: false });
+      
+      if (profilesError) {
+        console.error("Erro ao buscar perfis:", profilesError);
+        throw new Error(`Erro ao buscar perfis: ${profilesError.message}`);
+      }
+      
+      const list = (profiles ?? []).map((p: any) => ({ 
+        id: p.id, 
+        full_name: p.full_name, 
+        role: p.role, 
+        email: emails[p.id] ?? "",
+        invite_status: p.invite_status || 'pending',
+        invite_sent_at: p.invite_sent_at,
+        last_login_at: p.last_login_at,
+        login_count: p.login_count || 0,
+        invited_by: p.invited_by,
+        invite_email: p.invite_email,
+        is_active: p.is_active ?? true,
+        temp_password: p.temp_password,
+        password_reset_token: p.password_reset_token,
+        password_reset_expires: p.password_reset_expires
+      }));
+      
+      return {
+        users: list,
+        pagination: {
+          page,
+          limit,
+          total: count ?? 0,
+          totalPages: count ? Math.ceil(count / limit) : 1
+        }
+      };
+    };
+
+    const result = cacheKey 
+      ? await getCached(cacheKey, fetchUsers, 300) // Cache de 5 minutos apenas para primeira página
+      : await fetchUsers();
+
+    console.log(`Users found (page ${page}):`, result.users.length);
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Erro na API de usuários:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Erro desconhecido" }, 
+      { 
+        error: error instanceof Error ? error.message : "Erro desconhecido",
+        users: [],
+        pagination: { page: 1, limit: 50, total: 0, totalPages: 1 }
+      }, 
       { status: 500 }
     );
   }
@@ -184,6 +230,9 @@ export async function POST(req: NextRequest) {
     // O email será enviado automaticamente pelo Supabase usando o template configurado
     // As credenciais serão exibidas no frontend para o admin
 
+    // Invalidar cache de usuários após criar
+    await invalidateCache('admin:users:*');
+
     return NextResponse.json({
       success: true,
       message: "Usuário criado e email com credenciais enviado com sucesso",
@@ -239,6 +288,9 @@ export async function PATCH(req: NextRequest) {
         } catch {}
       }
       
+      // Invalidar cache após mudança
+      await invalidateCache('admin:users:*');
+
       return NextResponse.json({ 
         ok: true, 
         is_active: newStatus,
@@ -292,6 +344,9 @@ export async function PATCH(req: NextRequest) {
       await supabase.auth.admin.updateUserById(id, { user_metadata: { full_name } } as { user_metadata: { full_name: string } });
     } catch {}
     
+    // Invalidar cache após atualização
+    await invalidateCache('admin:users:*');
+    
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Erro ao atualizar usuário:", error);
@@ -306,6 +361,10 @@ export async function DELETE(req: NextRequest) {
   if (!id) return NextResponse.json({ error: "missing id" }, { status: 400 });
   await supabase.auth.admin.deleteUser(id);
   await supabase.from("profiles").delete().eq("id", id);
+  
+  // Invalidar cache após deletar
+  await invalidateCache('admin:users:*');
+  
   return NextResponse.json({ ok: true });
 }
 

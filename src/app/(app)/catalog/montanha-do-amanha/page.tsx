@@ -95,10 +95,10 @@ export default function MontanhaAmanhaPage() {
         
       console.log('🔄 Carregando dados da página Montanha do Amanhã...');
         
-      // Buscar a página específica
+      // Buscar a página específica - apenas campos necessários
       const { data: pageData, error: pageError } = await supabase
         .from('pages')
-        .select('*')
+        .select('id, title, description, slug')
         .eq('slug', 'montanha-do-amanha')
         .single() as { data: Page | null; error: any };
         
@@ -107,10 +107,10 @@ export default function MontanhaAmanhaPage() {
         return;
       }
         
-      // Buscar trilhas da página
+      // Buscar trilhas da página - apenas campos necessários
         const { data: trailsData, error: trailsError } = await supabase
           .from('trails')
-        .select('*')
+        .select('id, title, description, slug, position, image_url')
         .eq('page_id', pageData.id)
         .order('position') as { data: Trail[] | null; error: any };
         
@@ -118,49 +118,71 @@ export default function MontanhaAmanhaPage() {
           console.error('Erro ao carregar trilhas:', trailsError);
           return;
         }
+
+        if (!trailsData || trailsData.length === 0) {
+          setTrails([]);
+          return;
+        }
         
-        // Para cada trilha, buscar seus módulos
-        const trailsWithModules = await Promise.all(
-        (trailsData || []).map(async (trail: Trail) => {
-            const { data: modulesData, error: modulesError } = await supabase
-              .from('modules')
-              .select('*')
-            .eq('trail_id', trail.id)
-            .order('position');
+        // Otimização: buscar todos os módulos de uma vez
+        const trailIds = trailsData.map(t => t.id);
+        const { data: allModulesData, error: modulesError } = await supabase
+          .from('modules')
+          .select('id, title, description, slug, position, trail_id, image_url')
+          .in('trail_id', trailIds)
+          .order('position');
             
             if (modulesError) {
               console.error('Erro ao carregar módulos:', modulesError);
-            return { 
-              ...trail, 
-              modules: [],
-              badge: "0 módulos",
-              badgeVariant: "warning" as const
-            };
-          }
+            }
 
-          // Para cada módulo, buscar seus conteúdos
-          const modulesWithContents = await Promise.all(
-            (modulesData || []).map(async (module: Module) => {
+            // Agrupar módulos por trilha
+            const modulesByTrail: { [trailId: string]: any[] } = {};
+            (allModulesData || []).forEach((module) => {
+              if (!modulesByTrail[module.trail_id]) {
+                modulesByTrail[module.trail_id] = [];
+              }
+              modulesByTrail[module.trail_id].push(module);
+            });
+
+            // Otimização: buscar todos os conteúdos de uma vez
+            const moduleIds = (allModulesData || []).map(m => m.id);
+            let allContentsData: any[] = [];
+
+            if (moduleIds.length > 0) {
               const { data: contentsData, error: contentsError } = await supabase
                 .from('contents')
-                  .select('*')
-                .eq('module_id', module.id)
+                .select('id, title, description, content_type, duration, slug, video_url, module_id, trail_id, image_url, file_url, position')
+                .in('module_id', moduleIds)
                 .order('position');
 
               if (contentsError) {
                 console.error('Erro ao carregar conteúdos:', contentsError);
-                return { 
-                  ...module, 
-                  contents: [], 
-                  contentsCount: 0,
-                  totalDuration: 0,
-                  duration: "0min",
-                  image: `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000000)}?q=80&w=1600&auto=format&fit=crop`,
-                  progress: 0,
-                  difficulty: "Básico" as const,
-                  rating: 0
-                };
+              } else {
+                allContentsData = contentsData || [];
               }
+            }
+
+            // Agrupar conteúdos por módulo
+            const contentsByModule: { [moduleId: string]: any[] } = {};
+            allContentsData.forEach((content) => {
+              if (content.module_id) {
+                if (!contentsByModule[content.module_id]) {
+                  contentsByModule[content.module_id] = [];
+                }
+                contentsByModule[content.module_id].push(content);
+              }
+            });
+        
+        // Montar estrutura final
+        const trailsWithModules = await Promise.all(
+        (trailsData || []).map(async (trail: Trail) => {
+            const modulesData = modulesByTrail[trail.id] || [];
+
+          // Para cada módulo, calcular informações
+          const modulesWithContents = await Promise.all(
+            (modulesData || []).map(async (module: Module) => {
+              const contentsData = contentsByModule[module.id] || [];
               
               // Calcular duração total do módulo
               const totalDuration = (contentsData || []).reduce((acc: number, content: Content) => acc + (content.duration || 0), 0);

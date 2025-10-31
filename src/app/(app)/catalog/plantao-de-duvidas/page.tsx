@@ -70,10 +70,10 @@ export default function PlantaoDeDuvidasPage() {
       setLoading(true);
       const supabase = createClient();
       
-      // Buscar dados da página
+      // Buscar dados da página - apenas campos necessários
       const { data: pageData, error: pageError } = await supabase
         .from('pages')
-        .select('*')
+        .select('id, title, description, slug')
         .eq('slug', 'plantao-de-duvidas')
         .single();
 
@@ -85,7 +85,7 @@ export default function PlantaoDeDuvidasPage() {
           title: 'Plantão de Dúvidas',
           description: 'Tire suas dúvidas com especialistas em AHSD',
           slug: 'plantao-de-duvidas'
-        });
+        } as any);
       } else {
         setPageData(pageData);
       }
@@ -96,7 +96,7 @@ export default function PlantaoDeDuvidasPage() {
         if (page.id) {
           const { data: trailsData, error: trailsError } = await supabase
             .from('trails')
-            .select('*')
+            .select('id, title, description, slug, position, image_url')
             .eq('page_id', page.id)
             .order('position');
 
@@ -105,41 +105,71 @@ export default function PlantaoDeDuvidasPage() {
             return;
           }
 
-          // Para cada trilha, buscar seus módulos
-          const trailsWithModules = await Promise.all(
-            (trailsData || []).map(async (trail: any) => {
-              const { data: modulesData, error: modulesError } = await supabase
-                .from('modules')
-                .select('*')
-                .eq('trail_id', trail.id)
-                .order('position');
+          if (!trailsData || trailsData.length === 0) {
+            return;
+          }
 
-              if (modulesError) {
-                console.error('Erro ao carregar módulos:', modulesError);
-                return { ...trail, modules: [] };
+          // Otimização: buscar todos os módulos de uma vez
+          const trailIds = trailsData.map(t => t.id);
+          const { data: allModulesData, error: modulesError } = await supabase
+            .from('modules')
+            .select('id, title, description, slug, position, trail_id, image_url')
+            .in('trail_id', trailIds)
+            .order('position');
+
+          if (modulesError) {
+            console.error('Erro ao carregar módulos:', modulesError);
+            return;
+          }
+
+          // Agrupar módulos por trilha
+          const modulesByTrail: { [trailId: string]: any[] } = {};
+          (allModulesData || []).forEach((module) => {
+            if (!modulesByTrail[module.trail_id]) {
+              modulesByTrail[module.trail_id] = [];
+            }
+            modulesByTrail[module.trail_id].push(module);
+          });
+
+          // Otimização: buscar todos os conteúdos de uma vez
+          const moduleIds = (allModulesData || []).map(m => m.id);
+          let allContentsData: any[] = [];
+
+          if (moduleIds.length > 0) {
+            const { data: contentsData, error: contentsError } = await supabase
+              .from('contents')
+              .select('id, title, description, content_type, duration, slug, video_url, module_id, trail_id, image_url, file_url, position')
+              .in('module_id', moduleIds)
+              .order('position');
+
+            if (contentsError) {
+              console.error('Erro ao carregar conteúdos:', contentsError);
+            } else {
+              allContentsData = contentsData || [];
+            }
+          }
+
+          // Agrupar conteúdos por módulo
+          const contentsByModule: { [moduleId: string]: any[] } = {};
+          allContentsData.forEach((content) => {
+            if (content.module_id) {
+              if (!contentsByModule[content.module_id]) {
+                contentsByModule[content.module_id] = [];
               }
+              contentsByModule[content.module_id].push(content);
+            }
+          });
 
-              // Para cada módulo, buscar seus conteúdos
-              const modulesWithContents = await Promise.all(
-                (modulesData || []).map(async (module: any) => {
-                  const { data: contentsData, error: contentsError } = await supabase
-                    .from('contents')
-                    .select('*')
-                    .eq('module_id', module.id)
-                    .order('position');
-
-                  if (contentsError) {
-                    console.error('Erro ao carregar conteúdos:', contentsError);
-                    return { ...module, contents: [] };
-                  }
-
-                  return { ...module, contents: contentsData || [] };
-                })
-              );
-
-              return { ...trail, modules: modulesWithContents };
-            })
-          );
+          // Montar estrutura final
+          const trailsWithModules = trailsData.map((trail: any) => {
+            const modulesData = modulesByTrail[trail.id] || [];
+            const modulesWithContents = modulesData.map((module: any) => ({
+              ...module,
+              contents: contentsByModule[module.id] || []
+            }));
+            
+            return { ...trail, modules: modulesWithContents };
+          });
 
           setTrails(trailsWithModules);
         }

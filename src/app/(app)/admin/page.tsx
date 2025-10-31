@@ -110,27 +110,28 @@ export default function AdminPage() {
         supabase.from('profiles').select('id', { count: 'exact' })
       ]);
 
-      // Calcular taxa de conclusão real
-      const { data: completedLessons } = await supabase
-        .from('user_progress')
-        .select('*', { count: 'exact' })
-        .eq('is_completed', true);
+      // Calcular taxa de conclusão real - otimizado: apenas contagem, não buscar dados
+      const [{ count: completedCount }, { count: totalCount }] = await Promise.all([
+        supabase
+          .from('user_progress')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_completed', true),
+        supabase
+          .from('user_progress')
+          .select('*', { count: 'exact', head: true })
+      ]);
       
-      const { data: totalProgress } = await supabase
-        .from('user_progress')
-        .select('*', { count: 'exact' });
-      
-      const completionRate = totalProgress && totalProgress.count > 0 
-        ? Math.round((completedLessons?.count || 0) / totalProgress.count * 100)
+      const completionRate = totalCount && totalCount > 0 
+        ? Math.round((completedCount || 0) / totalCount * 100)
         : 0;
 
-      // Contar interações com IA (se houver tabela de logs de IA)
+      // Contar interações com IA (se houver tabela de logs de IA) - otimizado
       let aiInteractions = 0;
       try {
-        const { data: aiLogs } = await supabase
+        const { count } = await supabase
           .from('ai_interactions')
-          .select('*', { count: 'exact' });
-        aiInteractions = aiLogs?.count || 0;
+          .select('*', { count: 'exact', head: true });
+        aiInteractions = count || 0;
       } catch (error) {
         // Tabela não existe, usar valor padrão
         aiInteractions = 0;
@@ -152,17 +153,19 @@ export default function AdminPage() {
       
       if (trails) {
         const typedTrails = trails as TrailRecord[];
+        // Otimização: buscar todas as contagens de uma vez
         const completionPromises = typedTrails.map(async (trail) => {
-          const { count: completed } = await supabase
-            .from('user_progress')
-            .select('*', { count: 'exact' })
-            .eq('trail_id', trail.id)
-            .eq('is_completed', true);
-          
-          const { count: total } = await supabase
-            .from('user_progress')
-            .select('*', { count: 'exact' })
-            .eq('trail_id', trail.id);
+          const [{ count: completed }, { count: total }] = await Promise.all([
+            supabase
+              .from('user_progress')
+              .select('*', { count: 'exact', head: true })
+              .eq('trail_id', trail.id)
+              .eq('is_completed', true),
+            supabase
+              .from('user_progress')
+              .select('*', { count: 'exact', head: true })
+              .eq('trail_id', trail.id)
+          ]);
           
           const percentage = total && total > 0 ? Math.round((completed || 0) / total * 100) : 0;
           

@@ -10,7 +10,7 @@ interface Hero {
   title: string;
   subtitle?: string;
   hero_image_url?: string;
-  background_gradient: string;
+  background_gradient?: string;
   title_position?: string;
   subtitle_position?: string;
   trail_id?: string;
@@ -19,6 +19,7 @@ interface Hero {
     link?: string;
     variant?: string;
     color?: string;
+    action?: string;
   }>;
 }
 
@@ -109,7 +110,7 @@ export function HeroCarousel({ heroes: initialHeroes, pageSlug = 'dashboard' }: 
                 className="w-full h-full object-contain sm:object-cover object-center bg-gray-100 dark:bg-gray-800"
               />
             ) : (
-              <div className={`w-full h-full bg-gradient-to-r ${hero.background_gradient}`} />
+              <div className={`w-full h-full bg-gradient-to-r ${hero.background_gradient || 'from-purple-900 via-purple-700 to-orange-500'}`} />
             )}
 
             {/* Overlay com conteúdo */}
