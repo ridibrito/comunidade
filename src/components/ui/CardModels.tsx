@@ -83,20 +83,23 @@ export function CardVideoAula({
 
   return (
     <Link href={href} className="block h-full">
-      <ModernCard variant="elevated" className={`h-full flex flex-col overflow-hidden ${className} hover:shadow-lg transition-all duration-300 cursor-pointer`}>
+      <ModernCard variant="elevated" className={`h-full flex flex-col overflow-visible ${className} hover:shadow-lg transition-all duration-300 cursor-pointer`}>
         <div className="relative">
           <div className="aspect-video overflow-hidden">
             <img src={image} alt={title} className="w-full h-full object-cover" />
-            {/* Play button overlay */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-16 h-16 bg-white/90 dark:bg-dark-surface/90 rounded-full flex items-center justify-center shadow-lg">
-                <Play className="w-8 h-8 text-brand-accent ml-1" />
+          </div>
+          {/* Botão play posicionado na borda entre imagem e conteúdo */}
+          <div className="absolute -bottom-7 right-4">
+            <div className="relative group cursor-pointer">
+              <div className="absolute inset-0 bg-brand-accent rounded-full blur-md opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
+              <div className="relative w-14 h-14 bg-brand-accent rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300 z-10">
+                <Play className="w-7 h-7 text-white ml-0.5" fill="white" />
               </div>
             </div>
           </div>
         </div>
 
-      <div className="flex-1 flex flex-col p-3 space-y-2">
+      <div className="flex-1 flex flex-col p-3 pt-7 space-y-2">
         <div className="flex-1">
           <Tooltip label={title} side="top">
             <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1 line-clamp-2 min-h-[3rem] cursor-help">{title}</h3>
