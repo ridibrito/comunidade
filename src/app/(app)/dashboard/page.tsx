@@ -219,7 +219,7 @@ export default function DashboardPage() {
     loadContinueContents();
   }, []);
 
-  // Últimos conteúdos publicados (para seção Novidades)
+  // Carregar conteúdos para a seção Destaques
   useEffect(() => {
     const loadLatestContents = async () => {
       try {
@@ -239,6 +239,7 @@ export default function DashboardPage() {
             created_at,
             module_id,
             image_url,
+            is_featured,
             modules:modules (
               id,
               slug,
@@ -256,11 +257,12 @@ export default function DashboardPage() {
               )
             )
           `)
+          .eq('is_featured', true)
           .order('created_at', { ascending: false })
           .limit(12);
 
         if (error) {
-          console.error('Erro ao carregar últimos conteúdos:', error);
+          console.error('Erro ao carregar conteúdos em destaque:', error);
           setLatestContents([]);
           return;
         }
@@ -279,7 +281,7 @@ export default function DashboardPage() {
 
         setLatestContents(mapped);
       } catch (err) {
-        console.error('Erro inesperado ao carregar últimos conteúdos:', err);
+        console.error('Erro inesperado ao carregar conteúdos em destaque:', err);
       } finally {
         setLoadingLatest(false);
       }
@@ -308,8 +310,8 @@ export default function DashboardPage() {
           </h1>
         </div>
 
-        {/* Novidades - últimos conteúdos publicados */}
-        <div className="section-spacing">
+        {/* Novidades - últimos conteúdos publicados - COMENTADO: Não será usado por enquanto */}
+        {/* <div className="section-spacing">
           <SectionHeading title="Novidades" className="mb-6" />
           {loadingLatest ? (
             <div className="flex items-center justify-center py-8">
@@ -354,7 +356,55 @@ export default function DashboardPage() {
               })}
             </ContentCarousel>
           )}
-        </div>
+        </div> */}
+
+        {/* Destaques - só aparece se houver conteúdos destacados */}
+        {(loadingLatest || latestContents.length > 0) && (
+          <div className="section-spacing">
+            <SectionHeading title="Destaques" className="mb-6" />
+            {loadingLatest ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border-2 border-brand-accent border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : latestContents.length > 0 ? (
+              <ContentCarousel>
+                {latestContents.map((content: any) => {
+                  if (content.content_type === 'book') {
+                    return (
+                      <CardLivro
+                        key={content.id}
+                        title={content.title}
+                        author="Autor"
+                        description={content.description || ""}
+                        pages={76} // Valor padrão, pode ser ajustado conforme necessário
+                        image={content.image}
+                        fileUrl={content.file_url || "#"} // URL do arquivo PDF
+                        className="w-full"
+                      />
+                    );
+                  }
+                  
+                  return (
+                    <CardVideoAula
+                      key={content.id}
+                      title={content.title}
+                      description={content.description || ""}
+                      instructor="Instrutor"
+                      duration={`${content.duration || 0}min`}
+                      lessons={1}
+                      progress={content.progress || 0}
+                      image={content.image}
+                      slug={content.id}
+                      isLesson={true}
+                      moduleSlug={content.modules?.slug}
+                      className="w-full"
+                    />
+                  );
+                })}
+              </ContentCarousel>
+            ) : null}
+          </div>
+        )}
 
         {/* Seção Continue de onde parou - só aparece se houver progresso */}
         {continueContents.length > 0 && (

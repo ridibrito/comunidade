@@ -42,6 +42,7 @@ interface Content {
   materials_url?: string;
   image_url?: string;
   cover_url?: string;
+  is_featured?: boolean;
   modules?: Module;
 }
 
@@ -67,7 +68,8 @@ export default function AdminLessonsPage() {
     position: 1,
     content_type: "video",
     duration: 15,
-    cover_url: "" // Capa da aula
+    cover_url: "", // Capa da aula
+    is_featured: false // Marca para destaque
   });
   const [uploadingCover, setUploadingCover] = useState(false);
 
@@ -211,7 +213,8 @@ export default function AdminLessonsPage() {
       position: lesson.position,
       content_type: lesson.content_type || "video",
       duration: lesson.duration || 15,
-      cover_url: (lesson as any).cover_url || ""
+      cover_url: (lesson as any).cover_url || "",
+      is_featured: (lesson as any).is_featured || false
     });
     setShowModal(true);
   }
@@ -225,7 +228,8 @@ export default function AdminLessonsPage() {
       position: contents.length + 1,
       content_type: "video",
       duration: 15,
-      cover_url: ""
+      cover_url: "",
+      is_featured: false
     });
   }
 
@@ -288,7 +292,8 @@ export default function AdminLessonsPage() {
             position: formData.position,
             content_type: formData.content_type,
             duration: formData.duration,
-            cover_url: formData.cover_url || null
+            cover_url: formData.cover_url || null,
+            is_featured: formData.is_featured || false
           } as any)
           .eq('id', editingContent.id);
 
@@ -311,7 +316,8 @@ export default function AdminLessonsPage() {
             position: formData.position,
             content_type: formData.content_type,
             duration: formData.duration,
-            cover_url: formData.cover_url || null
+            cover_url: formData.cover_url || null,
+            is_featured: formData.is_featured || false
           } as any);
 
         if (error) {
@@ -475,6 +481,11 @@ export default function AdminLessonsPage() {
                         <span className="px-2 py-1 text-xs font-medium bg-brand-accent/10 text-brand-accent rounded-full">
                           Posição {lesson.position}
                         </span>
+                        {(lesson as any).is_featured && (
+                          <span className="px-2 py-1 text-xs font-medium bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 rounded-full">
+                            ⭐ Destaque
+                          </span>
+                        )}
                       </div>
                       
                       <p className="text-light-muted dark:text-dark-muted mb-4">
@@ -699,6 +710,22 @@ export default function AdminLessonsPage() {
                 <p className="text-xs text-light-muted dark:text-dark-muted">
                   Imagem ideal: 800x450px (16:9)
                 </p>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <input
+                  type="checkbox"
+                  id="is_featured"
+                  checked={formData.is_featured}
+                  onChange={(e) => setFormData(prev => ({ ...prev, is_featured: e.target.checked }))}
+                  className="w-4 h-4 rounded border-light-border dark:border-dark-border text-brand-accent focus:ring-brand-accent/20"
+                />
+                <Label htmlFor="is_featured" className="cursor-pointer">
+                  Marcar como conteúdo em destaque
+                </Label>
+                <span className="text-xs text-light-muted dark:text-dark-muted">
+                  (aparecerá na seção Destaques do dashboard)
+                </span>
               </div>
             </div>
 

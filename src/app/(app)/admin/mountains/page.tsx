@@ -15,6 +15,26 @@ import ConfirmModal from "@/components/ui/ConfirmModal";
 import { Input } from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
 import { useToast } from "@/components/ui/ToastProvider";
+import dynamic from "next/dynamic";
+
+const RichTextEditor = dynamic(
+  () => import("@/components/ui/RichTextEditor"),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="border rounded-lg overflow-hidden">
+        <div className="border-b bg-light-surface dark:bg-dark-surface p-2 flex items-center gap-2 flex-wrap">
+          <div className="w-8 h-8 bg-light-border dark:bg-dark-border rounded animate-pulse" />
+          <div className="w-8 h-8 bg-light-border dark:bg-dark-border rounded animate-pulse" />
+        </div>
+        <div className="bg-light-surface dark:bg-dark-surface p-4 min-h-[200px]">
+          <div className="h-4 bg-light-border dark:bg-dark-border rounded w-3/4 mb-2 animate-pulse" />
+          <div className="h-4 bg-light-border dark:bg-dark-border rounded w-1/2 animate-pulse" />
+        </div>
+      </div>
+    )
+  }
+);
 
 // Interfaces
 interface Page {
@@ -60,6 +80,7 @@ interface Content {
   image_url?: string;
   position: number;
   status: string;
+  is_featured?: boolean;
 }
 
 interface ContentAsset {
@@ -129,7 +150,8 @@ export default function AdminMountainsPage() {
     video_url: "",
     image_url: "",
     position: 0,
-    status: "draft"
+    status: "draft",
+    is_featured: false // Marca para destaque
   });
 
   // assets state
@@ -275,7 +297,7 @@ export default function AdminMountainsPage() {
       if (moduleIds.length > 0) {
         const { data: contentsData, error: contentsError } = await supabase
           .from('contents')
-          .select('id, title, description, content_type, duration, slug, video_url, module_id, trail_id, image_url, file_url, position')
+          .select('id, title, description, content_type, duration, slug, video_url, module_id, trail_id, image_url, file_url, position, status, is_featured')
           .in('module_id', moduleIds)
           .order('position');
 
@@ -289,7 +311,7 @@ export default function AdminMountainsPage() {
       // Buscar conteúdos diretos das trilhas (sem módulo)
       const { data: directContentsData, error: directError } = await supabase
         .from('contents')
-        .select('id, title, description, content_type, duration, slug, video_url, trail_id, image_url, file_url, position')
+        .select('id, title, description, content_type, duration, slug, video_url, trail_id, image_url, file_url, position, status, is_featured')
         .in('trail_id', trailIds)
         .is('module_id', null)
         .order('position');
@@ -507,7 +529,8 @@ export default function AdminMountainsPage() {
         video_url: content.video_url || "",
         image_url: content.image_url || "",
         position: content.position,
-        status: content.status
+        status: content.status,
+        is_featured: (content as any).is_featured || false
       });
       void loadAssets(content.id);
     } else {
@@ -530,7 +553,8 @@ export default function AdminMountainsPage() {
         video_url: "",
         image_url: "",
         position: module ? (module.contents?.length || 0) : directCount,
-        status: "draft"
+        status: "draft",
+        is_featured: false
       });
       setAssets([]);
     }
@@ -553,7 +577,8 @@ export default function AdminMountainsPage() {
             video_url: contentForm.video_url,
             image_url: contentForm.image_url,
             position: contentForm.position,
-            status: contentForm.status
+            status: contentForm.status,
+            is_featured: contentForm.is_featured || false
           })
           .eq('id', editingContent.id);
 
@@ -573,7 +598,8 @@ export default function AdminMountainsPage() {
             module_id: selectedModuleId || null,
             trail_id: selectedModuleId ? null : selectedTrailForDirectContent,
             position: contentForm.position,
-            status: contentForm.status
+            status: contentForm.status,
+            is_featured: contentForm.is_featured || false
           });
 
         if (error) throw error;
@@ -1032,9 +1058,16 @@ export default function AdminMountainsPage() {
                               className="flex items-center justify-between p-3 bg-light-surface dark:bg-dark-surface rounded-lg shadow-sm"
                             >
                               <div className="flex-1">
-                                <p className="text-sm font-medium text-light-text dark:text-dark-text">
-                                  {content.title}
-                                </p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-medium text-light-text dark:text-dark-text">
+                                    {content.title}
+                                  </p>
+                                  {(content as any).is_featured && (
+                                    <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 rounded-full">
+                                      ⭐ Destaque
+                                    </span>
+                                  )}
+                                </div>
                                 <p className="text-xs text-light-muted dark:text-dark-muted">
                                   {content.duration} min • {content.content_type} • {content.status}
                                 </p>
@@ -1124,9 +1157,16 @@ export default function AdminMountainsPage() {
                                       className="flex items-center justify-between p-3 bg-light-surface dark:bg-dark-surface rounded-lg shadow-sm"
                                     >
                                       <div className="flex-1">
-                                        <p className="text-sm font-medium text-light-text dark:text-dark-text">
-                                          {content.title}
-                                        </p>
+                                        <div className="flex items-center gap-2">
+                                          <p className="text-sm font-medium text-light-text dark:text-dark-text">
+                                            {content.title}
+                                          </p>
+                                          {(content as any).is_featured && (
+                                            <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 rounded-full">
+                                              ⭐ Destaque
+                                            </span>
+                                          )}
+                                        </div>
                                         <p className="text-xs text-light-muted dark:text-dark-muted">
                                           {content.duration} min • {content.content_type} • {content.status}
                                         </p>
@@ -1427,12 +1467,10 @@ export default function AdminMountainsPage() {
               
               <div>
                 <Label>Descrição</Label>
-                <textarea
+                <RichTextEditor
                   value={contentForm.description}
-                  onChange={(e) => setContentForm({ ...contentForm, description: e.target.value })}
+                  onChange={(value) => setContentForm({ ...contentForm, description: value })}
                   placeholder="Descrição da aula"
-                  className="w-full px-3 py-2 rounded-lg border"
-                  rows={4}
                 />
               </div>
               
@@ -1521,6 +1559,22 @@ export default function AdminMountainsPage() {
                 <p className="text-xs text-light-muted dark:text-dark-muted mt-1">
                   Imagem ideal: 800x450px (16:9)
                 </p>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <input
+                  type="checkbox"
+                  id="is_featured"
+                  checked={contentForm.is_featured}
+                  onChange={(e) => setContentForm({ ...contentForm, is_featured: e.target.checked })}
+                  className="w-4 h-4 rounded border-light-border dark:border-dark-border text-brand-accent focus:ring-brand-accent/20"
+                />
+                <Label htmlFor="is_featured" className="cursor-pointer">
+                  Marcar como conteúdo em destaque
+                </Label>
+                <span className="text-xs text-light-muted dark:text-dark-muted">
+                  (aparecerá na seção Destaques do dashboard)
+                </span>
               </div>
               
               <div className="grid grid-cols-2 gap-4">

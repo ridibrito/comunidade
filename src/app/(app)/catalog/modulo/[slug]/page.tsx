@@ -43,6 +43,7 @@ export default function ModulePage() {
   const [module, setModule] = useState<Module | null>(null);
   const [loading, setLoading] = useState(true);
   const [trailTitle, setTrailTitle] = useState("");
+  const [trailSlug, setTrailSlug] = useState("");
   // Armazena o slug da página mãe (ex.: montanha-do-amanha, acervo-digital)
   const [parentPageSlug, setParentPageSlug] = useState("");
   const [lessonsProgress, setLessonsProgress] = useState<{[key: string]: {percentage: number, completed: boolean}}>({});
@@ -80,6 +81,7 @@ export default function ModulePage() {
             if (trailData) {
               const trail = trailData as any;
               setTrailTitle(trail.title);
+              setTrailSlug(trail.slug || '');
               // Buscar a página mãe para obter o slug correto da rota de volta
               if (trail.page_id) {
                 const { data: pageData } = await supabase
@@ -257,7 +259,11 @@ export default function ModulePage() {
 
         {/* Lista de encontros com carrossel */}
         <div className="mb-8">
-          <h2 className="section-title text-light-text dark:text-dark-text mb-6">Encontros</h2>
+          <h2 className="section-title text-light-text dark:text-dark-text mb-6">
+            {trailSlug === 'papais_express' || 
+             trailSlug?.toLowerCase().includes('papais') || 
+             trailTitle?.toLowerCase().includes('papais') ? 'Aulas' : 'Encontros'}
+          </h2>
           
           <div className="relative">
             <Carousel cardWidth={320} gap={24}>

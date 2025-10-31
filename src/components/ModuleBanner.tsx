@@ -70,7 +70,7 @@ export function ModuleBanner({
 
             {/* Título e Metadados */}
             <div className="hidden md:block mb-3 md:mb-4 w-full">
-              <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-2 md:mb-4 drop-shadow-lg leading-tight">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-4 drop-shadow-lg leading-tight">
                 {title}
               </h1>
                

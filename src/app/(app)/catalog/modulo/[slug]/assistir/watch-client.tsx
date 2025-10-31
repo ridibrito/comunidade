@@ -645,12 +645,20 @@ export default function WatchClient({ slug }: { slug: string }) {
                 {/* Descrição */}
                 {currentLesson.description && (
                   <div className="mb-6">
-                    <h3 className="text-sm font-medium text-light-text dark:text-dark-text mb-2">
-                      Sobre esta aula
-                    </h3>
-                    <p className="text-light-muted dark:text-dark-muted leading-relaxed">
-                      {currentLesson.description}
-                    </p>
+                    <div 
+                      className="text-light-muted dark:text-dark-muted leading-relaxed whitespace-pre-wrap
+                        [&_p]:mb-2 [&_p:last-child]:mb-0
+                        [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-4 [&_h1]:mt-4 [&_h1]:text-light-text [&_h1]:dark:text-dark-text
+                        [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-3 [&_h2]:mt-3 [&_h2]:text-light-text [&_h2]:dark:text-dark-text
+                        [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:mt-2 [&_h3]:text-light-text [&_h3]:dark:text-dark-text
+                        [&_strong]:font-bold [&_strong]:text-light-text [&_strong]:dark:text-dark-text
+                        [&_em]:italic
+                        [&_br]:block
+                        [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:mb-2
+                        [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:mb-2
+                        [&_li]:mb-1"
+                      dangerouslySetInnerHTML={{ __html: currentLesson.description }}
+                    />
                   </div>
                 )}
                 
