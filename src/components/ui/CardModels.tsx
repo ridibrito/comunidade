@@ -24,6 +24,17 @@ import {
   AlertCircle
 } from "lucide-react";
 
+// Helper para remover tags HTML e obter texto puro
+const stripHtml = (html: string): string => {
+  if (typeof window === 'undefined') {
+    // Server-side: remoção básica de tags
+    return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+  }
+  const tmp = document.createElement('DIV');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+};
+
 // Helper para cores de dificuldade com contraste melhorado
 const getDifficultyColor = (difficulty: "Básico" | "Intermediário" | "Avançado") => {
   switch (difficulty) {
@@ -104,8 +115,15 @@ export function CardVideoAula({
           <Tooltip label={title} side="top">
             <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1 line-clamp-2 min-h-[3rem] cursor-help">{title}</h3>
           </Tooltip>
-          <Tooltip label={description} side="top">
-            <p className="text-sm text-gray-600 dark:text-dark-muted mb-2 line-clamp-2 min-h-[2.75rem] cursor-help">{description}</p>
+          <Tooltip label={stripHtml(description)} side="top">
+            <div 
+              className="text-sm text-gray-600 dark:text-dark-muted mb-2 line-clamp-2 min-h-[2.75rem] cursor-help
+                [&_p]:mb-0 [&_p:last-child]:mb-0
+                [&_strong]:font-semibold [&_strong]:text-gray-900 [&_strong]:dark:text-dark-text
+                [&_em]:italic
+                [&_br]:block"
+              dangerouslySetInnerHTML={{ __html: description }}
+            />
           </Tooltip>
           
           <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-dark-muted mb-2">
@@ -224,8 +242,15 @@ export function CardAulaAoVivo({
           <Tooltip label={title} side="top">
             <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1 line-clamp-2 min-h-[3rem] cursor-help">{title}</h3>
           </Tooltip>
-          <Tooltip label={description} side="top">
-            <p className="text-sm text-gray-600 dark:text-dark-muted mb-2 line-clamp-2 min-h-[2.75rem] cursor-help">{description}</p>
+          <Tooltip label={stripHtml(description)} side="top">
+            <div 
+              className="text-sm text-gray-600 dark:text-dark-muted mb-2 line-clamp-2 min-h-[2.75rem] cursor-help
+                [&_p]:mb-0 [&_p:last-child]:mb-0
+                [&_strong]:font-semibold [&_strong]:text-gray-900 [&_strong]:dark:text-dark-text
+                [&_em]:italic
+                [&_br]:block"
+              dangerouslySetInnerHTML={{ __html: description }}
+            />
           </Tooltip>
           <p className="text-xs text-brand-accent font-medium">Instrutor: {instructor}</p>
           
@@ -359,8 +384,15 @@ export function CardLivro({
             <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1 line-clamp-1 min-h-[1.5rem] cursor-help">{title}</h3>
           </Tooltip>
           <p className="text-xs text-brand-accent font-medium mb-1">por {author}</p>
-          <Tooltip label={description} side="top">
-            <p className="text-sm text-gray-600 dark:text-dark-muted line-clamp-2 min-h-[2.75rem] cursor-help">{description}</p>
+          <Tooltip label={stripHtml(description)} side="top">
+            <div 
+              className="text-sm text-gray-600 dark:text-dark-muted line-clamp-2 min-h-[2.75rem] cursor-help
+                [&_p]:mb-0 [&_p:last-child]:mb-0
+                [&_strong]:font-semibold [&_strong]:text-gray-900 [&_strong]:dark:text-dark-text
+                [&_em]:italic
+                [&_br]:block"
+              dangerouslySetInnerHTML={{ __html: description }}
+            />
           </Tooltip>
         </div>
         

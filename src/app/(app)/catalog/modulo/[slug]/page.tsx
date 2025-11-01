@@ -33,6 +33,8 @@ interface Module {
   slug: string;
   trail_id: string;
   cover_url?: string;
+  banner_url?: string;
+  image_url?: string;
   lessons: Lesson[];
   total_duration: string;
   progress: number;
@@ -71,6 +73,14 @@ export default function ModulePage() {
         // Buscar trilha para obter o título e a página mãe
         if (moduleData) {
           const module = moduleData as any;
+          // Log para debug da capa
+          console.log('🔍 Dados do módulo carregado:', {
+            id: module.id,
+            title: module.title,
+            cover_url: module.cover_url,
+            banner_url: module.banner_url,
+            image_url: module.image_url
+          });
           if (module.trail_id) {
             const { data: trailData } = await supabase
               .from('trails')
@@ -246,7 +256,7 @@ export default function ModulePage() {
       <ModuleBanner
         title={module.title}
         description={module.description}
-        coverUrl={(module as any).banner_url || module.cover_url}
+        coverUrl={(module as any).banner_url || module.cover_url || (module as any).image_url}
         lessonsCount={module.lessons.length}
         totalDuration={module.total_duration}
         progress={module.progress}

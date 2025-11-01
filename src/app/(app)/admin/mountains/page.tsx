@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
@@ -157,6 +157,7 @@ export default function AdminMountainsPage() {
   // assets state
   const [assets, setAssets] = useState<ContentAsset[]>([]);
   const [assetUploading, setAssetUploading] = useState(false);
+  const assetFileInputRef = useRef<HTMLInputElement>(null);
   
   // Book upload modal state
   const [bookUploadModal, setBookUploadModal] = useState(false);
@@ -723,6 +724,62 @@ export default function AdminMountainsPage() {
     } finally {
       setAssetUploading(false);
       (e.target as HTMLInputElement).value = '';
+    }
+  }
+
+  async function handleAssetDelete(asset: ContentAsset) {
+    if (!editingContent) return;
+    
+    if (!confirm(`Tem certeza que deseja excluir o anexo "${asset.title || 'arquivo'}"?`)) {
+      return;
+    }
+
+    try {
+      // Extrair o caminho do arquivo da URL
+      // A URL geralmente é algo como: https://project.supabase.co/storage/v1/object/public/content-assets/content/{id}/{filename}
+      let filePath = '';
+      try {
+        const url = new URL(asset.file_url);
+        // Extrair o caminho após /object/public/content-assets/
+        const pathMatch = url.pathname.match(/\/content-assets\/(.+)$/);
+        if (pathMatch) {
+          filePath = pathMatch[1];
+        }
+      } catch (e) {
+        console.warn('Não foi possível extrair o caminho da URL:', e);
+        // Tentar extrair de forma mais simples
+        const pathParts = asset.file_url.split('/content-assets/');
+        if (pathParts.length > 1) {
+          filePath = pathParts[1];
+        }
+      }
+
+      // Deletar do storage se o caminho foi encontrado
+      if (filePath) {
+        const { error: storageError } = await supabase.storage
+          .from('content-assets')
+          .remove([filePath]);
+        
+        if (storageError) {
+          console.warn('Erro ao deletar arquivo do storage (pode não existir):', storageError);
+          // Continuar mesmo se o arquivo não existir no storage
+        }
+      }
+
+      // Deletar o registro do banco de dados
+      const { error: dbError } = await supabase
+        .from('content_assets')
+        .delete()
+        .eq('id', asset.id);
+
+      if (dbError) throw dbError;
+
+      // Recarregar a lista de anexos
+      await loadAssets(editingContent.id);
+      push({ message: 'Anexo excluído com sucesso!', variant: 'success' });
+    } catch (err) {
+      console.error('Erro ao excluir anexo:', err);
+      push({ message: 'Erro ao excluir anexo', variant: 'error' });
     }
   }
 
@@ -1617,12 +1674,23 @@ export default function AdminMountainsPage() {
                     <Paperclip className="w-5 h-5" />
                     <span className="font-medium">Anexos</span>
                   </div>
-                  <label className="inline-flex items-center gap-2 text-sm cursor-pointer">
-                    <input type="file" className="hidden" onChange={handleAssetUpload} disabled={assetUploading} />
-                    <Button size="sm" variant="outline" disabled={assetUploading}>
+                  <div>
+                    <input 
+                      ref={assetFileInputRef}
+                      type="file" 
+                      className="hidden" 
+                      onChange={handleAssetUpload} 
+                      disabled={assetUploading} 
+                    />
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      disabled={assetUploading}
+                      onClick={() => assetFileInputRef.current?.click()}
+                    >
                       <Upload className="w-4 h-4 mr-2" /> {assetUploading ? 'Enviando...' : 'Enviar anexo'}
                     </Button>
-                  </label>
+                  </div>
                 </div>
                 {assets.length === 0 ? (
                   <p className="text-sm text-light-muted dark:text-dark-muted text-center py-4">Nenhum anexo.</p>
@@ -1630,13 +1698,27 @@ export default function AdminMountainsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {assets.map(a => (
                       <div key={a.id} className="flex items-center justify-between bg-light-surface dark:bg-dark-surface rounded-lg p-3 border">
-                        <div className="flex items-center gap-3">
-                          <FileDown className="w-4 h-4 text-gray-500" />
-                          <a href={a.file_url} target="_blank" rel="noreferrer" className="text-sm text-brand-accent hover:underline font-medium">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <FileDown className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                          <a 
+                            href={a.file_url} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="text-sm text-brand-accent hover:underline font-medium truncate"
+                          >
                             {a.title || 'arquivo'}
                           </a>
+                          <span className="text-xs text-light-muted dark:text-dark-muted hidden sm:inline">
+                            {a.file_type?.split('/')[1]?.toUpperCase() || ''}
+                          </span>
                         </div>
-                        <span className="text-xs text-light-muted dark:text-dark-muted">{a.file_type || ''}</span>
+                        <button
+                          onClick={() => handleAssetDelete(a)}
+                          className="ml-2 p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors flex-shrink-0"
+                          title="Excluir anexo"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     ))}
                   </div>

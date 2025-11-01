@@ -13,6 +13,16 @@ import { SectionHeading, SectionTitle } from "@/components/ui/SectionHeading";
 import { Library } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 
+// Helper para remover tags HTML e obter texto puro
+const stripHtml = (html: string): string => {
+  if (typeof window === 'undefined') {
+    return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+  }
+  const tmp = document.createElement('DIV');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+};
+
 interface Page {
   id: string;
   title: string;
@@ -378,9 +388,14 @@ export default function AcervoDigitalPage() {
                               </div>
                             </div>
                             <div className="p-4 flex-1 flex flex-col justify-between">
-                              <p className="text-sm text-light-muted dark:text-dark-muted line-clamp-2">
-                                {content.description}
-                              </p>
+                              <div 
+                                className="text-sm text-light-muted dark:text-dark-muted line-clamp-2
+                                  [&_p]:mb-0 [&_p:last-child]:mb-0
+                                  [&_strong]:font-semibold
+                                  [&_em]:italic
+                                  [&_br]:block"
+                                dangerouslySetInnerHTML={{ __html: content.description }}
+                              />
                               <div className="mt-2 text-xs text-light-muted dark:text-dark-muted">
                                 {content.duration || 0} min • {content.content_type}
                               </div>

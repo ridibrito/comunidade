@@ -39,6 +39,16 @@ interface LessonData {
   duration?: number;
 }
 
+interface ContentAsset {
+  id: string;
+  content_id: string;
+  title: string | null;
+  file_url: string;
+  file_type: string | null;
+  file_size: number | null;
+  created_at: string;
+}
+
 export default function WatchClient({ slug }: { slug: string }) {
   const supabase = getBrowserSupabaseClient();
   const searchParams = useSearchParams();
@@ -49,38 +59,150 @@ export default function WatchClient({ slug }: { slug: string }) {
   const [lessons, setLessons] = useState<LessonData[]>([]);
   const [userRating, setUserRating] = useState<number>(0);
   const [averageRating, setAverageRating] = useState<number>(0);
+  const [lessonAssets, setLessonAssets] = useState<{[key: string]: ContentAsset[]}>({});
   
-  // Simular múltiplos materiais para demonstração
-  const getLessonMaterials = (lesson: any) => {
-    if (!lesson.materials_url) return [];
+  // Função para carregar anexos de uma aula
+  const loadLessonAssets = async (contentId: string) => {
+    if (!supabase || !contentId) return;
     
-    const baseMaterials = [
-      {
-        id: 1,
-        title: "Apresentação da Aula",
-        type: "PDF",
-        url: lesson.materials_url,
-        size: "2.4 MB"
-      },
-      {
-        id: 2,
-        title: "Exercícios Práticos",
-        type: "PDF", 
-        url: lesson.materials_url.replace('.pdf', '-exercicios.pdf'),
-        size: "1.8 MB"
-      },
-      {
-        id: 3,
-        title: "Material de Apoio",
-        type: "PDF",
-        url: lesson.materials_url.replace('.pdf', '-apoio.pdf'),
-        size: "3.2 MB"
+    try {
+      const { data, error } = await supabase
+        .from('content_assets')
+        .select('*')
+        .eq('content_id', contentId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        setLessonAssets(prev => ({
+          ...prev,
+          [contentId]: data as ContentAsset[]
+        }));
+      } else {
+        setLessonAssets(prev => ({
+          ...prev,
+          [contentId]: []
+        }));
       }
-    ];
+    } catch (error) {
+      console.error('Erro ao carregar anexos:', error);
+      setLessonAssets(prev => ({
+        ...prev,
+        [contentId]: []
+      }));
+    }
+  };
+
+  // Função para fazer download de arquivo
+  const handleFileDownload = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, fileUrl: string, fileName: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     
-    // Retornar 1-3 materiais aleatoriamente baseado na posição da aula
-    const count = (lesson.position % 3) + 1;
-    return baseMaterials.slice(0, count);
+    try {
+      console.log('Iniciando download:', { fileUrl, fileName });
+      
+      const response = await fetch(fileUrl, { 
+        credentials: 'omit',
+        mode: 'cors'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Erro ao baixar arquivo: ${response.status} ${response.statusText}`);
+      }
+      
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      // Preservar a extensão do arquivo original
+      const safeFileName = fileName.replace(/[<>:"/\\|?*]+/g, '-').trim();
+      link.download = safeFileName || 'arquivo';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Limpar o URL do blob após um tempo
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+      
+      console.log('Download concluído:', safeFileName);
+    } catch (err) {
+      console.error('Erro ao baixar arquivo:', err);
+      // Fallback: tentar abrir em nova aba se o download falhar
+      alert('Não foi possível baixar o arquivo automaticamente. Tentando abrir em nova aba...');
+      window.open(fileUrl, '_blank');
+    }
+  };
+
+  // Função para obter materiais da aula (agora usando anexos reais)
+  const getLessonMaterials = (lesson: any) => {
+    const assets = lessonAssets[lesson.id] || [];
+    
+    // Converter anexos para formato de materiais
+    return assets.map((asset) => {
+      const fileType = asset.file_type || 'application/octet-stream';
+      const isPDF = fileType.includes('pdf');
+      const isImage = fileType.startsWith('image/');
+      const isVideo = fileType.startsWith('video/');
+      const isWord = fileType.includes('word') || fileType.includes('document');
+      const isExcel = fileType.includes('excel') || fileType.includes('spreadsheet');
+      
+      let type = 'Arquivo';
+      if (isPDF) type = 'PDF';
+      else if (isImage) type = 'Imagem';
+      else if (isVideo) type = 'Vídeo';
+      else if (isWord) type = 'Word';
+      else if (isExcel) type = 'Excel';
+      else if (fileType) {
+        // Extrair tipo do MIME type
+        const parts = fileType.split('/');
+        if (parts.length > 1) {
+          type = parts[1].toUpperCase();
+        }
+      }
+      
+      // Formatar tamanho do arquivo
+      let size = 'Tamanho desconhecido';
+      if (asset.file_size) {
+        const sizeInMB = asset.file_size / (1024 * 1024);
+        if (sizeInMB < 1) {
+          const sizeInKB = asset.file_size / 1024;
+          size = `${sizeInKB.toFixed(1)} KB`;
+        } else {
+          size = `${sizeInMB.toFixed(2)} MB`;
+        }
+      }
+      
+      // Extrair nome do arquivo e extensão da URL ou título
+      let fileName = asset.title || 'arquivo';
+      // Se o título não tiver extensão, tentar extrair da URL
+      if (!fileName.includes('.')) {
+        try {
+          const urlPath = new URL(asset.file_url).pathname;
+          const urlFileName = urlPath.split('/').pop() || '';
+          if (urlFileName && urlFileName.includes('.')) {
+            const ext = urlFileName.split('.').pop();
+            fileName = `${fileName}.${ext}`;
+          }
+        } catch (e) {
+          // Se não conseguir extrair, usar extensão baseada no tipo
+          if (type === 'PDF') fileName = `${fileName}.pdf`;
+          else if (type === 'Word') fileName = `${fileName}.docx`;
+          else if (type === 'Excel') fileName = `${fileName}.xlsx`;
+        }
+      }
+
+      return {
+        id: asset.id,
+        title: asset.title || 'Arquivo sem nome',
+        type: type,
+        url: asset.file_url,
+        size: size,
+        fileName: fileName
+      };
+    });
   };
   const [current, setCurrent] = useState<string | null>(null);
   const [videoProgress, setVideoProgress] = useState<{[key: string]: number}>({});
@@ -356,8 +478,22 @@ export default function WatchClient({ slug }: { slug: string }) {
   useEffect(() => {
     if (current) {
       fetchRatings(current);
+      // Carregar anexos da aula atual
+      loadLessonAssets(current);
     }
   }, [current, supabase]);
+
+  // Carregar anexos de todas as aulas quando forem carregadas
+  useEffect(() => {
+    if (lessons.length > 0 && supabase) {
+      // Carregar anexos de todas as aulas de forma assíncrona
+      const loadAllAssets = async () => {
+        await Promise.all(lessons.map(lesson => loadLessonAssets(lesson.id)));
+      };
+      loadAllAssets();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessons.length]); // Usar apenas length para evitar recarregamentos desnecessários
 
   const currentLesson = lessons.find((x) => x.id === current);
   const embedUrl = currentLesson?.video_url ? 
@@ -692,43 +828,55 @@ export default function WatchClient({ slug }: { slug: string }) {
                       </div>
                       
                       <div className="space-y-3">
-                        {materials.map((material) => (
-                          <div key={material.id} className="border border-light-border dark:border-dark-border rounded-lg p-4">
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <FileText size={24} className="text-red-600 dark:text-red-400" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h4 className="text-sm font-medium text-light-text dark:text-dark-text mb-1">
-                                  {material.title}
-                                </h4>
-                                <div className="flex items-center gap-3 text-xs text-light-muted dark:text-dark-muted">
-                                  <span>{material.type}</span>
-                                  <span>•</span>
-                                  <span>{material.size}</span>
+                        {materials.map((material) => {
+                          // Determinar cor e ícone baseado no tipo de arquivo
+                          const getFileIcon = () => {
+                            const type = material.type.toLowerCase();
+                            if (type === 'pdf') {
+                              return { icon: FileText, color: 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400' };
+                            } else if (type.includes('image')) {
+                              return { icon: FileText, color: 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' };
+                            } else if (type.includes('vídeo') || type.includes('video')) {
+                              return { icon: FileText, color: 'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400' };
+                            } else if (type === 'word') {
+                              return { icon: FileText, color: 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' };
+                            } else if (type === 'excel') {
+                              return { icon: FileText, color: 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400' };
+                            }
+                            return { icon: FileText, color: 'bg-gray-100 dark:bg-gray-900/20 text-gray-600 dark:text-gray-400' };
+                          };
+                          
+                          const { icon: FileIcon, color } = getFileIcon();
+                          
+                          return (
+                            <div key={material.id} className="border border-light-border dark:border-dark-border rounded-lg p-4 hover:shadow-md transition-shadow">
+                              <div className="flex items-center gap-4">
+                                <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                                  <FileIcon size={24} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="text-sm font-medium text-light-text dark:text-dark-text mb-1 truncate">
+                                    {material.title}
+                                  </h4>
+                                  <div className="flex items-center gap-3 text-xs text-light-muted dark:text-dark-muted">
+                                    <span>{material.type}</span>
+                                    <span>•</span>
+                                    <span>{material.size}</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={(e) => handleFileDownload(e, material.url, material.fileName || material.title)}
+                                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-brand-accent hover:bg-brand-accent/90 text-white rounded-md transition-colors cursor-pointer"
+                                  >
+                                    <Download size={14} />
+                                    Baixar
+                                  </button>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <a
-                                  href={material.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-brand-accent hover:text-brand-accent/80 transition-colors"
-                                >
-                                  Abrir
-                                </a>
-                                <a
-                                  href={material.url}
-                                  download
-                                  className="inline-flex items-center gap-1 px-3 py-1 bg-brand-accent text-white text-xs rounded-md hover:bg-brand-accent/90 transition-colors"
-                                >
-                                  <Download size={12} />
-                                  <span>Baixar</span>
-                                </a>
-                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   );
