@@ -394,11 +394,13 @@ export default function MontanhaAmanhaPage() {
                       >
                         {/* Imagem de fundo - CARD VERTICAL RESPONSIVO */}
                         <div className="relative w-full h-96 bg-gradient-to-br from-orange-500 to-orange-600">
-                          <img 
-                            src={module.image_url || module.image} 
-                            alt={module.title}
-                            className="w-full h-full object-cover"
-                          />
+                          {(module as any).cover_url || module.image_url || (module as any).image ? (
+                            <img 
+                              src={(module as any).cover_url || module.image_url || (module as any).image} 
+                              alt={module.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : null}
                           {/* Overlay escuro para legibilidade do texto */}
                           <div className="absolute inset-0 bg-black/40"></div>
                           

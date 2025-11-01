@@ -248,9 +248,9 @@ export default function PlantaoDeDuvidasPage() {
                       >
                         {/* Imagem de fundo - CARD VERTICAL RESPONSIVO */}
                         <div className="relative w-full h-96 bg-gradient-to-br from-orange-500 to-orange-600">
-                          {(module as any).cover_url || (module as any).banner_url || (module as any).image_url ? (
+                          {(module as any).cover_url || (module as any).image_url ? (
                             <img 
-                              src={(module as any).cover_url || (module as any).banner_url || (module as any).image_url} 
+                              src={(module as any).cover_url || (module as any).image_url} 
                               alt={module.title}
                               className="w-full h-full object-cover"
                             />
