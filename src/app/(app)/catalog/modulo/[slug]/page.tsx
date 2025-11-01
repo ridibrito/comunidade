@@ -218,13 +218,18 @@ export default function ModulePage() {
     }
   };
 
-  if (loading) {
+  // Mostrar estrutura mesmo durante loading, mas sem conteúdo
+  if (loading && !module) {
     return (
       <Container fullWidth>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-accent mx-auto mb-4"></div>
-            <p className="text-light-muted dark:text-dark-muted">Carregando módulo...</p>
+        <div className="relative w-full overflow-hidden md:aspect-[16/6] md:min-h-[400px] max-h-[600px]">
+          <div className="w-full h-full bg-gradient-to-r from-purple-900 via-purple-700 to-orange-500" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/50 to-black/30" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+              <p className="text-white">Carregando módulo...</p>
+            </div>
           </div>
         </div>
       </Container>

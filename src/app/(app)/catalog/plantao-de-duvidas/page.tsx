@@ -208,31 +208,6 @@ export default function PlantaoDeDuvidasPage() {
     router.push(`/catalog/modulo/${moduleSlug}`);
   };
 
-  if (loading) {
-    return (
-      <div className="container">
-        <div className="p-8">
-          <h1>Plantão de Dúvidas</h1>
-          <p>Carregando...</p>
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!pageData) {
-    return (
-      <div className="container">
-        <div className="p-8">
-          <h1>Plantão de Dúvidas</h1>
-          <p>Página não encontrada</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <Container fullWidth>
       {/* Banner */}
@@ -240,9 +215,14 @@ export default function PlantaoDeDuvidasPage() {
 
       <Section>
         <SectionTitle title="Plantão de Dúvidas" icon={HelpCircle} className="mb-2" />
-        <p className="text-light-muted dark:text-dark-muted text-lg mb-6">{pageData.description}</p>
+        {pageData && <p className="text-light-muted dark:text-dark-muted text-lg mb-6">{pageData.description}</p>}
 
-        {trails.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-accent mx-auto mb-4"></div>
+            <p className="text-light-muted dark:text-dark-muted">Carregando...</p>
+          </div>
+        ) : trails.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-500 dark:text-dark-muted">
               <h3 className="text-lg font-medium mb-2">Nenhum plantão disponível</h3>
