@@ -121,11 +121,24 @@ export default function PlantaoDeDuvidasPage() {
 
           // Otimização: buscar todos os módulos de uma vez
           const trailIds = trailsData.map(t => t.id);
-          const { data: allModulesData, error: modulesError } = await supabase
+          
+          if (trailIds.length === 0) {
+            return;
+          }
+          
+          // Query com tratamento robusto: usar select('*') para pegar todos os campos disponíveis
+          // Isso evita erros se algum campo não existir em produção
+          let modulesQuery = supabase
             .from('modules')
-            .select('id, title, description, slug, position, trail_id, cover_url, banner_url, image_url')
-            .in('trail_id', trailIds)
-            .order('position');
+            .select('*');
+          
+          if (trailIds.length === 1) {
+            modulesQuery = modulesQuery.eq('trail_id', trailIds[0]);
+          } else {
+            modulesQuery = modulesQuery.in('trail_id', trailIds);
+          }
+          
+          const { data: allModulesData, error: modulesError } = await modulesQuery.order('position');
 
           if (modulesError) {
             console.error('Erro ao carregar módulos:', modulesError);
