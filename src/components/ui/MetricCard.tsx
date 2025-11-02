@@ -34,24 +34,48 @@ export default function MetricCard({
   };
 
   const trendClasses = {
-    positive: "text-green-600 dark:text-green-400",
-    negative: "text-red-600 dark:text-red-400"
+    positive: "text-green-600",
+    negative: "text-red-600"
+  };
+  
+  const variantIconColors = {
+    default: "text-purple-600",
+    success: "text-green-600",
+    warning: "text-yellow-600",
+    info: "text-blue-600",
+    brand: "text-purple-600"
+  };
+  
+  const variantBorders = {
+    default: "border-l-4 border-l-purple-500",
+    success: "border-l-4 border-l-green-500",
+    warning: "border-l-4 border-l-yellow-500",
+    info: "border-l-4 border-l-blue-500",
+    brand: "border-l-4 border-l-purple-600"
+  };
+  
+  const variantHeaderColors = {
+    default: "text-purple-700",
+    success: "text-green-700",
+    warning: "text-yellow-700",
+    info: "text-blue-700",
+    brand: "text-purple-800"
   };
 
   return (
     <ModernCard 
-      className={cn("relative overflow-hidden", variantClasses[variant], className)}
+      className={cn("relative overflow-hidden", variantBorders[variant], className)}
       variant="default"
     >
       {icon && (
-        <div className="absolute top-4 right-4 opacity-10">
+        <div className={cn("absolute top-4 right-4 opacity-20", variantIconColors[variant])}>
           {icon}
         </div>
       )}
       
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-light-muted dark:text-dark-muted">
+          <p className={cn("text-sm font-medium", variantHeaderColors[variant])}>
             {title}
           </p>
           {trend && (
@@ -65,16 +89,16 @@ export default function MetricCard({
         </div>
         
         <div className="space-y-1">
-          <h3 className="text-2xl font-bold text-light-text dark:text-dark-text">
+          <h3 className="text-2xl font-bold text-gray-900">
             {value}
           </h3>
           {description && (
-            <p className="text-xs text-light-muted dark:text-dark-muted">
+            <p className="text-xs text-gray-600">
               {description}
             </p>
           )}
           {trend && (
-            <p className="text-xs text-light-muted dark:text-dark-muted">
+            <p className="text-xs text-gray-500">
               {trend.label}
             </p>
           )}

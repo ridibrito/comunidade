@@ -19,10 +19,10 @@ export default function ModernCard({
   const baseClasses = "rounded-xl transition-all duration-200";
   
   const variantClasses = {
-    default: "bg-light-surface dark:bg-dark-surface shadow-lg dark:shadow-xl",
-    gradient: "bg-light-surface dark:bg-dark-surface shadow-lg dark:shadow-xl",
-    outline: "bg-transparent",
-    elevated: "bg-light-surface dark:bg-dark-surface shadow-lg dark:shadow-xl"
+    default: "bg-white border border-gray-200 shadow-md",
+    gradient: "bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-100",
+    outline: "bg-transparent border-2 border-gray-300",
+    elevated: "bg-white border border-gray-200 shadow-lg"
   };
   
   const sizeClasses = {

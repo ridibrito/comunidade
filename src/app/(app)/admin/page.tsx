@@ -154,7 +154,9 @@ export default function AdminPage() {
       if (trails) {
         const typedTrails = trails as TrailRecord[];
         // Otimização: buscar todas as contagens de uma vez
-        const completionPromises = typedTrails.map(async (trail) => {
+        const colors = ["#8b5cf6", "#06b6d4", "#f59e0b", "#ef4444", "#10b981", "#6366f1", "#ec4899"];
+        
+        const completionPromises = typedTrails.map(async (trail, index) => {
           const [{ count: completed }, { count: total }] = await Promise.all([
             supabase
               .from('user_progress')
@@ -172,7 +174,7 @@ export default function AdminPage() {
           return {
             name: trail.title,
             value: percentage,
-            color: `#${Math.floor(Math.random()*16777215).toString(16)}`
+            color: colors[index % colors.length]
           };
         });
         
@@ -189,17 +191,60 @@ export default function AdminPage() {
       
       setRecentActivities((activities as ActivityLog[] | null) ?? []);
 
-      // Carregar dados de crescimento reais
+      // Calcular crescimento de usuários REAIS baseado em created_at dos profiles
       try {
-        const { data: userGrowth, error: growthError } = await supabase
-          .from('user_growth_stats')
-          .select('*')
-          .order('month');
+        const { data: allUsers } = await supabase
+          .from('profiles')
+          .select('created_at')
+          .order('created_at', { ascending: true });
         
-        if (!growthError && userGrowth && userGrowth.length > 0) {
-          setUserGrowthData(userGrowth as Record<string, any>[]);
+        if (allUsers && allUsers.length > 0) {
+          // Agrupar por mês
+          const monthlyGrowth: Record<string, { users: number; sessions: number }> = {};
+          const now = new Date();
+          const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+          
+          allUsers.forEach(user => {
+            const date = new Date(user.created_at);
+            if (date >= sixMonthsAgo) {
+              const monthKey = date.toLocaleDateString('pt-BR', { month: 'short' });
+              if (!monthlyGrowth[monthKey]) {
+                monthlyGrowth[monthKey] = { users: 0, sessions: 0 };
+              }
+              monthlyGrowth[monthKey].users++;
+            }
+          });
+
+          // Calcular sessões (usuários únicos que assistiram vídeos) por mês
+          const { data: progressData } = await supabase
+            .from('user_progress')
+            .select('user_id, created_at, updated_at');
+          
+          if (progressData) {
+            progressData.forEach(progress => {
+              const date = new Date(progress.created_at || progress.updated_at);
+              if (date >= sixMonthsAgo) {
+                const monthKey = date.toLocaleDateString('pt-BR', { month: 'short' });
+                if (monthlyGrowth[monthKey]) {
+                  monthlyGrowth[monthKey].sessions++;
+                }
+              }
+            });
+          }
+
+          const growthArray = Object.keys(monthlyGrowth)
+            .map(key => ({ month: key, ...monthlyGrowth[key] }))
+            .sort((a, b) => {
+              const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+              return months.indexOf(a.month) - months.indexOf(b.month);
+            });
+          
+          setUserGrowthData(growthArray.length > 0 ? growthArray : [
+            { month: 'Jan', users: 10, sessions: 45 },
+            { month: 'Fev', users: 25, sessions: 120 },
+            { month: 'Mar', users: 45, sessions: 200 }
+          ]);
         } else {
-          // Se não houver dados, usar dados mockados
           setUserGrowthData([
             { month: 'Jan', users: 10, sessions: 45 },
             { month: 'Fev', users: 25, sessions: 120 },
@@ -207,7 +252,7 @@ export default function AdminPage() {
           ]);
         }
       } catch (error) {
-        // Tabela não existe, usar dados mockados
+        console.error('Erro ao calcular crescimento:', error);
         setUserGrowthData([
           { month: 'Jan', users: 10, sessions: 45 },
           { month: 'Fev', users: 25, sessions: 120 },
@@ -215,17 +260,48 @@ export default function AdminPage() {
         ]);
       }
 
-      // Carregar dados de atividade semanal reais
+      // Calcular atividade semanal REAIS baseado em progresso
       try {
-        const { data: weeklyActivity, error: activityError } = await supabase
-          .from('weekly_activity_stats')
-          .select('*')
-          .order('day_of_week');
+        const { data: weeklyProgressData } = await supabase
+          .from('user_progress')
+          .select('user_id, created_at, updated_at');
         
-        if (!activityError && weeklyActivity && weeklyActivity.length > 0) {
-          setActivityData(weeklyActivity as Record<string, any>[]);
+        if (weeklyProgressData) {
+          const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+          const weeklyData: Record<number, { lessons: number; users: Set<string> }> = {};
+          
+          weeklyProgressData.forEach((progress: any) => {
+            const date = new Date(progress.updated_at || progress.created_at);
+            const dayOfWeek = date.getDay();
+            
+            if (!weeklyData[dayOfWeek]) {
+              weeklyData[dayOfWeek] = { lessons: 0, users: new Set() };
+            }
+            weeklyData[dayOfWeek].lessons++;
+            // Contar usuários únicos por dia
+            if (progress.user_id) {
+              weeklyData[dayOfWeek].users.add(progress.user_id);
+            }
+          });
+
+          const activityArray = Object.keys(weeklyData)
+            .map(key => parseInt(key))
+            .sort()
+            .slice(1, 6) // Pular domingo, pegar Seg-Sex
+            .map(day => ({
+              day: daysOfWeek[day],
+              lessons: weeklyData[day]?.lessons || 0,
+              users: weeklyData[day]?.users.size || 0
+            }));
+          
+          setActivityData(activityArray.length > 0 ? activityArray : [
+            { day: 'Seg', lessons: 12, users: 8 },
+            { day: 'Ter', lessons: 19, users: 12 },
+            { day: 'Qua', lessons: 15, users: 10 },
+            { day: 'Qui', lessons: 22, users: 15 },
+            { day: 'Sex', lessons: 18, users: 12 }
+          ]);
         } else {
-          // Se não houver dados, usar dados mockados
           setActivityData([
             { day: 'Seg', lessons: 12, users: 8 },
             { day: 'Ter', lessons: 19, users: 12 },
@@ -235,7 +311,7 @@ export default function AdminPage() {
           ]);
         }
       } catch (error) {
-        // Tabela não existe, usar dados mockados
+        console.error('Erro ao calcular atividade semanal:', error);
         setActivityData([
           { day: 'Seg', lessons: 12, users: 8 },
           { day: 'Ter', lessons: 19, users: 12 },
@@ -255,15 +331,15 @@ export default function AdminPage() {
   const chartConfig = {
     users: {
       label: "Usuários",
-      color: "hsl(var(--chart-1))",
+      color: "#8b5cf6", // Purple-500
     },
     sessions: {
       label: "Sessões",
-      color: "hsl(var(--chart-2))",
+      color: "#06b6d4", // Cyan-500
     },
     lessons: {
       label: "Aulas",
-      color: "hsl(var(--chart-3))",
+      color: "#f59e0b", // Amber-500
     },
   } satisfies ChartConfig;
 
@@ -275,7 +351,7 @@ export default function AdminPage() {
         {/* Filtros */}
         <div className="flex items-center gap-4 mb-8">
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-light-muted dark:text-dark-muted" />
+            <Calendar className="w-4 h-4 text-gray-600" />
             <Select value={timeRange} onValueChange={setTimeRange}>
               <SelectTrigger className="w-32">
                 <SelectValue />
@@ -289,7 +365,7 @@ export default function AdminPage() {
             </Select>
           </div>
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-light-muted dark:text-dark-muted" />
+            <Filter className="w-4 h-4 text-gray-600" />
             <Select value={selectedMetric} onValueChange={setSelectedMetric}>
               <SelectTrigger className="w-40">
                 <SelectValue />
@@ -361,32 +437,34 @@ export default function AdminPage() {
           <ModernCard>
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-brand-accent" />
-                <h2 className="text-lg font-semibold text-light-text dark:text-dark-text">Crescimento de Usuários</h2>
+                <BarChart3 className="w-5 h-5 text-purple-600" />
+                <h2 className="text-lg font-semibold text-gray-900">Crescimento de Usuários</h2>
               </div>
               <Badge variant="outline" size="sm">Últimos 6 meses</Badge>
             </div>
             <ChartContainer config={chartConfig} className="h-[300px] w-full">
               <AreaChart data={userGrowthData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="month" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Area
                   type="monotone"
                   dataKey="users"
                   stackId="1"
                   stroke="var(--color-users)"
+                  strokeWidth={2}
                   fill="var(--color-users)"
-                  fillOpacity={0.6}
+                  fillOpacity={0.8}
                 />
                 <Area
                   type="monotone"
                   dataKey="sessions"
                   stackId="2"
                   stroke="var(--color-sessions)"
+                  strokeWidth={2}
                   fill="var(--color-sessions)"
-                  fillOpacity={0.6}
+                  fillOpacity={0.8}
                 />
               </AreaChart>
             </ChartContainer>
@@ -396,8 +474,8 @@ export default function AdminPage() {
           <ModernCard>
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-brand-accent" />
-                <h2 className="text-lg font-semibold text-light-text dark:text-dark-text">Conclusão por Trilha</h2>
+                <TrendingUp className="w-5 h-5 text-purple-600" />
+                <h2 className="text-lg font-semibold text-gray-900">Conclusão por Trilha</h2>
               </div>
               <Badge variant="outline" size="sm">Taxa de conclusão</Badge>
             </div>
@@ -427,19 +505,19 @@ export default function AdminPage() {
           <ModernCard className="lg:col-span-2">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                <Activity className="w-5 h-5 text-brand-accent" />
-                <h2 className="text-lg font-semibold text-light-text dark:text-dark-text">Atividade Semanal</h2>
+                <Activity className="w-5 h-5 text-purple-600" />
+                <h2 className="text-lg font-semibold text-gray-900">Atividade Semanal</h2>
               </div>
               <Badge variant="outline" size="sm">Última semana</Badge>
             </div>
             <ChartContainer config={chartConfig} className="h-[300px] w-full">
               <BarChart data={activityData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="day" />
-                <YAxis />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="day" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="lessons" fill="var(--color-lessons)" />
-                <Bar dataKey="users" fill="var(--color-users)" />
+                <Bar dataKey="lessons" fill="var(--color-lessons)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="users" fill="var(--color-users)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ChartContainer>
           </ModernCard>
@@ -447,8 +525,8 @@ export default function AdminPage() {
           {/* Saúde do sistema */}
           <ModernCard>
             <div className="flex items-center gap-2 mb-4">
-              <Activity className="w-5 h-5 text-brand-accent" />
-              <h2 className="text-lg font-semibold text-light-text dark:text-dark-text">Saúde do Sistema</h2>
+              <Activity className="w-5 h-5 text-purple-600" />
+              <h2 className="text-lg font-semibold text-gray-900">Saúde do Sistema</h2>
             </div>
             <div className="space-y-3">
               {[
@@ -457,20 +535,20 @@ export default function AdminPage() {
                 { name: "OpenAI", status: "OK", icon: CheckCircle, uptime: "99.7%" },
                 { name: "Resend", status: "OK", icon: CheckCircle, uptime: "99.9%" }
               ].map((service, i) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-light-border/20 dark:bg-dark-border/20">
+                <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
                   <div className="flex items-center gap-3">
                     <service.icon className="w-4 h-4 text-green-500" />
                     <div>
-                      <span className="text-sm font-medium text-light-text dark:text-dark-text">{service.name}</span>
-                      <p className="text-xs text-light-muted dark:text-dark-muted">{service.uptime}</p>
+                      <span className="text-sm font-medium text-gray-900">{service.name}</span>
+                      <p className="text-xs text-gray-600">{service.uptime}</p>
                     </div>
                   </div>
                   <Badge variant="success" size="sm">{service.status}</Badge>
                 </div>
               ))}
             </div>
-            <div className="mt-4 pt-3 border-t border-light-border dark:border-dark-border">
-              <div className="flex items-center gap-2 text-xs text-light-muted dark:text-dark-muted">
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <div className="flex items-center gap-2 text-xs text-gray-500">
                 <Clock className="w-3 h-3" />
                 Última verificação há 2 min
               </div>
@@ -482,10 +560,10 @@ export default function AdminPage() {
         <ModernCard>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <Eye className="w-5 h-5 text-brand-accent" />
-              <h2 className="text-lg font-semibold text-light-text dark:text-dark-text">Atividades Recentes</h2>
+              <Eye className="w-5 h-5 text-purple-600" />
+              <h2 className="text-lg font-semibold text-gray-900">Atividades Recentes</h2>
             </div>
-            <button className="text-xs px-3 py-1.5 rounded-lg border border-light-border dark:border-dark-border hover:bg-light-border/50 dark:hover:bg-dark-border/50 text-light-text dark:text-dark-text transition-colors">
+            <button className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 transition-colors">
               Ver tudo
             </button>
           </div>
@@ -511,7 +589,7 @@ export default function AdminPage() {
                 </TableRow>
               ) : recentActivities.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-light-muted dark:text-dark-muted">
+                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                     Nenhuma atividade recente
                   </TableCell>
                 </TableRow>
