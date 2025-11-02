@@ -12,6 +12,7 @@ interface TooltipProps {
 export function Tooltip({ label, children, side = "right" }: TooltipProps) {
   const [position, setPosition] = useState({ top: 0, left: 0, opacity: 0 });
   const [shouldRender, setShouldRender] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const triggerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -116,6 +117,8 @@ export function Tooltip({ label, children, side = "right" }: TooltipProps) {
   }, [side, estimateTooltipSize]);
 
   const handleMouseEnter = useCallback(() => {
+    if (isMobile) return; // Desabilitar tooltip em mobile
+    
     // Limpar qualquer timeout existente
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -136,7 +139,7 @@ export function Tooltip({ label, children, side = "right" }: TooltipProps) {
         });
       }
     });
-  }, [updatePosition]);
+  }, [updatePosition, isMobile]);
 
   const handleMouseLeave = useCallback(() => {
     // Limpar timeouts e rafs
@@ -191,9 +194,20 @@ export function Tooltip({ label, children, side = "right" }: TooltipProps) {
 
   useEffect(() => {
     setMounted(true);
+    
+    // Detectar se é dispositivo móvel
+    const checkMobile = () => {
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isSmallScreen = window.innerWidth < 768;
+      setIsMobile(isTouchDevice && isSmallScreen);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const tooltipContent = shouldRender && mounted ? (
+  const tooltipContent = shouldRender && mounted && !isMobile ? (
     createPortal(
       <div
         ref={tooltipRef}

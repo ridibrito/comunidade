@@ -635,35 +635,16 @@ export default function WatchClient({ slug }: { slug: string }) {
   return (
     <div className="min-h-screen bg-light-bg dark:bg-dark-bg">
       {/* Header completo com breadcrumbs e navegação */}
-      <div className="sticky top-0 z-50 bg-light-surface/95 dark:bg-dark-surface/95 backdrop-blur-sm shadow-sm">
-        <div className="px-6 py-4">
-          {/* Breadcrumbs */}
-          <div className="flex items-center gap-2 text-sm text-light-muted dark:text-dark-muted mb-2">
-            <Link 
-              href={`/catalog/${parentPageSlug}`}
-              className="hover:text-light-text dark:hover:text-dark-text transition-colors"
-            >
-              Início
-            </Link>
-            <span>›</span>
-            <Link 
-              href={`/catalog/${parentPageSlug}`}
-              className="hover:text-light-text dark:hover:text-dark-text transition-colors"
-            >
-              {trailTitle}
-            </Link>
-            <span>›</span>
-            <Link 
-              href={`/catalog/modulo/${slug}`}
-              className="hover:text-light-text dark:hover:text-dark-text transition-colors"
-            >
-              {moduleTitle}
-            </Link>
-            <span>›</span>
-            <span className="text-light-text dark:text-dark-text">
-              {currentLesson?.title || "Selecione uma aula"}
-            </span>
-          </div>
+      <div className="bg-light-surface/95 dark:bg-dark-surface/95 backdrop-blur-sm shadow-sm">
+        <div className="px-4 sm:px-6 py-3 sm:py-4">
+          {/* Botão voltar */}
+          <Link 
+            href={`/catalog/modulo/${slug}`}
+            className="inline-flex items-center gap-2 text-xs sm:text-sm text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text transition-colors mb-2"
+          >
+            <ArrowLeft size={16} />
+            <span>Voltar</span>
+          </Link>
           
           {/* Título principal e controles */}
           <div className="flex items-center justify-between">

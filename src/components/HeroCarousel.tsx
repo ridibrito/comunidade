@@ -107,7 +107,7 @@ export function HeroCarousel({ heroes: initialHeroes, pageSlug = 'dashboard' }: 
               <img
                 src={hero.hero_image_url}
                 alt={hero.title || 'Hero image'}
-                className="w-full h-full object-contain sm:object-cover object-center bg-gray-100 dark:bg-gray-800"
+                className="w-full h-full object-cover object-center bg-gray-100 dark:bg-gray-800"
               />
             ) : (
               <div className={`w-full h-full bg-gradient-to-r ${hero.background_gradient || 'from-purple-900 via-purple-700 to-orange-500'}`} />
@@ -172,7 +172,7 @@ export function HeroCarousel({ heroes: initialHeroes, pageSlug = 'dashboard' }: 
          <>
            <button
              onClick={prevSlide}
-             className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all flex items-center justify-center z-50"
+             className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all flex items-center justify-center z-40"
              aria-label="Slide anterior"
            >
              <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
@@ -180,14 +180,14 @@ export function HeroCarousel({ heroes: initialHeroes, pageSlug = 'dashboard' }: 
 
            <button
              onClick={nextSlide}
-             className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all flex items-center justify-center z-50"
+             className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all flex items-center justify-center z-40"
              aria-label="Próximo slide"
            >
              <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
            </button>
 
            {/* Indicadores */}
-           <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex gap-1 sm:gap-2 z-50">
+           <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex gap-1 sm:gap-2 z-40">
              {heroes.map((_, index) => (
                <button
                  key={index}
