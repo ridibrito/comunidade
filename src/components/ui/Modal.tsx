@@ -1,4 +1,7 @@
+"use client";
+
 import { ReactNode, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 export default function Modal({ open, onClose, children }: { open: boolean; onClose: () => void; children: ReactNode; }) {
   useEffect(() => {
@@ -8,8 +11,9 @@ export default function Modal({ open, onClose, children }: { open: boolean; onCl
   }, [open, onClose]);
 
   if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  
+  return createPortal(
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 dark:bg-black/70" onClick={onClose} aria-hidden />
       <div 
         role="dialog" 
@@ -20,7 +24,8 @@ export default function Modal({ open, onClose, children }: { open: boolean; onCl
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
