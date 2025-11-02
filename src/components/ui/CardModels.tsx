@@ -116,26 +116,28 @@ export function CardVideoAula({
       <div className="flex-1">
         <Tooltip label={title} side="top">
           <Link href={href}>
-            <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1 line-clamp-2 min-h-[3rem] cursor-help hover:text-brand-accent transition-colors">{title}</h3>
+            <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2 min-h-[3rem] cursor-help hover:text-brand-accent transition-colors">{title}</h3>
           </Link>
         </Tooltip>
         <div 
-          className="text-sm text-gray-600 dark:text-dark-muted mb-1 line-clamp-2 min-h-[2.75rem]
+          className="text-sm text-gray-600 mb-1 line-clamp-2 min-h-[2.75rem]
             [&_p]:mb-0 [&_p:last-child]:mb-0
-            [&_strong]:font-semibold [&_strong]:text-gray-900 [&_strong]:dark:text-dark-text
+            [&_strong]:font-semibold [&_strong]:text-gray-900
             [&_em]:italic
             [&_br]:block"
           style={{ 
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            wordBreak: 'break-word',
+            WebkitHyphens: 'auto'
           }}
           dangerouslySetInnerHTML={{ __html: description }}
         />
         <ReadMoreModal description={description} />
         
-        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-dark-muted mb-2">
+        <div className="flex items-center gap-4 text-xs text-gray-500 mb-2">
             <div className="flex items-center gap-1">
               <BookOpen className="w-3 h-3" />
               {lessons} {lessons === 1 ? 'aula' : 'aulas'}
@@ -149,10 +151,10 @@ export function CardVideoAula({
           {/* Barra de progresso para vídeos do Vimeo */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-700 dark:text-gray-300 font-medium">Progresso</span>
-              <span className="text-gray-600 dark:text-gray-400 font-semibold">{progress}%</span>
+              <span className="text-gray-700 font-medium">Progresso</span>
+              <span className="text-gray-600 font-semibold">{progress}%</span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-transparent rounded-full h-2.5">
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
               <div 
                 className="bg-brand-accent h-2.5 rounded-full transition-all duration-300 shadow-sm"
                 style={{ width: `${progress}%` }}
@@ -215,11 +217,11 @@ export function CardAulaAoVivo({
   return (
     <ModernCard variant="elevated" className={`h-full flex flex-col ${className}`}>
       <div className="relative">
-        <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-border">
+        <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
           <img src={image} alt={title} className="w-full h-full object-cover" />
           {/* Replay indicator */}
           <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-            <div className="w-16 h-16 bg-white/90 dark:bg-dark-surface/90 rounded-full flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
               <RotateCcw className="w-8 h-8 text-brand-accent" />
             </div>
           </div>
@@ -232,7 +234,7 @@ export function CardAulaAoVivo({
         
         <div className="absolute top-2 right-2 flex flex-col gap-1">
           {rating && (
-            <div className="flex items-center gap-1 bg-white/90 dark:bg-dark-surface/90 rounded px-2 py-1">
+            <div className="flex items-center gap-1 bg-white/90 rounded px-2 py-1">
               <Star className="w-3 h-3 text-yellow-500" />
               <span className="text-xs font-medium">{rating}</span>
             </div>
@@ -240,7 +242,7 @@ export function CardAulaAoVivo({
         </div>
         
         <div className="absolute bottom-2 right-2">
-          <div className="flex items-center gap-1 bg-white/90 dark:bg-dark-surface/90 rounded px-2 py-1">
+          <div className="flex items-center gap-1 bg-white/90 rounded px-2 py-1">
             <Users className="w-3 h-3 text-gray-600" />
             <span className="text-xs font-medium">{participants}/{maxParticipants}</span>
           </div>
@@ -250,19 +252,21 @@ export function CardAulaAoVivo({
       <div className="flex-1 flex flex-col p-4 space-y-3">
         <div className="flex-1">
           <Tooltip label={title} side="top">
-            <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1 line-clamp-2 min-h-[3rem] cursor-help">{title}</h3>
+            <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2 min-h-[3rem] cursor-help">{title}</h3>
           </Tooltip>
           <div 
-            className="text-sm text-gray-600 dark:text-dark-muted mb-1 line-clamp-2 min-h-[2.75rem]
+            className="text-sm text-gray-600 mb-1 line-clamp-2 min-h-[2.75rem]
               [&_p]:mb-0 [&_p:last-child]:mb-0
-              [&_strong]:font-semibold [&_strong]:text-gray-900 [&_strong]:dark:text-dark-text
+              [&_strong]:font-semibold [&_strong]:text-gray-900
               [&_em]:italic
               [&_br]:block"
             style={{ 
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              wordBreak: 'break-word',
+              WebkitHyphens: 'auto'
             }}
             dangerouslySetInnerHTML={{ __html: description }}
           />
@@ -270,11 +274,11 @@ export function CardAulaAoVivo({
           <p className="text-xs text-brand-accent font-medium">Instrutor: {instructor}</p>
           
           <div className="space-y-2 mt-2">
-            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-dark-muted">
+            <div className="flex items-center gap-2 text-xs text-gray-500">
               <Calendar className="w-3 h-3" />
               <span>Ao vivo: {new Date(originalDate).toLocaleDateString('pt-BR')} às {originalTime}</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-dark-muted">
+            <div className="flex items-center gap-2 text-xs text-gray-500">
               <Clock className="w-3 h-3" />
               <span>Duração: {duration}</span>
             </div>
@@ -284,10 +288,10 @@ export function CardAulaAoVivo({
           {progress > 0 && (
             <div className="space-y-2 mt-3">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-600 dark:text-dark-muted font-medium">Progresso</span>
-                <span className="text-gray-500 dark:text-dark-muted">{progress}%</span>
+                <span className="text-gray-600 font-medium">Progresso</span>
+                <span className="text-gray-500">{progress}%</span>
               </div>
-              <div className="w-full bg-gray-100 dark:bg-gray-600 rounded-full h-2">
+              <div className="w-full bg-gray-100 rounded-full h-2">
               <div 
                 className="bg-brand-accent h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
@@ -369,7 +373,7 @@ export function CardLivro({
   return (
     <ModernCard variant="elevated" className={`h-full flex flex-col overflow-visible ${className}`}>
       <div className="relative">
-        <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-border">
+        <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
           <img src={image} alt={title} className="w-full h-full object-cover" />
         </div>
         
@@ -385,7 +389,7 @@ export function CardLivro({
         
         <div className="absolute top-2 right-2">
           {rating && (
-            <div className="flex items-center gap-1 bg-white/90 dark:bg-dark-surface/90 rounded px-2 py-1">
+            <div className="flex items-center gap-1 bg-white/90 rounded px-2 py-1">
               <Star className="w-3 h-3 text-yellow-500" />
               <span className="text-xs font-medium">{rating}</span>
             </div>
@@ -396,27 +400,29 @@ export function CardLivro({
       <div className="flex-1 flex flex-col p-3 space-y-2 overflow-visible">
         <div className="flex-1 overflow-visible">
           <Tooltip label={title} side="top">
-            <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1 line-clamp-1 min-h-[1.5rem] cursor-help">{title}</h3>
+            <h3 className="font-semibold text-gray-900 mb-1 line-clamp-1 min-h-[1.5rem] cursor-help">{title}</h3>
           </Tooltip>
           <p className="text-xs text-brand-accent font-medium mb-1">por {author}</p>
           <div 
-            className="text-sm text-gray-600 dark:text-dark-muted line-clamp-2 min-h-[2.75rem]
+            className="text-sm text-gray-600 line-clamp-2 min-h-[2.75rem]
               [&_p]:mb-0 [&_p:last-child]:mb-0
-              [&_strong]:font-semibold [&_strong]:text-gray-900 [&_strong]:dark:text-dark-text
+              [&_strong]:font-semibold [&_strong]:text-gray-900
               [&_em]:italic
               [&_br]:block"
             style={{ 
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              wordBreak: 'break-word',
+              WebkitHyphens: 'auto'
             }}
             dangerouslySetInnerHTML={{ __html: description }}
           />
           <ReadMoreModal description={description} />
         </div>
         
-        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-dark-muted">
+        <div className="flex items-center gap-4 text-xs text-gray-500">
           <div className="flex items-center gap-1">
             <BookOpen className="w-3 h-3" />
             {pages} páginas
@@ -435,7 +441,7 @@ export function CardLivro({
               onClick={() => {
                 window.open(fileUrl, '_blank', 'noopener,noreferrer');
               }}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border text-sm text-gray-600 dark:text-dark-muted hover:text-gray-800 dark:hover:text-dark-text border-light-border dark:border-dark-border"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border text-sm text-gray-600 hover:text-gray-800 border-light-border"
             >
               <Eye className="w-3 h-3" />
               Ler
@@ -490,11 +496,11 @@ export function CardPDF({
   return (
     <ModernCard variant="elevated" className={`h-full space-y-4 ${className}`}>
       <div className="relative">
-        <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-border">
+        <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
           <img src={image} alt={title} className="w-full h-full object-cover" />
           {/* PDF icon overlay */}
           <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
-            <div className="w-12 h-12 bg-white/90 dark:bg-dark-surface/90 rounded-lg flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 bg-white/90 rounded-lg flex items-center justify-center shadow-lg">
               <FileText className="w-6 h-6 text-red-500" />
             </div>
           </div>
@@ -515,7 +521,7 @@ export function CardPDF({
         
         <div className="absolute top-2 right-2">
           {rating && (
-            <div className="flex items-center gap-1 bg-white/90 dark:bg-dark-surface/90 rounded px-2 py-1">
+            <div className="flex items-center gap-1 bg-white/90 rounded px-2 py-1">
               <Star className="w-3 h-3 text-yellow-500" />
               <span className="text-xs font-medium">{rating}</span>
             </div>
@@ -525,14 +531,14 @@ export function CardPDF({
 
       <div className="space-y-3 flex-1">
         <div>
-          <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1">{title}</h3>
-          <p className="text-sm text-gray-600 dark:text-dark-muted">{description}</p>
+          <h3 className="font-semibold text-gray-900 mb-1">{title}</h3>
+          <p className="text-sm text-gray-600">{description}</p>
           {series && (
             <p className="text-xs text-brand-accent mt-1 font-medium">{series}</p>
           )}
         </div>
         
-        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-dark-muted">
+        <div className="flex items-center gap-4 text-xs text-gray-500">
           <div className="flex items-center gap-1">
             <BookOpen className="w-3 h-3" />
             {pages} páginas
@@ -549,7 +555,7 @@ export function CardPDF({
             <Button 
               variant="outline" 
               size="sm" 
-              className="text-gray-600 dark:text-dark-muted hover:text-gray-800 dark:hover:text-dark-text"
+              className="text-gray-600 hover:text-gray-800"
             >
               <Eye className="w-3 h-3 mr-1" />
               Ler

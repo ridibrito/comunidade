@@ -36,35 +36,12 @@
   --font-text: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, sans-serif;
 }
 
-/* Dark mode por padrão */
-html {
-  color-scheme: dark;
-}
-
-/* Light mode (default) */
+/* Light mode por padrão */
 body {
-  background-color: var(--dark-bg);
-  color: var(--dark-text);
-  font-family: var(--font-text);
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Light mode */
-html:not(.dark) body {
   background-color: var(--light-bg);
   color: var(--light-text);
-}
-
-/* Dark mode */
-.dark body {
-  background-color: var(--dark-bg);
-  color: var(--dark-text);
-}
-
-/* Dark mode border overrides */
-.dark {
-  --border: 255 255 255 / 0.05;
-  --border-input: 255 255 255 / 0.05;
+  font-family: var(--font-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 html { 
@@ -89,34 +66,14 @@ html {
 .text-brand-accent { color: var(--brand-accent); }
 .border-brand-accent { border-color: var(--brand-accent); }
 
-/* Classes para dark mode */
-.dark .bg-light-bg { background-color: var(--dark-bg); }
-.dark .bg-light-surface { background-color: var(--dark-surface); }
-.dark .bg-light-border { background-color: var(--dark-border); }
-.dark .text-light-text { color: var(--dark-text); }
-.dark .text-light-muted { color: var(--dark-muted); }
-
-/* Classes para light mode */
-html:not(.dark) .bg-light-bg { background-color: var(--light-bg); }
-html:not(.dark) .bg-light-surface { background-color: var(--light-surface); }
-html:not(.dark) .bg-light-border { background-color: var(--light-border); }
-html:not(.dark) .text-light-text { color: var(--light-text); }
-html:not(.dark) .text-light-muted { color: var(--light-muted); }
-
 /* Hover sutil no tom roxo principal */
 .hover-brand-subtle:hover {
   background-color: rgba(67, 8, 94, 0.08);
-}
-.dark .hover-brand-subtle:hover {
-  background-color: rgba(67, 8, 94, 0.18);
 }
 
 /* Estado ativo sutil no tom roxo principal */
 .active-brand-subtle {
   background-color: rgba(67, 8, 94, 0.12);
-}
-.dark .active-brand-subtle {
-  background-color: rgba(67, 8, 94, 0.24);
 }
 
 /* Classes de layout */
@@ -145,18 +102,9 @@ html:not(.dark) .text-light-muted { color: var(--light-muted); }
   transition: all 0.2s ease;
 }
 
-.dark .card {
-  background-color: var(--dark-surface);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
 .hover-raise:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.dark .hover-raise:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .page-title {
@@ -170,10 +118,6 @@ html:not(.dark) .text-light-muted { color: var(--light-muted); }
   font-weight: 600;
   margin-bottom: 1.5rem;
   color: var(--light-text);
-}
-
-.dark .section-title {
-  color: var(--dark-text);
 }
 
 .section-spacing {
@@ -192,9 +136,6 @@ html:not(.dark) .text-light-muted { color: var(--light-muted); }
   background-color: var(--light-border); 
   border-radius: 999px; 
 }
-.dark *::-webkit-scrollbar-thumb { 
-  background-color: var(--dark-border); 
-}
 *::-webkit-scrollbar-track { background: transparent; }
 
 /* Esconder scrollbar completamente */
@@ -205,4 +146,3 @@ html:not(.dark) .text-light-muted { color: var(--light-muted); }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-
