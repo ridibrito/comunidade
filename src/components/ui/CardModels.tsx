@@ -120,7 +120,7 @@ export function CardVideoAula({
           </Link>
         </Tooltip>
         <div 
-          className="text-sm text-gray-600 mb-1 line-clamp-2 min-h-[2.75rem]
+          className="text-sm text-gray-600 mb-1 line-clamp-2 min-h-[2.75rem] select-none
             [&_p]:mb-0 [&_p:last-child]:mb-0
             [&_strong]:font-semibold [&_strong]:text-gray-900
             [&_em]:italic
@@ -131,7 +131,9 @@ export function CardVideoAula({
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
             wordBreak: 'break-word',
-            WebkitHyphens: 'auto'
+            WebkitHyphens: 'auto',
+            WebkitTouchCallout: 'none',
+            WebkitUserSelect: 'none'
           }}
           dangerouslySetInnerHTML={{ __html: description }}
         />
@@ -255,7 +257,7 @@ export function CardAulaAoVivo({
             <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2 min-h-[3rem] cursor-help">{title}</h3>
           </Tooltip>
           <div 
-            className="text-sm text-gray-600 mb-1 line-clamp-2 min-h-[2.75rem]
+            className="text-sm text-gray-600 mb-1 line-clamp-2 min-h-[2.75rem] select-none
               [&_p]:mb-0 [&_p:last-child]:mb-0
               [&_strong]:font-semibold [&_strong]:text-gray-900
               [&_em]:italic
@@ -266,7 +268,9 @@ export function CardAulaAoVivo({
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
               wordBreak: 'break-word',
-              WebkitHyphens: 'auto'
+              WebkitHyphens: 'auto',
+              WebkitTouchCallout: 'none',
+              WebkitUserSelect: 'none'
             }}
             dangerouslySetInnerHTML={{ __html: description }}
           />
@@ -404,7 +408,7 @@ export function CardLivro({
           </Tooltip>
           <p className="text-xs text-brand-accent font-medium mb-1">por {author}</p>
           <div 
-            className="text-sm text-gray-600 line-clamp-2 min-h-[2.75rem]
+            className="text-sm text-gray-600 line-clamp-2 min-h-[2.75rem] select-none
               [&_p]:mb-0 [&_p:last-child]:mb-0
               [&_strong]:font-semibold [&_strong]:text-gray-900
               [&_em]:italic
@@ -415,7 +419,9 @@ export function CardLivro({
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
               wordBreak: 'break-word',
-              WebkitHyphens: 'auto'
+              WebkitHyphens: 'auto',
+              WebkitTouchCallout: 'none',
+              WebkitUserSelect: 'none'
             }}
             dangerouslySetInnerHTML={{ __html: description }}
           />
