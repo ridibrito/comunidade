@@ -93,8 +93,8 @@ export function CardVideoAula({
   const href = isLesson && moduleSlug ? `/catalog/modulo/${moduleSlug}/assistir?lesson=${slug}` : `/catalog/modulo/${slug}`;
 
   return (
-    <Link href={href} className="block h-full" style={{ touchAction: 'pan-x pan-y' }}>
-      <ModernCard variant="elevated" className={`h-full flex flex-col overflow-visible ${className} hover:shadow-lg transition-all duration-300 relative group`}>
+    <ModernCard variant="elevated" className={`h-full flex flex-col overflow-visible ${className} hover:shadow-lg transition-all duration-300 relative group`}>
+      <Link href={href} className="block">
         <div className="relative">
           <div className="aspect-video overflow-hidden">
             <img src={image} alt={title} className="w-full h-full object-cover" />
@@ -109,22 +109,25 @@ export function CardVideoAula({
             </div>
           </div>
         </div>
+      </Link>
 
-        <div className="flex-1 flex flex-col p-3 pt-12 space-y-2 z-10 relative">
-        <div className="flex-1">
-          <Tooltip label={title} side="top">
-            <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1 line-clamp-2 min-h-[3rem] cursor-help">{title}</h3>
-          </Tooltip>
-          <Tooltip label={stripHtml(description)} side="top">
-            <div 
-              className="text-sm text-gray-600 dark:text-dark-muted mb-2 line-clamp-2 min-h-[2.75rem] cursor-help
-                [&_p]:mb-0 [&_p:last-child]:mb-0
-                [&_strong]:font-semibold [&_strong]:text-gray-900 [&_strong]:dark:text-dark-text
-                [&_em]:italic
-                [&_br]:block"
-              dangerouslySetInnerHTML={{ __html: description }}
-            />
-          </Tooltip>
+      <div className="flex-1 flex flex-col p-3 pt-12 space-y-2 z-10 relative">
+      <div className="flex-1">
+        <Tooltip label={title} side="top">
+          <Link href={href}>
+            <h3 className="font-semibold text-gray-900 dark:text-dark-text mb-1 line-clamp-2 min-h-[3rem] cursor-help hover:text-brand-accent transition-colors">{title}</h3>
+          </Link>
+        </Tooltip>
+        <Tooltip label={stripHtml(description)} side="top">
+          <div 
+            className="text-sm text-gray-600 dark:text-dark-muted mb-2 line-clamp-2 min-h-[2.75rem] cursor-help
+              [&_p]:mb-0 [&_p:last-child]:mb-0
+              [&_strong]:font-semibold [&_strong]:text-gray-900 [&_strong]:dark:text-dark-text
+              [&_em]:italic
+              [&_br]:block"
+            dangerouslySetInnerHTML={{ __html: description }}
+          />
+        </Tooltip>
           
           <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-dark-muted mb-2">
             <div className="flex items-center gap-1">
@@ -153,18 +156,19 @@ export function CardVideoAula({
         </div>
         
         <div className="flex items-center justify-end mt-auto pt-2">
-          <Button 
-            variant="default" 
-            size="sm" 
-            className="bg-brand-accent hover:bg-brand-accent/90 text-white transition-colors"
-          >
-            {progress > 0 ? "Continuar" : "Começar"}
-            <Play className="w-3 h-3 ml-1" />
-          </Button>
+          <Link href={href}>
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="bg-brand-accent hover:bg-brand-accent/90 text-white transition-colors"
+            >
+              {progress > 0 ? "Continuar" : "Começar"}
+              <Play className="w-3 h-3 ml-1" />
+            </Button>
+          </Link>
         </div>
       </div>
     </ModernCard>
-    </Link>
   );
 }
 

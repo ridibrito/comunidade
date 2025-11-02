@@ -135,16 +135,26 @@ function Carousel({
 
 function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
   const { carouselRef, orientation } = useCarousel()
+  const [isMobile, setIsMobile] = React.useState(false)
+
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   return (
     <div
       ref={carouselRef}
-      className="overflow-hidden touch-pan-x"
+      className={cn("overflow-hidden", isMobile ? "" : "touch-pan-x")}
       style={{ 
         WebkitOverflowScrolling: 'touch',
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
-        touchAction: 'pan-x'
+        touchAction: isMobile ? 'pan-y' : 'pan-x'
       }}
     >
       <div

@@ -116,9 +116,7 @@ export function Tooltip({ label, children, side = "right" }: TooltipProps) {
     setPosition(prev => ({ ...prev, top, left }));
   }, [side, estimateTooltipSize]);
 
-  const handleMouseEnter = useCallback(() => {
-    if (isMobile) return; // Desabilitar tooltip em mobile
-    
+  const showTooltip = useCallback(() => {
     // Limpar qualquer timeout existente
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -139,9 +137,9 @@ export function Tooltip({ label, children, side = "right" }: TooltipProps) {
         });
       }
     });
-  }, [updatePosition, isMobile]);
+  }, [updatePosition]);
 
-  const handleMouseLeave = useCallback(() => {
+  const hideTooltip = useCallback(() => {
     // Limpar timeouts e rafs
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -158,6 +156,28 @@ export function Tooltip({ label, children, side = "right" }: TooltipProps) {
       setPosition({ top: 0, left: 0, opacity: 0 });
     }, 150); // Duração da transição
   }, []);
+
+  const handleMouseEnter = useCallback(() => {
+    if (!isMobile) {
+      showTooltip();
+    }
+  }, [showTooltip, isMobile]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (!isMobile) {
+      hideTooltip();
+    }
+  }, [hideTooltip, isMobile]);
+
+  const handleClick = useCallback(() => {
+    if (isMobile) {
+      if (shouldRender) {
+        hideTooltip();
+      } else {
+        showTooltip();
+      }
+    }
+  }, [isMobile, shouldRender, showTooltip, hideTooltip]);
 
   useEffect(() => {
     if (shouldRender && tooltipRef.current) {
@@ -207,7 +227,28 @@ export function Tooltip({ label, children, side = "right" }: TooltipProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const tooltipContent = shouldRender && mounted && !isMobile ? (
+  // Fechar tooltip ao clicar fora no mobile
+  useEffect(() => {
+    if (!isMobile || !shouldRender) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (triggerRef.current && !triggerRef.current.contains(event.target as Node)) {
+        hideTooltip();
+      }
+    };
+
+    // Adicionar listener após um pequeno delay para evitar conflito com handleClick
+    const timeout = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside);
+    }, 0);
+
+    return () => {
+      clearTimeout(timeout);
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [isMobile, shouldRender, hideTooltip]);
+
+  const tooltipContent = shouldRender && mounted ? (
     createPortal(
       <div
         ref={tooltipRef}
@@ -238,6 +279,7 @@ export function Tooltip({ label, children, side = "right" }: TooltipProps) {
         className="relative inline-flex items-center"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
       >
         {children}
       </div>
