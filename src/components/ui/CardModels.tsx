@@ -125,6 +125,12 @@ export function CardVideoAula({
               [&_strong]:font-semibold [&_strong]:text-gray-900 [&_strong]:dark:text-dark-text
               [&_em]:italic
               [&_br]:block"
+            style={{ 
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden'
+            }}
             dangerouslySetInnerHTML={{ __html: description }}
           />
         </Tooltip>
@@ -253,6 +259,12 @@ export function CardAulaAoVivo({
                 [&_strong]:font-semibold [&_strong]:text-gray-900 [&_strong]:dark:text-dark-text
                 [&_em]:italic
                 [&_br]:block"
+              style={{ 
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden'
+              }}
               dangerouslySetInnerHTML={{ __html: description }}
             />
           </Tooltip>
@@ -395,6 +407,12 @@ export function CardLivro({
                 [&_strong]:font-semibold [&_strong]:text-gray-900 [&_strong]:dark:text-dark-text
                 [&_em]:italic
                 [&_br]:block"
+              style={{ 
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden'
+              }}
               dangerouslySetInnerHTML={{ __html: description }}
             />
           </Tooltip>

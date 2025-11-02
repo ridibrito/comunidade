@@ -394,6 +394,12 @@ export default function AcervoDigitalPage() {
                                   [&_strong]:font-semibold
                                   [&_em]:italic
                                   [&_br]:block"
+                                style={{ 
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: 'vertical',
+                                  overflow: 'hidden'
+                                }}
                                 dangerouslySetInnerHTML={{ __html: content.description }}
                               />
                               <div className="mt-2 text-xs text-light-muted dark:text-dark-muted">
