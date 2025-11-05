@@ -634,13 +634,13 @@ export default function WatchClient({ slug }: { slug: string }) {
 
   return (
     <div className="min-h-screen bg-light-bg dark:bg-dark-bg">
-      {/* Header completo com breadcrumbs e navegação */}
-      <div className="bg-light-surface/95 dark:bg-dark-surface/95 backdrop-blur-sm shadow-sm">
-        <div className="px-4 sm:px-6 py-3 sm:py-4">
+      {/* Header padronizado - com botão voltar e não fixo */}
+      <div className="bg-light-surface dark:bg-dark-surface border-b border-light-border dark:border-dark-border">
+        <div className="px-4 sm:px-6 py-4 sm:py-5">
           {/* Botão voltar */}
           <Link 
             href={`/catalog/modulo/${slug}`}
-            className="inline-flex items-center gap-2 text-xs sm:text-sm text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text transition-colors mb-2"
+            className="inline-flex items-center gap-2 text-sm text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text transition-colors mb-3"
           >
             <ArrowLeft size={16} />
             <span>Voltar</span>
@@ -649,7 +649,7 @@ export default function WatchClient({ slug }: { slug: string }) {
           {/* Título principal e controles */}
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg font-semibold text-light-text dark:text-dark-text truncate">
+              <h1 className="text-lg sm:text-xl font-semibold text-light-text dark:text-dark-text truncate">
                 {currentLesson?.title || "Selecione uma aula"}
               </h1>
             </div>
@@ -750,11 +750,11 @@ export default function WatchClient({ slug }: { slug: string }) {
                   <div className="flex items-center gap-4 text-sm text-light-muted dark:text-dark-muted">
                     <div className="flex items-center gap-1">
                       <Clock size={16} />
-                      <span>{currentLesson.duration !== null && currentLesson.duration !== undefined ? `${currentLesson.duration}min` : 'Sem duração definida'}</span>
+                      <span className="whitespace-nowrap">{currentLesson.duration !== null && currentLesson.duration !== undefined ? `${currentLesson.duration}min` : 'Sem duração definida'}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <FileText size={16} />
-                      <span>Aula {currentLesson.position + 1}</span>
+                      <span className="whitespace-nowrap">Aula {currentLesson.position + 1}</span>
                     </div>
                   </div>
                 </div>

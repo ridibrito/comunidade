@@ -140,6 +140,7 @@ export default function AdminMountainsPage() {
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [bannerInputType, setBannerInputType] = useState<'url' | 'upload'>('url');
   const [uploadingContentCover, setUploadingContentCover] = useState(false);
+  const [loadingVideoDuration, setLoadingVideoDuration] = useState(false);
   
   const [contentForm, setContentForm] = useState({
     title: "",
@@ -173,23 +174,44 @@ export default function AdminMountainsPage() {
   // Função para buscar duração do vídeo do Vimeo
   async function fetchVimeoDuration(videoUrl: string) {
     try {
-      // Extrair ID do Vimeo da URL
-      const vimeoRegex = /vimeo\.com\/(\d+)/;
+      // Extrair ID do Vimeo da URL (suporta diferentes formatos)
+      const vimeoRegex = /vimeo\.com\/(?:video\/)?(\d+)(?:\?.*)?/;
       const match = videoUrl.match(vimeoRegex);
       
       if (!match) {
-        console.log('URL do Vimeo inválida');
+        console.log('URL do Vimeo inválida:', videoUrl);
         return null;
       }
       
       const videoId = match[1];
       console.log('🎬 Buscando informações do vídeo Vimeo:', videoId);
       
+      // Construir URL completa do vídeo
+      const fullVideoUrl = `https://vimeo.com/${videoId}`;
+      
+      // Codificar a URL para uso na query string
+      const encodedUrl = encodeURIComponent(fullVideoUrl);
+      
       // Usar API oEmbed do Vimeo (não requer autenticação)
-      const response = await fetch(`https://vimeo.com/api/oembed.json?url=https://vimeo.com/${videoId}`);
+      // URL correta: https://vimeo.com/api/oembed.json?url={encoded_url}
+      const oEmbedUrl = `https://vimeo.com/api/oembed.json?url=${encodedUrl}`;
+      
+      console.log('🔗 URL oEmbed:', oEmbedUrl);
+      
+      const response = await fetch(oEmbedUrl, {
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
       
       if (!response.ok) {
-        console.error('Erro ao buscar dados do Vimeo:', response.status);
+        // Se retornar 404, pode ser vídeo privado ou não encontrado
+        if (response.status === 404) {
+          console.warn('⚠️ Vídeo Vimeo não encontrado ou privado:', videoId);
+          console.warn('💡 Dica: Verifique se o vídeo está público ou se é necessário incluir o parâmetro "h" na URL para vídeos não listados');
+        } else {
+          console.error('❌ Erro ao buscar dados do Vimeo:', response.status, response.statusText);
+        }
         return null;
       }
       
@@ -202,24 +224,56 @@ export default function AdminMountainsPage() {
         return durationInMinutes;
       }
       
+      console.warn('⚠️ Duração não encontrada na resposta do Vimeo');
       return null;
     } catch (error) {
-      console.error('Erro ao buscar duração do Vimeo:', error);
+      console.error('❌ Erro ao buscar duração do Vimeo:', error);
       return null;
     }
   }
 
   // Função chamada quando a URL do vídeo é alterada
   async function handleVideoUrlChange(url: string) {
-    setContentForm({ ...contentForm, video_url: url });
+    // Atualizar o campo de URL imediatamente
+    setContentForm(prev => ({ ...prev, video_url: url }));
     
-    // Se for uma URL do Vimeo, buscar duração automaticamente
-    if (url.includes('vimeo.com')) {
-      const duration = await fetchVimeoDuration(url);
-      if (duration) {
-        setContentForm(prev => ({ ...prev, duration, video_url: url }));
-        push({ message: `Duração carregada: ${duration} minutos`, variant: 'success' });
+    // Verificar se é uma URL do Vimeo (diferentes formatos)
+    const isVimeoUrl = /vimeo\.com/i.test(url);
+    
+    if (isVimeoUrl && url.trim().length > 0) {
+      // Buscar duração automaticamente
+      setLoadingVideoDuration(true);
+      console.log('🔍 Detectada URL do Vimeo, buscando duração...');
+      
+      try {
+        const duration = await fetchVimeoDuration(url);
+        
+        if (duration) {
+          setContentForm(prev => ({ ...prev, duration, video_url: url }));
+          push({ message: `✅ Duração carregada automaticamente: ${duration} minutos`, variant: 'success' });
+        } else {
+          // Se não conseguir buscar, manter a URL mas mostrar aviso
+          setContentForm(prev => ({ ...prev, video_url: url }));
+          push({ 
+            message: '⚠️ Não foi possível carregar a duração automaticamente. Verifique se o vídeo está público ou preencha manualmente.', 
+            variant: 'warning' 
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao processar URL do Vimeo:', error);
+        push({ 
+          message: '❌ Erro ao buscar duração do vídeo. Tente novamente ou preencha manualmente.', 
+          variant: 'error' 
+        });
+      } finally {
+        setLoadingVideoDuration(false);
       }
+    } else if (url.trim().length === 0) {
+      // Se a URL estiver vazia, resetar a duração
+      setContentForm(prev => ({ ...prev, duration: 0 }));
+      setLoadingVideoDuration(false);
+    } else {
+      setLoadingVideoDuration(false);
     }
   }
 
@@ -518,6 +572,7 @@ export default function AdminMountainsPage() {
   function openContentModal(moduleId: string | null, content?: Content, trailIdForDirect?: string) {
     setSelectedModuleId(moduleId || "");
     setSelectedTrailForDirectContent(trailIdForDirect || "");
+    setLoadingVideoDuration(false); // Reset loading state
     
     if (content) {
       setEditingContent(content);
@@ -1506,7 +1561,10 @@ export default function AdminMountainsPage() {
         </Modal>
 
         {/* Content Modal */}
-        <Modal open={showContentModal} onClose={() => setShowContentModal(false)}>
+        <Modal open={showContentModal} onClose={() => {
+          setShowContentModal(false);
+          setLoadingVideoDuration(false);
+        }}>
           <div className="p-8 max-w-5xl w-full mx-auto">
             <h3 className="text-2xl font-semibold text-light-text dark:text-dark-text mb-6">
               {editingContent ? 'Editar Aula' : 'Nova Aula'}
@@ -1637,16 +1695,26 @@ export default function AdminMountainsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Duração (minutos)</Label>
-                  <Input
-                    type="number"
-                    value={contentForm.duration}
-                    onChange={(e) => setContentForm({ ...contentForm, duration: parseInt(e.target.value) || 0 })}
-                    placeholder="30"
-                    disabled={contentForm.video_url.includes('vimeo.com')}
-                  />
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={contentForm.duration}
+                      onChange={(e) => setContentForm({ ...contentForm, duration: parseInt(e.target.value) || 0 })}
+                      placeholder={loadingVideoDuration ? "Carregando..." : "30"}
+                      disabled={/vimeo\.com/i.test(contentForm.video_url) || loadingVideoDuration}
+                      className={loadingVideoDuration ? "opacity-60" : ""}
+                    />
+                    {loadingVideoDuration && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
+                      </div>
+                    )}
+                  </div>
                   <p className="text-xs text-light-muted dark:text-dark-muted mt-1">
-                    {contentForm.video_url.includes('vimeo.com') 
-                      ? 'Duração carregada automaticamente do Vimeo' 
+                    {loadingVideoDuration 
+                      ? '⏳ Buscando duração do vídeo...' 
+                      : /vimeo\.com/i.test(contentForm.video_url)
+                      ? '✅ Duração carregada automaticamente do Vimeo' 
                       : 'Ou insira manualmente'}
                   </p>
                 </div>
@@ -1727,7 +1795,10 @@ export default function AdminMountainsPage() {
             )}
             
             <div className="flex gap-3 justify-end mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <Button variant="outline" onClick={() => setShowContentModal(false)} className="px-6">
+              <Button variant="outline" onClick={() => {
+                setShowContentModal(false);
+                setLoadingVideoDuration(false);
+              }} className="px-6">
                 Cancelar
               </Button>
               <Button onClick={saveContent} className="bg-orange-500 hover:bg-orange-600 px-6">

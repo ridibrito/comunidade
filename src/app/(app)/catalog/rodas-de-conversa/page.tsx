@@ -116,7 +116,7 @@ export default function RodasDeConversaPage() {
         const trailIds = trailsData.map(t => t.id);
         const { data: allModulesData, error: modulesError } = await supabase
           .from('modules')
-          .select('id, title, description, slug, position, trail_id, image_url')
+          .select('id, title, description, slug, position, trail_id, image_url, banner_url')
           .in('trail_id', trailIds)
           .order('position');
 
@@ -244,39 +244,35 @@ export default function RodasDeConversaPage() {
                 {trail.modules.length > 0 && (
                   <ContentCarousel>
                     {trail.modules.map((module) => (
-                      <Card
+                      <div 
                         key={module.id}
-                        className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 h-96 flex flex-col"
+                        className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 relative overflow-hidden rounded-lg"
                         onClick={() => handleModuleClick(module.slug)}
                       >
-                        <div className="flex-1 bg-gradient-to-br from-green-500 to-green-600 rounded-t-lg relative overflow-hidden">
-                          <div className="absolute inset-0 bg-black/20"></div>
+                        {/* Imagem de fundo - CARD VERTICAL RESPONSIVO */}
+                        <div className="relative w-full h-96 bg-gradient-to-br from-green-500 to-green-600">
+                          {((module as any).image_url || (module as any).banner_url) ? (
+                            <img 
+                              src={(module as any).image_url || (module as any).banner_url} 
+                              alt={module.title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                // Se a imagem falhar ao carregar, esconder ela e mostrar apenas o gradiente
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          ) : null}
+                          {/* Overlay escuro para legibilidade do texto */}
+                          <div className="absolute inset-0 bg-black/40"></div>
+                          
+                          {/* Título do módulo no overlay */}
                           <div className="absolute bottom-4 left-4 right-4">
                             <h3 className="text-white font-semibold text-lg leading-tight">
                               {module.title}
                             </h3>
                           </div>
                         </div>
-                        <div className="p-4 flex-1 flex flex-col justify-between">
-                          <div 
-                            className="text-sm text-light-muted dark:text-dark-muted line-clamp-2
-                              [&_p]:mb-0 [&_p:last-child]:mb-0
-                              [&_strong]:font-semibold
-                              [&_em]:italic
-                              [&_br]:block"
-                            style={{ 
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden'
-                            }}
-                            dangerouslySetInnerHTML={{ __html: module.description }}
-                          />
-                          <div className="mt-2 text-xs text-light-muted dark:text-dark-muted">
-                            {module.contents.length} {module.contents.length === 1 ? 'sessão' : 'sessões'}
-                          </div>
-                        </div>
-                      </Card>
+                      </div>
                     ))}
                   </ContentCarousel>
                 )}

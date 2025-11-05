@@ -4,25 +4,42 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
+import { ArrowLeft } from "lucide-react";
 
 export default function WatchSingleClient({ id }: { id: string }) {
   const supabase = getBrowserSupabaseClient();
   const [title, setTitle] = useState("");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
+  const [moduleSlug, setModuleSlug] = useState<string | null>(null);
 
   useEffect(() => {
     if (!supabase) return;
     (async () => {
-      const { data } = await supabase
+      // Buscar conteúdo e módulo
+      const { data: contentData } = await supabase
         .from("contents")
-        .select("title, video_url, duration")
+        .select("title, video_url, duration, module_id")
         .eq("id", id)
         .maybeSingle();
-      if (data) {
-        setTitle(data.title);
-        setVideoUrl(data.video_url);
-        setDuration(data.duration);
+      
+      if (contentData) {
+        setTitle(contentData.title);
+        setVideoUrl(contentData.video_url);
+        setDuration(contentData.duration);
+        
+        // Se tiver module_id, buscar o slug do módulo
+        if (contentData.module_id) {
+          const { data: moduleData } = await supabase
+            .from("modules")
+            .select("slug")
+            .eq("id", contentData.module_id)
+            .maybeSingle();
+          
+          if (moduleData) {
+            setModuleSlug(moduleData.slug);
+          }
+        }
       }
     })();
   }, [supabase, id]);
@@ -36,16 +53,23 @@ export default function WatchSingleClient({ id }: { id: string }) {
 
   return (
     <div className="min-h-screen bg-light-bg dark:bg-dark-bg">
-      <div className="sticky top-0 z-10 bg-light-surface/95 dark:bg-dark-surface/95 backdrop-blur-sm shadow-sm">
-        <div className="px-6 py-4">
-          <div className="flex items-center gap-2 text-sm text-light-muted dark:text-dark-muted mb-2">
-            <Link href="/catalog/acervo-digital" className="hover:text-light-text dark:hover:text-dark-text transition-colors">
-              Acervo Digital
+      {/* Header padronizado - com botão voltar e não fixo */}
+      <div className="bg-light-surface dark:bg-dark-surface border-b border-light-border dark:border-dark-border">
+        <div className="px-4 sm:px-6 py-4 sm:py-5">
+          {/* Botão voltar */}
+          {moduleSlug && (
+            <Link 
+              href={`/catalog/modulo/${moduleSlug}`}
+              className="inline-flex items-center gap-2 text-sm text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text transition-colors mb-3"
+            >
+              <ArrowLeft size={16} />
+              <span>Voltar</span>
             </Link>
-            <span>›</span>
-            <span className="text-light-text dark:text-dark-text">{title || "Conteúdo"}</span>
-          </div>
-          <h1 className="text-lg font-semibold text-light-text dark:text-dark-text">{title || "Conteúdo"}</h1>
+          )}
+          
+          <h1 className="text-lg sm:text-xl font-semibold text-light-text dark:text-dark-text">
+            {title || "Conteúdo"}
+          </h1>
         </div>
       </div>
 

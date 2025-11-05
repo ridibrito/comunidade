@@ -224,6 +224,16 @@ export default function DashboardPage() {
     const loadLatestContents = async () => {
       try {
         const supabase = getBrowserSupabaseClient();
+        
+        // Buscar usuário autenticado
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setLatestContents([]);
+          setLoadingLatest(false);
+          return;
+        }
+
+        // Buscar conteúdos em destaque
         const { data, error } = await supabase
           .from('contents')
           .select(`
@@ -267,6 +277,24 @@ export default function DashboardPage() {
           return;
         }
 
+        // Buscar progresso real do usuário para cada conteúdo
+        const contentIds = (data || []).map((c: any) => c.id);
+        let progressMap: { [key: string]: number } = {};
+        
+        if (contentIds.length > 0) {
+          const { data: progressData } = await supabase
+            .from('user_progress')
+            .select('content_id, completion_percentage')
+            .eq('user_id', user.id)
+            .in('content_id', contentIds);
+          
+          if (progressData) {
+            progressData.forEach((item: any) => {
+              progressMap[item.content_id] = item.completion_percentage;
+            });
+          }
+        }
+
         const mapped = (data || []).map((c: any): Content => {
           const image = c.image_url || '/logo_full.png';
           
@@ -275,7 +303,7 @@ export default function DashboardPage() {
             trail_id: c.modules?.trail_id,
             image,
             content_type: c.content_type || 'video',
-            progress: 0
+            progress: progressMap[c.id] || 0
           };
         });
 

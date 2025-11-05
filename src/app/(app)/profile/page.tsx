@@ -9,7 +9,7 @@ import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
-import { UserCircle, UsersRound, ClipboardList, CalendarDays, BookOpen, Camera, Plus, FileText, TrendingUp, Eye } from "lucide-react";
+import { UserCircle, UsersRound, ClipboardList, CalendarDays, BookOpen, Camera, Plus, FileText, TrendingUp, Eye, EyeOff } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/Avatar";
@@ -35,6 +35,8 @@ export default function ProfilePage() {
   const [stateUF, setStateUF] = useState("");
   const [pwd, setPwd] = useState("");
   const [pwdConfirm, setPwdConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [section, setSection] = useState<"responsavel" | "familia">("responsavel");
   const { push } = useToast();
@@ -371,26 +373,52 @@ export default function ProfilePage() {
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <div className="space-y-2">
                     <Label htmlFor="password">Nova senha</Label>
-                    <Input 
-                      id="password"
-                      type="password" 
-                      placeholder="Mínimo 8 caracteres" 
-                      value={pwd} 
-                      onChange={(e) => setPwd(e.target.value)} 
-                      className="bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-brand-accent/20" 
-                    />
+                    <div className="relative">
+                      <Input 
+                        id="password"
+                        type={showPassword ? "text" : "password"} 
+                        placeholder="Mínimo 8 caracteres" 
+                        value={pwd} 
+                        onChange={(e) => setPwd(e.target.value)} 
+                        className="bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-brand-accent/20 pr-10" 
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text transition-colors"
+                      >
+                        {showPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </button>
+                    </div>
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword">Confirmar senha</Label>
-                    <Input 
-                      id="confirmPassword"
-                      type="password" 
-                      placeholder="Digite a senha novamente" 
-                      value={pwdConfirm} 
-                      onChange={(e) => setPwdConfirm(e.target.value)} 
-                      className="bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-brand-accent/20" 
-                    />
+                    <div className="relative">
+                      <Input 
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"} 
+                        placeholder="Digite a senha novamente" 
+                        value={pwdConfirm} 
+                        onChange={(e) => setPwdConfirm(e.target.value)} 
+                        className="bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-brand-accent/20 pr-10" 
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text transition-colors"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
                 
