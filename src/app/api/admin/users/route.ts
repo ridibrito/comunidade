@@ -17,22 +17,23 @@ export async function GET(request: NextRequest) {
     // Adicionar suporte para paginação
     const { searchParams } = new URL(request.url);
     const pageParam = searchParams.get('page');
+    const limitParam = searchParams.get('limit');
     const page = pageParam ? parseInt(pageParam, 10) : 1;
-    const limit = 50; // Limite de usuários por página
+    const limit = limitParam ? parseInt(limitParam, 10) : 50; // Limite configurável, padrão 50
     const offset = (page - 1) * limit;
 
-    // Cache apenas para primeira página (mais acessada)
+    // Cache apenas para primeira página (mais acessada) e limit padrão
     const { getCached } = await import('@/lib/redis');
-    const cacheKey = page === 1 ? 'admin:users:page:1' : null;
+    const cacheKey = (page === 1 && limit === 50) ? `admin:users:page:1:limit:${limit}` : null;
     
     const fetchUsers = async () => {
-      // List users (emails) - otimizado com limite
+      // Buscar TODOS os emails dos usuários do auth primeiro
       const emails: Record<string, string> = {};
+      const authUserIds = new Set<string>();
       let currentPage = 1;
-      let totalFetched = 0;
+      let hasMore = true;
       
-      // Buscar apenas emails necessários para a página atual
-      while (totalFetched < offset + limit && currentPage <= 10) {
+      while (hasMore && currentPage <= 50) { // Limite de segurança: 50 páginas = 5000 usuários
         const resp = await supabase.auth.admin.listUsers({ 
           page: currentPage, 
           perPage: 100 
@@ -46,18 +47,20 @@ export async function GET(request: NextRequest) {
         const users = resp.data?.users ?? [];
         for (const u of users) {
           emails[u.id] = u.email ?? "";
-          totalFetched++;
+          authUserIds.add(u.id);
         }
         
-        if (users.length < 100) break;
-        currentPage++;
+        if (users.length < 100) {
+          hasMore = false;
+        } else {
+          currentPage++;
+        }
       }
       
-      // Buscar profiles com paginação
-      const { data: profiles, error: profilesError, count } = await supabase
+      // Buscar TODOS os profiles
+      const { data: allProfiles, error: profilesError, count } = await supabase
         .from("profiles")
         .select("id, full_name, role, invite_status, invite_sent_at, last_login_at, login_count, invited_by, invite_email, is_active, temp_password, password_reset_token, password_reset_expires", { count: 'exact' })
-        .range(offset, offset + limit - 1)
         .order('created_at', { ascending: false });
       
       if (profilesError) {
@@ -65,36 +68,82 @@ export async function GET(request: NextRequest) {
         throw new Error(`Erro ao buscar perfis: ${profilesError.message}`);
       }
       
-      const list = (profiles ?? []).map((p: any) => ({ 
-        id: p.id, 
-        full_name: p.full_name, 
-        role: p.role, 
-        email: emails[p.id] ?? "",
-        invite_status: p.invite_status || 'pending',
-        invite_sent_at: p.invite_sent_at,
-        last_login_at: p.last_login_at,
-        login_count: p.login_count || 0,
-        invited_by: p.invited_by,
-        invite_email: p.invite_email,
-        is_active: p.is_active ?? true,
-        temp_password: p.temp_password,
-        password_reset_token: p.password_reset_token,
-        password_reset_expires: p.password_reset_expires
-      }));
+      // Criar mapa de profiles por ID
+      const profilesMap = new Map((allProfiles ?? []).map((p: any) => [p.id, p]));
+      
+      // Criar lista combinada: profiles existentes + usuários auth sem profile
+      const allUsers: any[] = [];
+      
+      // Adicionar todos os profiles
+      for (const profile of (allProfiles ?? [])) {
+        allUsers.push({
+          id: profile.id,
+          full_name: profile.full_name,
+          role: profile.role,
+          email: emails[profile.id] ?? profile.invite_email ?? "",
+          invite_status: profile.invite_status || 'pending',
+          invite_sent_at: profile.invite_sent_at,
+          last_login_at: profile.last_login_at,
+          login_count: profile.login_count || 0,
+          invited_by: profile.invited_by,
+          invite_email: profile.invite_email,
+          is_active: profile.is_active ?? true,
+          temp_password: profile.temp_password,
+          password_reset_token: profile.password_reset_token,
+          password_reset_expires: profile.password_reset_expires
+        });
+      }
+      
+      // Adicionar usuários do auth que não têm profile (caso existam)
+      for (const userId of authUserIds) {
+        if (!profilesMap.has(userId)) {
+          allUsers.push({
+            id: userId,
+            full_name: null,
+            role: null,
+            email: emails[userId] ?? "",
+            invite_status: 'pending',
+            invite_sent_at: null,
+            last_login_at: null,
+            login_count: 0,
+            invited_by: null,
+            invite_email: emails[userId] ?? "",
+            is_active: true,
+            temp_password: null,
+            password_reset_token: null,
+            password_reset_expires: null
+          });
+        }
+      }
+      
+      // Ordenar por data de criação (mais recentes primeiro)
+      // Se não tiver created_at, colocar no final
+      allUsers.sort((a, b) => {
+        const aDate = a.invite_sent_at ? new Date(a.invite_sent_at).getTime() : 0;
+        const bDate = b.invite_sent_at ? new Date(b.invite_sent_at).getTime() : 0;
+        return bDate - aDate;
+      });
+      
+      // Aplicar paginação APÓS fazer o match completo
+      const paginatedUsers = allUsers.slice(offset, offset + limit);
+      
+      console.log(`Total de usuários encontrados: ${allUsers.length} (${allProfiles?.length || 0} profiles + ${authUserIds.size - (allProfiles?.length || 0)} sem profile)`);
+      console.log(`Usuários admin encontrados: ${allUsers.filter(u => u.role === 'admin').length}`);
       
       return {
-        users: list,
+        users: paginatedUsers,
         pagination: {
           page,
           limit,
-          total: count ?? 0,
-          totalPages: count ? Math.ceil(count / limit) : 1
+          total: allUsers.length,
+          totalPages: Math.ceil(allUsers.length / limit)
         }
       };
     };
 
+    // Reduzir cache para 60 segundos para garantir dados atualizados
     const result = cacheKey 
-      ? await getCached(cacheKey, fetchUsers, 300) // Cache de 5 minutos apenas para primeira página
+      ? await getCached(cacheKey, fetchUsers, 60) // Cache de 1 minuto apenas para primeira página
       : await fetchUsers();
 
     console.log(`Users found (page ${page}):`, result.users.length);

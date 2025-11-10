@@ -88,27 +88,42 @@ async function sendWelcomeEmail(email: string, name: string) {
       return;
     }
 
+    const mailFrom = process.env.MAIL_FROM || 'no-reply@comunidade.com';
+    
+    const emailPayload: any = {
+      from: mailFrom,
+      to: email,
+      subject: 'Bem-vindo à Comunidade! 🎉',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #FF6B00;">Bem-vindo à Comunidade!</h1>
+          <p>Olá ${name},</p>
+          <p>Sua compra foi aprovada e você já tem acesso completo à nossa plataforma!</p>
+          <p>Acesse sua conta em: <a href="${APP_URL}/dashboard" style="color: #FF6B00;">${APP_URL}/dashboard</a></p>
+          <p>Se você não tem uma senha, use a opção "Esqueci minha senha" para criar uma.</p>
+          <p>Bem-vindo à nossa comunidade!</p>
+        </div>
+      `,
+      // Headers para melhorar entrega em Gmail, Hotmail, Yahoo
+      headers: {
+        'X-Entity-Ref-ID': crypto.randomUUID(),
+        'X-Priority': '1',
+        'Importance': 'high',
+      },
+      // Tags para tracking
+      tags: [
+        { name: 'category', value: 'welcome' },
+        { name: 'source', value: 'hotmart-webhook' }
+      ],
+    };
+
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${resendApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        from: process.env.MAIL_FROM || 'no-reply@comunidade.com',
-        to: email,
-        subject: 'Bem-vindo à Comunidade! 🎉',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #FF6B00;">Bem-vindo à Comunidade!</h1>
-            <p>Olá ${name},</p>
-            <p>Sua compra foi aprovada e você já tem acesso completo à nossa plataforma!</p>
-            <p>Acesse sua conta em: <a href="${APP_URL}/dashboard" style="color: #FF6B00;">${APP_URL}/dashboard</a></p>
-            <p>Se você não tem uma senha, use a opção "Esqueci minha senha" para criar uma.</p>
-            <p>Bem-vindo à nossa comunidade!</p>
-          </div>
-        `,
-      }),
+      body: JSON.stringify(emailPayload),
     });
 
     if (!response.ok) {
