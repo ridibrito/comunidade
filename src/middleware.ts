@@ -76,8 +76,8 @@ export async function middleware(req: NextRequest) {
     res.cookies.getAll().forEach((c) => redirectRes.cookies.set(c));
     return redirectRes;
   }
-  // Restringe /admin a administradores
-  if (url.pathname.startsWith("/admin")) {
+  // Função auxiliar para verificar se usuário é admin
+  const checkAdminAccess = async (pathname: string) => {
     try {
       const { data: profile } = await supabase
         .from("profiles")
@@ -89,7 +89,7 @@ export async function middleware(req: NextRequest) {
       
       if (!isAdmin) {
         // Log da tentativa de acesso não autorizado
-        console.log(`🚫 Acesso negado: ${profile?.full_name || 'Usuário'} (${profile?.role || 'sem role'}) tentou acessar ${url.pathname}`);
+        console.log(`🚫 Acesso negado: ${profile?.full_name || 'Usuário'} (${profile?.role || 'sem role'}) tentou acessar ${pathname}`);
         
         // Redirecionar para dashboard com parâmetro de erro
         url.pathname = "/dashboard";
@@ -98,6 +98,7 @@ export async function middleware(req: NextRequest) {
         res.cookies.getAll().forEach((c) => redirectRes.cookies.set(c));
         return redirectRes;
       }
+      return null;
     } catch (error) {
       console.error("Erro ao verificar permissões de admin:", error);
       url.pathname = "/dashboard";
@@ -106,6 +107,30 @@ export async function middleware(req: NextRequest) {
       res.cookies.getAll().forEach((c) => redirectRes.cookies.set(c));
       return redirectRes;
     }
+  };
+
+  // Restringe /admin a administradores
+  if (url.pathname.startsWith("/admin")) {
+    const redirectRes = await checkAdminAccess(url.pathname);
+    if (redirectRes) return redirectRes;
+  }
+
+  // Restringe /ia a administradores
+  if (url.pathname.startsWith("/ia")) {
+    const redirectRes = await checkAdminAccess(url.pathname);
+    if (redirectRes) return redirectRes;
+  }
+
+  // Restringe /community a administradores
+  if (url.pathname.startsWith("/community")) {
+    const redirectRes = await checkAdminAccess(url.pathname);
+    if (redirectRes) return redirectRes;
+  }
+
+  // Restringe /events/calendar a administradores
+  if (url.pathname === "/events/calendar" || url.pathname.startsWith("/events/calendar")) {
+    const redirectRes = await checkAdminAccess(url.pathname);
+    if (redirectRes) return redirectRes;
   }
   return res;
 }
@@ -118,6 +143,7 @@ export const config = {
     "/community/:path*",
     "/events/:path*",
     "/admin/:path*",
+    "/ia/:path*",
     "/auth/change-password",
   ],
 };

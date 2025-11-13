@@ -151,9 +151,9 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             {/* Main Navigation */}
             <div className="space-y-1">
               <MenuItem href="/dashboard" label="Início" icon={Home} onClick={onClose} />
-              {/* <MenuItem href="/community" label="Comunidade" icon={MessagesSquare} onClick={onClose} /> */}
+              {!loading && isAdmin && <MenuItem href="/community" label="Comunidade" icon={MessagesSquare} onClick={onClose} />}
               <MenuItem href="/catalog/montanha-do-amanha" label="Conteúdos" icon={BookOpen} onClick={onClose} />
-              {/* <MenuItem href="/ia" label="Assistente IA" icon={Bot} onClick={onClose} /> */}
+              {!loading && isAdmin && <MenuItem href="/ia" label="Assistente IA" icon={Bot} onClick={onClose} />}
             </div>
 
             {/* Catalog Section */}
@@ -183,7 +183,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                 </div>
                 <div className="space-y-1">
                   <MenuItem href="/events/history" label="Lives realizadas" icon={PlayCircle} onClick={onClose} />
-                  <MenuItem href="/events/calendar" label="Calendário" icon={CalendarDays} onClick={onClose} />
+                  {!loading && isAdmin && <MenuItem href="/events/calendar" label="Calendário" icon={CalendarDays} onClick={onClose} />}
                 </div>
               </div>
             )}

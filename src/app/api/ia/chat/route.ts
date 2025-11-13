@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Verificar se a API key está configurada
-if (!process.env.OPENAI_API_KEY) {
-  console.error('OPENAI_API_KEY não está configurada no .env.local');
+if (!process.env.GEMINI_API_KEY) {
+  console.error('GEMINI_API_KEY não está configurada no .env.local');
 }
+
+const genAI = process.env.GEMINI_API_KEY 
+  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+  : null;
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,10 +27,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.OPENAI_API_KEY) {
-      console.log('Erro: OPENAI_API_KEY não configurada');
+    if (!process.env.GEMINI_API_KEY) {
+      console.log('Erro: GEMINI_API_KEY não configurada');
       return NextResponse.json(
         { error: 'API key não configurada' },
+        { status: 500 }
+      );
+    }
+
+    if (!genAI) {
+      return NextResponse.json(
+        { error: 'API Gemini não inicializada' },
         { status: 500 }
       );
     }
@@ -75,102 +82,110 @@ Você é uma mentora virtual experiente que trabalha com famílias, educadores e
 Você está aqui para ajudar famílias com crianças AHSD a navegar pelos desafios e oportunidades do desenvolvimento de altas habilidades.`;
     }
 
-    // Construir o contexto da conversa
-    const messages = [
-      {
-        role: 'system',
-        content: systemPrompt
-      },
-      ...conversation.map((msg: any) => ({
-        role: msg.role,
-        content: msg.content
-      })),
-      {
-        role: 'user',
-        content: message
-      }
-    ];
+    // Preparar histórico de conversa para Gemini
+    // O Gemini usa um formato diferente - precisa converter o histórico
+    const history = conversation.map((msg: any) => ({
+      role: msg.role === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.content }]
+    }));
 
-    console.log('Prompt do sistema:', systemPrompt.substring(0, 100) + '...');
-    console.log('Total de mensagens:', messages.length);
-
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: messages as any,
-      max_tokens: 1000,
-      temperature: 0.7,
+    // Criar o modelo
+    const model = genAI.getGenerativeModel({ 
+      model: 'gemini-pro',
+      systemInstruction: systemPrompt
     });
 
-        const response = completion.choices[0]?.message?.content || 'Desculpe, não consegui processar sua mensagem.';
-        console.log('Resposta da OpenAI:', response);
+    // Construir o chat com histórico
+    const chat = model.startChat({
+      history: history.length > 0 ? history : undefined,
+    });
 
-        // Salvar mensagens na conversa se conversationId for fornecido
-        if (conversationId) {
-          try {
-            // Salvar mensagem do usuário
-            await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/ia/messages`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                conversationId,
-                role: 'user',
-                content: message
-              })
-            });
+    console.log('Prompt do sistema:', systemPrompt.substring(0, 100) + '...');
+    console.log('Total de mensagens no histórico:', history.length);
 
-            // Salvar resposta da IA
-            await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/ia/messages`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                conversationId,
-                role: 'assistant',
-                content: response
-              })
-            });
+    const startTime = Date.now();
+    const result = await chat.sendMessage(message);
+    const responseTime = Date.now() - startTime;
 
-            console.log('Mensagens salvas na conversa:', conversationId);
-          } catch (error) {
-            console.error('Erro ao salvar mensagens:', error);
+    const response = result.response.text();
+    console.log('Resposta do Gemini:', response);
+
+    // Salvar mensagens na conversa se conversationId for fornecido
+    if (conversationId) {
+      try {
+        // Salvar mensagem do usuário
+        await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/ia/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            conversationId,
+            role: 'user',
+            content: message
+          })
+        });
+
+        // Salvar resposta da IA
+        await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/ia/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            conversationId,
+            role: 'assistant',
+            content: response
+          })
+        });
+
+        console.log('Mensagens salvas na conversa:', conversationId);
+      } catch (error) {
+        console.error('Erro ao salvar mensagens:', error);
+      }
+    }
+
+    // Registrar interação no banco de dados
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+
+      // Obter informações de uso do Gemini
+      let tokensUsed = 0;
+      try {
+        const usageMetadata = (result.response as any).usageMetadata;
+        tokensUsed = usageMetadata?.totalTokenCount || 0;
+      } catch (error) {
+        console.log('Não foi possível obter informações de uso:', error);
+      }
+
+      const { data: interaction, error: interactionError } = await supabase
+        .from('ia_interactions')
+        .insert({
+          user_message: message,
+          ai_response: response,
+          tokens_used: tokensUsed,
+          response_time_ms: responseTime,
+          cost_usd: 0, // Gemini tem preços diferentes, pode calcular depois
+          success: true,
+          metadata: {
+            model: 'gemini-pro',
+            temperature: 0.7,
+            tokens: tokensUsed
           }
-        }
+        })
+        .select()
+        .single();
 
-        // Registrar interação no banco de dados
-        try {
-          const { createClient } = await import('@supabase/supabase-js');
-          const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
-          );
+      if (interactionError) {
+        console.error('Erro ao registrar interação:', interactionError);
+      } else {
+        console.log('Interação registrada:', interaction.id);
+      }
+    } catch (error) {
+      console.error('Erro ao registrar interação:', error);
+    }
 
-          const { data: interaction, error: interactionError } = await supabase
-            .from('ia_interactions')
-            .insert({
-              user_message: message,
-              ai_response: response,
-              tokens_used: completion.usage?.total_tokens || 0,
-              response_time_ms: Date.now() - Date.now(), // Será calculado corretamente
-              cost_usd: 0, // Será calculado baseado nos tokens
-              success: true,
-              metadata: {
-                model: 'gpt-3.5-turbo',
-                temperature: 0.7,
-                max_tokens: 1000
-              }
-            })
-            .select()
-            .single();
-
-          if (interactionError) {
-            console.error('Erro ao registrar interação:', interactionError);
-          } else {
-            console.log('Interação registrada:', interaction.id);
-          }
-        } catch (error) {
-          console.error('Erro ao registrar interação:', error);
-        }
-
-        return NextResponse.json({ response });
+    return NextResponse.json({ response });
 
   } catch (error) {
     console.error('Erro na API de IA:', error);

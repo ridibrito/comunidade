@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Cores personalizadas para light e dark mode */
+/* Cores personalizadas - apenas light mode */
 :root {
   /* Light mode colors - inspiradas no Shadcn-ui */
   --light-bg: #F5F5F5;
@@ -9,22 +9,15 @@
   --light-text: #0F172A;
   --light-muted: #64748B;
   
-  /* Dark mode colors - inspiradas no Shadcn-ui */
-  --dark-bg: #0A0A0A;
-  --dark-surface: #1A1A1A;
-  --dark-border: rgba(255, 255, 255, 0.05);
-  --dark-text: #FAFAFA;
-  --dark-muted: #A1A1AA;
+  /* Brand colors */
+  --brand-accent: #43085E;
   
-          /* Brand colors */
-          --brand-accent: #43085E;
-          
-          /* Chart colors */
-          --chart-1: 67 8 94;
-          --chart-2: 107 70 193;
-          --chart-3: 139 92 246;
-          --chart-4: 168 85 247;
-          --chart-5: 192 132 252;
+  /* Chart colors */
+  --chart-1: 67 8 94;
+  --chart-2: 107 70 193;
+  --chart-3: 139 92 246;
+  --chart-4: 168 85 247;
+  --chart-5: 192 132 252;
   
   /* Shadcn-ui border colors */
   --border: 15 23 42 / 0.04;
@@ -36,39 +29,17 @@
   --font-text: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, sans-serif;
 }
 
-/* Dark mode por padrão */
+/* Light mode sempre ativo */
 html {
-  color-scheme: dark;
+  color-scheme: light;
+  scroll-behavior: smooth;
 }
 
-/* Light mode (default) */
 body {
-  background-color: var(--dark-bg);
-  color: var(--dark-text);
-  font-family: var(--font-text);
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Light mode */
-html:not(.dark) body {
   background-color: var(--light-bg);
   color: var(--light-text);
-}
-
-/* Dark mode */
-.dark body {
-  background-color: var(--dark-bg);
-  color: var(--dark-text);
-}
-
-/* Dark mode border overrides */
-.dark {
-  --border: 255 255 255 / 0.05;
-  --border-input: 255 255 255 / 0.05;
-}
-
-html { 
-  scroll-behavior: smooth; 
+  font-family: var(--font-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Classes utilitárias para cores personalizadas */
@@ -78,45 +49,19 @@ html {
 .text-light-text { color: var(--light-text); }
 .text-light-muted { color: var(--light-muted); }
 
-.bg-dark-bg { background-color: var(--dark-bg); }
-.bg-dark-surface { background-color: var(--dark-surface); }
-.bg-dark-border { background-color: var(--dark-border); }
-.text-dark-text { color: var(--dark-text); }
-.text-dark-muted { color: var(--dark-muted); }
-
 /* Classes para brand colors */
 .bg-brand-accent { background-color: var(--brand-accent); }
 .text-brand-accent { color: var(--brand-accent); }
 .border-brand-accent { border-color: var(--brand-accent); }
 
-/* Classes para dark mode */
-.dark .bg-light-bg { background-color: var(--dark-bg); }
-.dark .bg-light-surface { background-color: var(--dark-surface); }
-.dark .bg-light-border { background-color: var(--dark-border); }
-.dark .text-light-text { color: var(--dark-text); }
-.dark .text-light-muted { color: var(--dark-muted); }
-
-/* Classes para light mode */
-html:not(.dark) .bg-light-bg { background-color: var(--light-bg); }
-html:not(.dark) .bg-light-surface { background-color: var(--light-surface); }
-html:not(.dark) .bg-light-border { background-color: var(--light-border); }
-html:not(.dark) .text-light-text { color: var(--light-text); }
-html:not(.dark) .text-light-muted { color: var(--light-muted); }
-
 /* Hover sutil no tom roxo principal */
 .hover-brand-subtle:hover {
   background-color: rgba(67, 8, 94, 0.08);
-}
-.dark .hover-brand-subtle:hover {
-  background-color: rgba(67, 8, 94, 0.18);
 }
 
 /* Estado ativo sutil no tom roxo principal */
 .active-brand-subtle {
   background-color: rgba(67, 8, 94, 0.12);
-}
-.dark .active-brand-subtle {
-  background-color: rgba(67, 8, 94, 0.24);
 }
 
 /* Classes de layout */
@@ -145,18 +90,9 @@ html:not(.dark) .text-light-muted { color: var(--light-muted); }
   transition: all 0.2s ease;
 }
 
-.dark .card {
-  background-color: var(--dark-surface);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
 .hover-raise:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.dark .hover-raise:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .page-title {
@@ -170,10 +106,6 @@ html:not(.dark) .text-light-muted { color: var(--light-muted); }
   font-weight: 600;
   margin-bottom: 1.5rem;
   color: var(--light-text);
-}
-
-.dark .section-title {
-  color: var(--dark-text);
 }
 
 .section-spacing {
@@ -191,9 +123,6 @@ html:not(.dark) .text-light-muted { color: var(--light-muted); }
 *::-webkit-scrollbar-thumb { 
   background-color: var(--light-border); 
   border-radius: 999px; 
-}
-.dark *::-webkit-scrollbar-thumb { 
-  background-color: var(--dark-border); 
 }
 *::-webkit-scrollbar-track { background: transparent; }
 
