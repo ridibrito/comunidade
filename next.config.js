@@ -1,6 +1,10 @@
 // next.config.js
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Define o diretório raiz para rastreamento de arquivos
+  outputFileTracingRoot: path.resolve(__dirname),
   // Configurações de performance
   experimental: {
     optimizeCss: false, // Desabilitar CSS otimizado (causa conflito com critters)
