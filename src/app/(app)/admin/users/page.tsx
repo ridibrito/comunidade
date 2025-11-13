@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/Table";
 import { useConfirm } from "@/components/ui/ConfirmProvider";
-import { MoreVertical, Plus, Trash2, Pencil, Users, Mail, Shield, TrendingUp, Activity, Clock, CheckCircle, AlertCircle, Send, UserCheck, Key, Copy } from "lucide-react";
+import { MoreVertical, Plus, Trash2, Pencil, Users, Mail, Shield, TrendingUp, Activity, Clock, CheckCircle, AlertCircle, Send, UserCheck, Key, Copy, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import { getBrowserSupabaseClient } from "@/lib/supabase";
@@ -50,6 +50,14 @@ export default function AdminUsersPage() {
   // Estado para abas de filtro
   const [activeTab, setActiveTab] = useState<"all" | "admin" | "aluno" | "profissional">("all");
   
+  // Estados para busca e paginação
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [allUsers, setAllUsers] = useState<User[]>([]); // Armazenar todos os usuários carregados
+  const itemsPerPage = 10;
+  
   // Estados para modais e formulários
   const [openAdd, setOpenAdd] = useState(false);
   const [email, setEmail] = useState("");
@@ -61,15 +69,18 @@ export default function AdminUsersPage() {
   const [editName, setEditName] = useState("");
   const [editRole, setEditRole] = useState<Role>("aluno");
   
-  // Usar dados reais do banco
-  const list = realUsers;
+  // Usar todos os usuários carregados para busca e filtros
+  const list = allUsers.length > 0 ? allUsers : realUsers;
   const isLoading = loading;
 
+  // Carregar usuários - carregar todos de uma vez para busca local eficiente
   useEffect(() => {
     (async () => {
       try {
         setLoading(true);
-        const resp = await fetch("/api/admin/users");
+        // Carregar todos os usuários de uma vez (até 1000) para permitir busca local
+        const url = `/api/admin/users?page=1&limit=1000`;
+        const resp = await fetch(url);
         
         if (!resp.ok) {
           throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
@@ -80,7 +91,12 @@ export default function AdminUsersPage() {
         
         if (json.users) {
           setRealUsers(json.users);
+          setAllUsers(json.users);
           setDbError(null);
+          if (json.pagination) {
+            setTotalPages(json.pagination.totalPages || 1);
+            setTotalUsers(json.pagination.total || 0);
+          }
           console.log(`Carregados ${json.users.length} usuários do banco de dados`);
         } else {
           console.log("Nenhum usuário encontrado no banco");
@@ -120,10 +136,16 @@ export default function AdminUsersPage() {
           error("Erro", result.error || "Erro ao criar usuário");
         }
       setEmail(""); setName(""); setRole("aluno"); setOpenAdd(false);
+      setCurrentPage(1); // Reset para primeira página
       // refresh lista
-      const listResp = await fetch("/api/admin/users");
+      const listResp = await fetch(`/api/admin/users?page=1&limit=1000`);
       const json = await listResp.json();
       setRealUsers(json.users ?? []);
+      setAllUsers(json.users ?? []);
+      if (json.pagination) {
+        setTotalPages(json.pagination.totalPages || 1);
+        setTotalUsers(json.pagination.total || 0);
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       error("Erro", msg);
@@ -140,7 +162,18 @@ export default function AdminUsersPage() {
     try {
       const resp = await fetch(`/api/admin/users?id=${id}`, { method: "DELETE" });
       if (!resp.ok) throw new Error(await resp.text());
+      
+      // Atualizar lista local e recarregar
       setRealUsers((prev) => prev.filter((u) => u.id !== id));
+      setAllUsers((prev) => prev.filter((u) => u.id !== id));
+      setCurrentPage(1); // Reset para primeira página
+      
+      // Recarregar para garantir sincronização
+      const listResp = await fetch(`/api/admin/users?page=1&limit=1000`);
+      const json = await listResp.json();
+      setRealUsers(json.users ?? []);
+      setAllUsers(json.users ?? []);
+      
       success("Usuário removido", "Registro excluído com sucesso.");
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -232,9 +265,14 @@ export default function AdminUsersPage() {
       const result = await resp.json();
       
       // refresh lista
-      const listResp = await fetch("/api/admin/users");
+      const listResp = await fetch(`/api/admin/users?page=1&limit=1000`);
       const json = await listResp.json();
       setRealUsers(json.users ?? []);
+      setAllUsers(json.users ?? []);
+      if (json.pagination) {
+        setTotalPages(json.pagination.totalPages || 1);
+        setTotalUsers(json.pagination.total || 0);
+      }
       
       success(result.message, `Usuário ${result.is_active ? 'ativado' : 'desativado'} com sucesso.`);
     } catch (e) {
@@ -280,15 +318,37 @@ export default function AdminUsersPage() {
 
 
 
-  // Função para filtrar usuários por aba
+  // Função para filtrar e buscar usuários
   const getFilteredUsers = () => {
-    if (activeTab === "all") {
-      return list;
+    let filtered = list;
+    
+    // Filtro por aba (role)
+    if (activeTab !== "all") {
+      filtered = filtered.filter(user => user.role === activeTab);
     }
-    return list.filter(user => user.role === activeTab);
+    
+    // Busca por nome ou email
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(user => 
+        (user.full_name?.toLowerCase().includes(query)) ||
+        (user.email?.toLowerCase().includes(query))
+      );
+    }
+    
+    return filtered;
   };
 
   const filteredUsers = getFilteredUsers();
+  
+  // Paginação dos resultados filtrados
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+  
+  // Recalcular total de páginas baseado nos resultados filtrados
+  const effectiveTotalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage));
 
   return (
     <Container fullWidth>
@@ -352,14 +412,30 @@ export default function AdminUsersPage() {
           </ModernCard>
         </div>
 
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <h2 className="text-lg font-semibold text-light-text dark:text-dark-text">Lista de usuários</h2>
-          <button 
-            onClick={()=>setOpenAdd(true)} 
-            className="h-10 px-4 rounded-lg bg-brand-accent text-white inline-flex items-center gap-2 hover:bg-brand-accent/90 transition-colors"
-          >
-            <Plus size={14}/> Adicionar usuário
-          </button>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            {/* Campo de busca */}
+            <div className="relative flex-1 sm:flex-initial sm:w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-light-muted dark:text-dark-muted" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1); // Reset para primeira página ao buscar
+                }}
+                placeholder="Buscar por nome ou email..."
+                className="w-full pl-10 pr-4 py-2 h-10 rounded-lg bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border text-light-text dark:text-dark-text focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20"
+              />
+            </div>
+            <button 
+              onClick={()=>setOpenAdd(true)} 
+              className="h-10 px-4 rounded-lg bg-brand-accent text-white inline-flex items-center gap-2 hover:bg-brand-accent/90 transition-colors whitespace-nowrap"
+            >
+              <Plus size={14}/> Adicionar usuário
+            </button>
+          </div>
         </div>
 
         {/* Abas de Filtro */}
@@ -367,7 +443,10 @@ export default function AdminUsersPage() {
           <div className="border-b border-gray-200 dark:border-gray-700">
             <nav className="-mb-px flex space-x-8">
               <button
-                onClick={() => setActiveTab("all")}
+                onClick={() => {
+                  setActiveTab("all");
+                  setCurrentPage(1); // Reset para primeira página ao mudar aba
+                }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "all"
                     ? "border-blue-500 text-blue-600 dark:text-blue-400"
@@ -377,7 +456,10 @@ export default function AdminUsersPage() {
                 Todos ({list.length})
               </button>
               <button
-                onClick={() => setActiveTab("admin")}
+                onClick={() => {
+                  setActiveTab("admin");
+                  setCurrentPage(1); // Reset para primeira página ao mudar aba
+                }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "admin"
                     ? "border-red-500 text-red-600 dark:text-red-400"
@@ -387,7 +469,10 @@ export default function AdminUsersPage() {
                 Administradores ({list.filter(u => u.role === "admin").length})
               </button>
               <button
-                onClick={() => setActiveTab("aluno")}
+                onClick={() => {
+                  setActiveTab("aluno");
+                  setCurrentPage(1); // Reset para primeira página ao mudar aba
+                }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "aluno"
                     ? "border-green-500 text-green-600 dark:text-green-400"
@@ -397,7 +482,10 @@ export default function AdminUsersPage() {
                 Alunos ({list.filter(u => u.role === "aluno").length})
               </button>
               <button
-                onClick={() => setActiveTab("profissional")}
+                onClick={() => {
+                  setActiveTab("profissional");
+                  setCurrentPage(1); // Reset para primeira página ao mudar aba
+                }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "profissional"
                     ? "border-blue-500 text-blue-600 dark:text-blue-400"
@@ -423,7 +511,7 @@ export default function AdminUsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredUsers.map((u) => (
+              {paginatedUsers.map((u) => (
                 <TableRow key={u.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
@@ -467,17 +555,82 @@ export default function AdminUsersPage() {
                   </TableCell>
                 </TableRow>
               ))}
-              {filteredUsers.length===0 && (
+              {paginatedUsers.length===0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center text-light-muted dark:text-dark-muted">
+                  <TableCell colSpan={6} className="py-12 text-center text-light-muted dark:text-dark-muted">
                     <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <div className="text-lg font-medium mb-1">Nenhum usuário encontrado</div>
-                    <div className="text-sm">Comece adicionando um novo usuário</div>
+                    <div className="text-lg font-medium mb-1">
+                      {searchQuery.trim() ? "Nenhum usuário encontrado" : "Nenhum usuário encontrado"}
+                    </div>
+                    <div className="text-sm">
+                      {searchQuery.trim() 
+                        ? "Tente ajustar os filtros de busca" 
+                        : "Comece adicionando um novo usuário"}
+                    </div>
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
+          
+          {/* Paginação */}
+          {filteredUsers.length > 0 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-light-border dark:border-dark-border">
+              <div className="text-sm text-light-muted dark:text-dark-muted">
+                Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, filteredUsers.length)} de {filteredUsers.length} usuário{filteredUsers.length !== 1 ? 's' : ''}
+                {searchQuery.trim() && totalUsers > filteredUsers.length && ` (filtrado de ${totalUsers} total)`}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="h-9 px-3 rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text hover:bg-light-border/50 dark:hover:bg-dark-border/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-1"
+                >
+                  <ChevronLeft size={16} />
+                  Anterior
+                </button>
+                
+                {/* Números de página */}
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, effectiveTotalPages) }, (_, i) => {
+                    let pageNum;
+                    if (effectiveTotalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= effectiveTotalPages - 2) {
+                      pageNum = effectiveTotalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`h-9 w-9 rounded-lg border transition-colors ${
+                          currentPage === pageNum
+                            ? "bg-brand-accent text-white border-brand-accent"
+                            : "border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text hover:bg-light-border/50 dark:hover:bg-dark-border/50"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(effectiveTotalPages, prev + 1))}
+                  disabled={currentPage >= effectiveTotalPages}
+                  className="h-9 px-3 rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text dark:text-dark-text hover:bg-light-border/50 dark:hover:bg-dark-border/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-1"
+                >
+                  Próxima
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
         </ModernCard>
 
         <Modal open={openAdd} onClose={()=>setOpenAdd(false)}>
@@ -572,9 +725,14 @@ export default function AdminUsersPage() {
                     if (!resp.ok) throw new Error(await resp.text());
                     setOpenEdit(false);
                     // refresh lista
-                    const listResp = await fetch("/api/admin/users");
+                    const listResp = await fetch(`/api/admin/users?page=1&limit=1000`);
                     const json = await listResp.json();
                     setRealUsers(json.users ?? []);
+                    setAllUsers(json.users ?? []);
+                    if (json.pagination) {
+                      setTotalPages(json.pagination.totalPages || 1);
+                      setTotalUsers(json.pagination.total || 0);
+                    }
                     success("Usuário atualizado", "Alterações salvas.");
                   } catch (e) {
                     const msg = e instanceof Error ? e.message : String(e);
