@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, cloneElement, isValidElement } from "react";
 import { cn } from "@/lib/utils";
 
 interface PopoverProps {
@@ -45,9 +45,9 @@ export function Popover({
     };
   }, [isOpen]);
 
-  const handleTriggerClick = () => {
+  const handleTriggerClick = (e: React.MouseEvent) => {
     if (trigger === "click") {
-      setIsOpen(!isOpen);
+      setIsOpen(prev => !prev);
     }
   };
 
@@ -85,17 +85,45 @@ export function Popover({
     return `${sideClasses[side]} ${alignClasses[align]} ${mobileClasses}`;
   };
 
-  return (
-    <div className="relative inline-block">
+  // Clonar o elemento filho para injetar o handler de clique diretamente
+  const triggerElement = isValidElement(children)
+    ? cloneElement(children as React.ReactElement<any>, {
+        onClick: (e: React.MouseEvent) => {
+          handleTriggerClick(e);
+          // Preservar o onClick original se existir
+          const originalOnClick = (children as any).props?.onClick;
+          if (originalOnClick) {
+            originalOnClick(e);
+          }
+        },
+        onMouseEnter: handleMouseEnter,
+        onMouseLeave: handleMouseLeave,
+        ref: (node: HTMLElement | null) => {
+          triggerRef.current = node as HTMLDivElement;
+          // Preservar o ref original se existir
+          const originalRef = (children as any).ref;
+          if (typeof originalRef === 'function') {
+            originalRef(node);
+          } else if (originalRef) {
+            originalRef.current = node;
+          }
+        },
+      })
+    : (
       <div
         ref={triggerRef}
         onClick={handleTriggerClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className="cursor-pointer"
+        className="cursor-pointer inline-block"
       >
         {children}
       </div>
+    );
+
+  return (
+    <div className="relative inline-block">
+      {triggerElement}
 
       {isOpen && (
         <div

@@ -19,7 +19,6 @@ import {
   CalendarDays,
   Library,
   UsersRound,
-  PlayCircle,
   Mountain,
   HelpCircle,
   Bot,
@@ -174,7 +173,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             )}
 
             {/* Events Section */}
-            {inEvents && (
+            {inEvents && !loading && isAdmin && (
               <div className="pt-4 mt-4">
                 <div className="px-4 py-2">
                   <h3 className="text-xs font-semibold text-light-muted dark:text-dark-muted uppercase tracking-wider">
@@ -182,8 +181,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                   </h3>
                 </div>
                 <div className="space-y-1">
-                  <MenuItem href="/events/history" label="Lives realizadas" icon={PlayCircle} onClick={onClose} />
-                  {!loading && isAdmin && <MenuItem href="/events/calendar" label="Calendário" icon={CalendarDays} onClick={onClose} />}
+                  <MenuItem href="/events/calendar" label="Calendário" icon={CalendarDays} onClick={onClose} />
                 </div>
               </div>
             )}

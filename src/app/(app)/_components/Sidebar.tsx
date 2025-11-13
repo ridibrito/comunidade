@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, BookOpen, Library, UsersRound, PlayCircle, Mountain, HelpCircle, ShieldCheck, Settings, BarChart3, ImageIcon, Bell, Shield, Upload, History, Link as LinkIcon, Database, Bot } from "lucide-react";
+import { BookOpen, Library, UsersRound, Mountain, HelpCircle, ShieldCheck, Settings, BarChart3, ImageIcon, Bell, Shield, Upload, History, Link as LinkIcon, Database, Bot } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -14,9 +14,8 @@ export function Sidebar() {
   const [loading, setLoading] = useState(true);
   // Determine current section for dynamic internal menu
   const inCatalog = pathname.startsWith("/catalog");
-  const inEvents = pathname.startsWith("/events");
   const inAdmin = pathname.startsWith("/admin");
-  const show = (inCatalog || inEvents || inAdmin);
+  const show = (inCatalog || inAdmin);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -84,12 +83,6 @@ export function Sidebar() {
                 {item("/catalog/acervo-digital", "Acervo digital", pathname.startsWith("/catalog/acervo-digital"), Library)}
                 {item("/catalog/rodas-de-conversa", "Rodas de conversa", pathname.startsWith("/catalog/rodas-de-conversa"), UsersRound)}
                 {item("/catalog/plantao-de-duvidas", "Plantão de dúvidas", pathname.startsWith("/catalog/plantao-de-duvidas"), HelpCircle)}
-              </>
-            )}
-            {inEvents && (
-              <>
-                {item("/events/history", "Lives realizadas", pathname.startsWith("/events/history"), PlayCircle)}
-                {item("/events/calendar", "Calendário", pathname.startsWith("/events/calendar"), CalendarDays)}
               </>
             )}
             {inAdmin && !loading && isAdmin && (
