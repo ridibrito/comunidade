@@ -91,9 +91,7 @@ export function Sidebar() {
             {inEvents && (
               <>
                 {item("/events/history", "Lives realizadas", pathname.startsWith("/events/history"), PlayCircle)}
-                {/** Calendário oculto nesta branch
-                {item("/events/calendar", "Calendário", pathname.startsWith("/events/calendar"), CalendarDays)}
-                **/}
+                {!loading && isAdmin && item("/events/calendar", "Calendário", pathname.startsWith("/events/calendar"), CalendarDays)}
               </>
             )}
             {inAdmin && !loading && isAdmin && (

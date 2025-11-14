@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { UserMenu } from "./UserMenu";
 
@@ -8,9 +8,49 @@ import { Calendar, Menu } from "lucide-react";
 import { NotificationBell } from "@/components/ui/NotificationSystem";
 import { MobileMenu } from "./MobileMenu";
 import { cn } from "@/lib/utils";
+import { getBrowserSupabaseClient } from "@/lib/supabase";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const supabase = getBrowserSupabaseClient();
+      if (!supabase) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setIsAdmin(false);
+          setLoading(false);
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_admin, role")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        type ProfileRow = { is_admin?: boolean | null; role?: string | null } | null;
+        const pr = (profile as ProfileRow) || null;
+        const userIsAdmin = Boolean(pr?.is_admin) || (pr?.role === "admin");
+        setIsAdmin(userIsAdmin);
+      } catch (error) {
+        console.error("Erro ao verificar status de admin:", error);
+        setIsAdmin(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, []);
 
   return (
     <>
@@ -48,16 +88,15 @@ export function Navbar() {
           <nav className="flex items-center gap-3 pr-1">
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-3">
-              {/* Ícone de Calendário - oculto nesta branch */}
-              {/**
-              <Link 
-                href="/calendar" 
-                className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors cursor-pointer hover-brand-subtle text-light-muted dark:text-dark-muted"
-                title="Calendário de Eventos"
-              >
-                <Calendar size={18} />
-              </Link>
-              **/}
+              {!loading && isAdmin && (
+                <Link 
+                  href="/calendar" 
+                  className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors cursor-pointer hover-brand-subtle text-light-muted dark:text-dark-muted"
+                  title="Calendário de Eventos"
+                >
+                  <Calendar size={18} />
+                </Link>
+              )}
               {/* Sistema de Notificações */}
               <NotificationBell />
               

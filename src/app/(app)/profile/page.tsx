@@ -8,8 +8,8 @@ import { formatPhoneBR, formatCEP, formatUF } from "@/lib/masks";
 import Container from "@/components/ui/Container";
 import Section from "@/components/ui/Section";
 import PageHeader from "@/components/ui/PageHeader";
-import Card from "@/components/ui/Card";
-import { UserCircle, UsersRound, ClipboardList, CalendarDays, BookOpen, Camera, Plus, FileText, TrendingUp, Eye, EyeOff } from "lucide-react";
+import ModernCard from "@/components/ui/ModernCard";
+import { UserCircle, UsersRound, ClipboardList, CalendarDays, BookOpen, Camera, Plus, FileText, TrendingUp, Eye, EyeOff, Mail, Phone, MapPin, Lock, Save, CheckCircle2 } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/Avatar";
@@ -176,7 +176,7 @@ export default function ProfilePage() {
     <Container fullWidth>
       <div className="flex h-full">
         {/* Sidebar para navegação adicional - mesmo estilo do sidebar principal */}
-        <aside className="hidden md:block shrink-0 h-screen bg-light-surface dark:bg-dark-surface transition-all duration-300 shadow-sm w-[240px] xl:w-[280px] p-4">
+        <aside className="hidden md:block shrink-0 h-screen bg-light-surface transition-all duration-300 shadow-sm w-[240px] xl:w-[280px] p-4">
           <div className="mb-2" />
           <ul className="text-sm space-y-2">
             {/* Informações Pessoais */}
@@ -184,11 +184,11 @@ export default function ProfilePage() {
               <a
                 href="/profile"
                 className={`flex items-center gap-3 rounded-xl transition-colors px-4 py-3 cursor-pointer w-full text-left ${
-                  "active-brand-subtle text-brand-accent"
+                  "active-brand-subtle text-purple-600"
                 }`}
               >
-                <UserCircle size={18} className={"text-purple-600 dark:text-purple-400"} />
-                <span className={"text-purple-600 dark:text-purple-400"}>Responsável</span>
+                <UserCircle size={18} className={"text-purple-600"} />
+                <span className={"text-purple-600"}>Responsável</span>
               </a>
             </li>
             
@@ -240,139 +240,246 @@ export default function ProfilePage() {
         </aside>
 
         <Section>
-          <PageHeader title="Meu perfil" subtitle="Gerencie seus dados pessoais, avatar e senha." />
+          <PageHeader 
+            title="Meu Perfil" 
+            subtitle="Gerencie suas informações pessoais, avatar e configurações de segurança" 
+          />
           
-          <div className="space-y-6">
-            <Card className="shadow-md rounded-lg py-12 px-8 border-0">
-              <div className="grid gap-8 xl:grid-cols-[300px_1fr]">
-                <div className="flex flex-col items-center">
-                  <div className="relative w-44 h-44 rounded-full overflow-hidden bg-light-border/30 dark:bg-dark-border/30 group shadow-md">
-                    <Avatar className="w-full h-full">
-                      {avatarUrl && <AvatarImage src={avatarUrl} alt="Avatar" />}
-                      <AvatarFallback className="text-2xl font-medium text-light-text dark:text-dark-text bg-light-border/50 dark:bg-dark-border/50">
-                        {fullName ? fullName.split(' ').map(n => n[0]).join('').toUpperCase() : '👤'}
-                      </AvatarFallback>
-                    </Avatar>
-                    {/* Spinner de upload */}
-                    {uploading && (
-                      <div className="absolute inset-0 bg-black/40 full flex items-center justify-center">
-                        <div className="w-7 h-7 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+          <div className="space-y-8">
+            {/* Card de Informações Pessoais */}
+            <ModernCard variant="elevated" className="overflow-hidden border-0 bg-gradient-to-br from-white to-gray-50/50">
+              <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
+                {/* Seção do Avatar */}
+                <div className="flex flex-col items-center lg:items-start">
+                  <div className="relative group">
+                    <div className="relative w-48 h-48">
+                      {/* Container do avatar com borda gradiente */}
+                      <div className="w-48 h-48 rounded-full overflow-hidden bg-gradient-to-br from-brand-accent/20 to-brand-accent/10 p-1 shadow-lg">
+                        <div className="w-full h-full rounded-full overflow-hidden bg-white">
+                          <Avatar className="w-full h-full rounded-full">
+                            {avatarUrl && <AvatarImage src={avatarUrl} alt="Avatar" className="object-cover rounded-full" />}
+                            <AvatarFallback className="text-4xl font-bold text-brand-accent bg-gradient-to-br from-brand-accent/10 to-brand-accent/5 rounded-full">
+                              {fullName ? fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '👤'}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                        
+                        {/* Overlay de upload */}
+                        {uploading && (
+                          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center rounded-full z-10">
+                            <div className="w-10 h-10 rounded-full border-3 border-white/30 border-t-white animate-spin" />
+                          </div>
+                        )}
                       </div>
-                    )}
-                    {/* Botão de câmera sempre visível */}
-                    <label className="absolute bottom-2 right-2 inline-flex items-center justify-center w-9 h-9 rounded-full bg-brand-accent text-white shadow-sm cursor-pointer hover:bg-brand-accent/90 transition-colors">
-                      <Camera size={16} />
-                      <input type="file" accept="image/*" className="hidden" onChange={onUploadAvatar} />
-                    </label>
+                      
+                      {/* Botão de upload moderno - posicionado fora do container com overflow */}
+                      <label className="absolute bottom-0 right-0 inline-flex items-center justify-center w-12 h-12 rounded-full bg-brand-accent text-white shadow-xl cursor-pointer hover:bg-brand-accent/90 hover:scale-110 hover:shadow-2xl transition-all duration-300 z-20 border-2 border-white">
+                        <Camera size={20} />
+                        <input type="file" accept="image/*" className="hidden" onChange={onUploadAvatar} />
+                      </label>
+                    </div>
+                    
+                    <div className="mt-6 text-center lg:text-left">
+                      <h2 className="text-2xl font-bold text-light-text mb-1">
+                        {fullName || "Usuário"}
+                      </h2>
+                      <p className="text-sm text-light-muted flex items-center gap-2 justify-center lg:justify-start">
+                        <Mail size={14} />
+                        {email || "email@exemplo.com"}
+                      </p>
+                      <p className="text-xs text-light-muted mt-2">
+                        Clique no ícone da câmera para atualizar sua foto
+                      </p>
+                    </div>
                   </div>
-                  <p className="mt-2 text-xs text-light-muted dark:text-dark-muted text-center">Clique no ícone para atualizar</p>
                 </div>
                 
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Nome completo</Label>
-                    <Input 
-                      id="fullName"
-                      value={fullName} 
-                      onChange={(e) => setFullName(e.target.value)} 
-                      className="bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-brand-accent/20" 
-                    />
+                {/* Formulário de Informações */}
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-light-text mb-1 flex items-center gap-2">
+                      <UserCircle size={20} className="text-brand-accent" />
+                      Informações Pessoais
+                    </h3>
+                    <p className="text-sm text-light-muted mb-6">
+                      Atualize suas informações de contato e endereço
+                    </p>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="email">E‑mail</Label>
-                    <Input 
-                      id="email"
-                      value={email ?? ""} 
-                      disabled 
-                      className="bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-brand-accent/20" 
-                    />
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label htmlFor="fullName" className="text-sm font-medium flex items-center gap-2">
+                        <UserCircle size={14} className="text-brand-accent" />
+                        Nome completo
+                      </Label>
+                      <Input 
+                        id="fullName"
+                        value={fullName} 
+                        onChange={(e) => setFullName(e.target.value)} 
+                        className="h-11 bg-white border-gray-200 focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 transition-all" 
+                        placeholder="Seu nome completo"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-sm font-medium flex items-center gap-2">
+                        <Mail size={14} className="text-brand-accent" />
+                        E-mail
+                      </Label>
+                      <Input 
+                        id="email"
+                        value={email ?? ""} 
+                        disabled 
+                        className="h-11 bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed" 
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-sm font-medium flex items-center gap-2">
+                        <Phone size={14} className="text-brand-accent" />
+                        Telefone
+                      </Label>
+                      <MaskedInput 
+                        value={phone} 
+                        onChange={setPhone} 
+                        mask={formatPhoneBR} 
+                        placeholder="(00) 00000-0000" 
+                        className="h-11 bg-white border-gray-200 focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 transition-all" 
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="zip" className="text-sm font-medium flex items-center gap-2">
+                        <MapPin size={14} className="text-brand-accent" />
+                        CEP
+                      </Label>
+                      <MaskedInput 
+                        value={zip} 
+                        onChange={setZip} 
+                        mask={formatCEP} 
+                        placeholder="00000-000" 
+                        className="h-11 bg-white border-gray-200 focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 transition-all" 
+                      />
+                    </div>
+                    
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label htmlFor="street" className="text-sm font-medium flex items-center gap-2">
+                        <MapPin size={14} className="text-brand-accent" />
+                        Logradouro
+                      </Label>
+                      <Input 
+                        id="street"
+                        value={street} 
+                        onChange={(e) => setStreet(e.target.value)} 
+                        className="h-11 bg-white border-gray-200 focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 transition-all" 
+                        placeholder="Rua, Avenida, etc."
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="number" className="text-sm font-medium">Número</Label>
+                      <Input 
+                        id="number"
+                        value={number} 
+                        onChange={(e) => setNumber(e.target.value)} 
+                        className="h-11 bg-white border-gray-200 focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 transition-all" 
+                        placeholder="123"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="complement" className="text-sm font-medium">Complemento</Label>
+                      <Input 
+                        id="complement"
+                        value={complement} 
+                        onChange={(e) => setComplement(e.target.value)} 
+                        className="h-11 bg-white border-gray-200 focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 transition-all" 
+                        placeholder="Apto, Bloco, etc."
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="district" className="text-sm font-medium">Bairro</Label>
+                      <Input 
+                        id="district"
+                        value={district} 
+                        onChange={(e) => setDistrict(e.target.value)} 
+                        className="h-11 bg-white border-gray-200 focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 transition-all" 
+                        placeholder="Nome do bairro"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="city" className="text-sm font-medium">Cidade</Label>
+                      <Input 
+                        id="city"
+                        value={city} 
+                        onChange={(e) => setCity(e.target.value)} 
+                        className="h-11 bg-white border-gray-200 focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 transition-all" 
+                        placeholder="Nome da cidade"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="state" className="text-sm font-medium">UF</Label>
+                      <MaskedInput 
+                        value={stateUF} 
+                        onChange={setStateUF} 
+                        mask={formatUF} 
+                        placeholder="UF" 
+                        className="h-11 bg-white border-gray-200 focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 transition-all" 
+                      />
+                    </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Telefone</Label>
-                    <MaskedInput value={phone} onChange={setPhone} mask={formatPhoneBR} placeholder="(00) 00000-0000" className="border-light-border/50 dark:border-dark-border/50 focus:border-brand-accent/50 focus:ring-brand-accent/20" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="zip">CEP</Label>
-                    <MaskedInput value={zip} onChange={setZip} mask={formatCEP} placeholder="00000-000" className="border-light-border/50 dark:border-dark-border/50 focus:border-brand-accent/50 focus:ring-brand-accent/20" />
-                  </div>
-                  
-                  <div className="space-y-2 lg:col-span-2">
-                    <Label htmlFor="street">Logradouro</Label>
-                    <Input 
-                      id="street"
-                      value={street} 
-                      onChange={(e) => setStreet(e.target.value)} 
-                      className="bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-brand-accent/20" 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="number">Número</Label>
-                    <Input 
-                      id="number"
-                      value={number} 
-                      onChange={(e) => setNumber(e.target.value)} 
-                      className="bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-brand-accent/20" 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="complement">Complemento</Label>
-                    <Input 
-                      id="complement"
-                      value={complement} 
-                      onChange={(e) => setComplement(e.target.value)} 
-                      className="bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-brand-accent/20" 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="district">Bairro</Label>
-                    <Input 
-                      id="district"
-                      value={district} 
-                      onChange={(e) => setDistrict(e.target.value)} 
-                      className="bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-brand-accent/20" 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="city">Cidade</Label>
-                    <Input 
-                      id="city"
-                      value={city} 
-                      onChange={(e) => setCity(e.target.value)} 
-                      className="bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-brand-accent/20" 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="state">UF</Label>
-                    <MaskedInput value={stateUF} onChange={setStateUF} mask={formatUF} placeholder="UF" className="border-light-border/50 dark:border-dark-border/50 focus:border-brand-accent/50 focus:ring-brand-accent/20" />
-                  </div>
-                  
-                  <div className="mt-6 lg:col-span-3">
-                    <Button onClick={onSave} className="bg-brand-accent text-white hover:bg-brand-accent/90 transition-colors w-full sm:w-auto">
-                      Salvar alterações
+                  <div className="pt-4 border-t border-gray-200">
+                    <Button 
+                      onClick={onSave} 
+                      disabled={loading}
+                      className="bg-brand-accent text-white hover:bg-brand-accent/90 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed h-11 px-6"
+                    >
+                      {loading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                          Salvando...
+                        </>
+                      ) : (
+                        <>
+                          <Save size={18} className="mr-2" />
+                          Salvar alterações
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
               </div>
-            </Card>
+            </ModernCard>
 
-            <Card className="shadow-md rounded-lg p-12 border-0">
+            {/* Card de Segurança */}
+            <ModernCard variant="elevated" className="border-0 bg-gradient-to-br from-white to-gray-50/50">
               <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">Alterar senha</h3>
-                  <p className="text-sm text-light-muted dark:text-dark-muted">Defina uma nova senha segura para sua conta</p>
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-brand-accent/10">
+                    <Lock size={24} className="text-brand-accent" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-light-text mb-1">
+                      Segurança e Senha
+                    </h3>
+                    <p className="text-sm text-light-muted">
+                      Defina uma nova senha segura para proteger sua conta
+                    </p>
+                  </div>
                 </div>
                 
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <Separator className="bg-gray-200" />
+                
+                <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="password">Nova senha</Label>
+                    <Label htmlFor="password" className="text-sm font-medium flex items-center gap-2">
+                      <Lock size={14} className="text-brand-accent" />
+                      Nova senha
+                    </Label>
                     <div className="relative">
                       <Input 
                         id="password"
@@ -380,12 +487,13 @@ export default function ProfilePage() {
                         placeholder="Mínimo 8 caracteres" 
                         value={pwd} 
                         onChange={(e) => setPwd(e.target.value)} 
-                        className="bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-brand-accent/20 pr-10" 
+                        className="h-11 bg-white border-gray-200 focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 transition-all pr-10" 
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text transition-colors"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                       >
                         {showPassword ? (
                           <EyeOff size={18} />
@@ -397,7 +505,10 @@ export default function ProfilePage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirmar senha</Label>
+                    <Label htmlFor="confirmPassword" className="text-sm font-medium flex items-center gap-2">
+                      <CheckCircle2 size={14} className="text-brand-accent" />
+                      Confirmar senha
+                    </Label>
                     <div className="relative">
                       <Input 
                         id="confirmPassword"
@@ -405,12 +516,13 @@ export default function ProfilePage() {
                         placeholder="Digite a senha novamente" 
                         value={pwdConfirm} 
                         onChange={(e) => setPwdConfirm(e.target.value)} 
-                        className="bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50 text-light-text dark:text-dark-text focus:border-brand-accent/50 focus:ring-brand-accent/20 pr-10" 
+                        className="h-11 bg-white border-gray-200 focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 transition-all pr-10" 
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text transition-colors"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        aria-label={showConfirmPassword ? "Ocultar senha" : "Mostrar senha"}
                       >
                         {showConfirmPassword ? (
                           <EyeOff size={18} />
@@ -422,17 +534,34 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 
-                <div className="text-xs text-light-muted dark:text-dark-muted">
-                  A senha deve ter ao menos 8 caracteres.
+                <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                  <p className="text-xs text-blue-700 flex items-start gap-2">
+                    <Lock size={14} className="mt-0.5 flex-shrink-0" />
+                    <span>A senha deve ter ao menos 8 caracteres e conter letras, números e caracteres especiais para maior segurança.</span>
+                  </p>
                 </div>
                 
-                <div className="lg:col-span-3">
-                  <Button onClick={onSave} className="bg-brand-accent text-white hover:bg-brand-accent/90 transition-colors w-full sm:w-auto">
-                    Salvar senha
+                <div className="pt-2">
+                  <Button 
+                    onClick={onSave} 
+                    disabled={loading || (!pwd && !pwdConfirm)}
+                    className="bg-brand-accent text-white hover:bg-brand-accent/90 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed h-11 px-6"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                        Salvando...
+                      </>
+                    ) : (
+                      <>
+                        <Lock size={18} className="mr-2" />
+                        Salvar senha
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
-            </Card>
+            </ModernCard>
           </div>
         </Section>
       </div>

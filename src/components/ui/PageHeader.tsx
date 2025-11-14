@@ -33,14 +33,16 @@ export default function PageHeader({ title, subtitle, description, icon, iconCla
   return (
     <div className="pt-0 px-0">
       {renderedIcon ? (
-        <div className="flex items-center gap-2 mb-2">
-          {renderedIcon}
-          <h1 className="page-title font-display text-light-text dark:text-dark-text">{title}</h1>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="flex-shrink-0 flex items-center justify-center">
+            {renderedIcon}
+          </div>
+          <h1 className="page-title font-display text-light-text m-0 leading-tight">{title}</h1>
         </div>
       ) : (
-        <h1 className="page-title font-display mb-2 text-light-text dark:text-dark-text">{title}</h1>
+        <h1 className="page-title font-display mb-2 text-light-text">{title}</h1>
       )}
-      {resolvedSubtitle ? <p className="text-light-muted dark:text-dark-muted text-lg mb-6">{resolvedSubtitle}</p> : null}
+      {resolvedSubtitle ? <p className="text-light-muted text-lg mb-6">{resolvedSubtitle}</p> : null}
     </div>
   );
 }
