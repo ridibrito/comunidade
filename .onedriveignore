@@ -1,0 +1,40 @@
+# OneDrive ignore file
+# This file helps prevent OneDrive from syncing build artifacts and cache files
+
+# Next.js build output
+.next/
+.next/**
+out/
+out/**
+
+# Node modules
+node_modules/
+node_modules/**
+
+# Build artifacts
+build/
+dist/
+*.tsbuildinfo
+
+# Cache directories
+.cache/
+.turbo/
+.nuxt/
+.vuepress/dist/
+
+# Environment files
+.env.local
+.env*.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
