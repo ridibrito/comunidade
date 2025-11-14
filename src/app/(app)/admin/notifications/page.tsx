@@ -537,21 +537,21 @@ export default function AdminNotificationsPage() {
   return (
     <Container fullWidth>
       <Section>
-        <PageHeader
-          title="Painel de notificacoes"
-          subtitle="Acompanhe envios, configure alertas e acione comunicados para a comunidade."
-          icon={<Bell className="h-8 w-8 text-brand-accent" />}
-          actions={
-            <Button
-              variant="outline"
-              onClick={() => {
-                fetchNotifications(pagination.page);
-              }}
-            >
-              <RefreshCw className="mr-2 h-4 w-4" /> Atualizar
-            </Button>
-          }
-        />
+        <div className="flex items-center justify-between mb-6">
+          <PageHeader
+            title="Painel de notificacoes"
+            subtitle="Acompanhe envios, configure alertas e acione comunicados para a comunidade."
+            icon={<Bell className="h-8 w-8 text-brand-accent" />}
+          />
+          <Button
+            variant="outline"
+            onClick={() => {
+              fetchNotifications(pagination.page);
+            }}
+          >
+            <RefreshCw className="mr-2 h-4 w-4" /> Atualizar
+          </Button>
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-6">
           <MetricCard

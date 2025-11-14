@@ -256,7 +256,7 @@ export default function AdminMountainsPage() {
           setContentForm(prev => ({ ...prev, video_url: url }));
           push({ 
             message: '⚠️ Não foi possível carregar a duração automaticamente. Verifique se o vídeo está público ou preencha manualmente.', 
-            variant: 'warning' 
+            variant: 'info' 
           });
         }
       } catch (error) {

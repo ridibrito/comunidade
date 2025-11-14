@@ -347,7 +347,10 @@ export default function MontanhaAmanhaPage() {
 
       <Section>
         <div className="pt-0 px-0">
-          <SectionTitle title="Montanha do Amanhã" icon={Mountain} className="mb-2" />
+          <SectionTitle className="mb-2 flex items-center gap-2">
+            <Mountain className="w-6 h-6" />
+            Montanha do Amanhã
+          </SectionTitle>
           <p className="text-light-muted dark:text-dark-muted text-lg mb-6">Trilhas educacionais para desenvolvimento integral</p>
         </div>
         <div className="space-y-12">

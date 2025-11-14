@@ -449,7 +449,10 @@ export default function WatchClient({ slug }: { slug: string }) {
           .select('slug')
           .eq('id', (mod as any).trails.page_id)
           .single();
-        if (pageData?.slug) setParentPageSlug(pageData.slug);
+        const pageSlug = (pageData as { slug?: string } | null)?.slug;
+        if (pageSlug) {
+          setParentPageSlug(pageSlug);
+        }
       }
       
       const { data: l, error: lessonsError } = await supabase
